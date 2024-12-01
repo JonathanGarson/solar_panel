@@ -40,7 +40,10 @@ This project questions the effiency of targeted tariffs to reduce dependency to 
 
 Here we develop and comment on the different data used in this project.
 
-|Data|Availibity|Year coverage|
+| Data    | Availibity    | Producer   |
+|-------------|-------------|-------------|
+| BACI | Public | CEPII |
+
 
 ## Replication
 
