@@ -33,7 +33,7 @@ This project questions the effiency of targeted tariffs to reduce dependency to 
     │       ├── files          <- contains the latex files to generate the paper and the paper in pdf format.
     │       └── tables         <- contains the tables in latex and pdf/png/etc. formats.
     │
-    └──codes                   <- Source code for use in this project.
+    └── codes                   <- Source code for use in this project.
     
 ------------
 ## Data availability
