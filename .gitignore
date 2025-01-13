@@ -1,0 +1,13 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Data types
+*.rds
+*.rda
+*.csv
+*.tsv
+*.xls
+*.xlsx
+*.parquet
