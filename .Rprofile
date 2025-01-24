@@ -3,11 +3,11 @@ if (Sys.getenv("USERNAME") == "jonat") {
   data_raw_path = "C:\\Users\\jonat\\Dropbox\\recherche\\master_thesis\\data\\raw\\"
   data_temp_path = "C:\\Users\\jonat\\Dropbox\\recherche\\master_thesis\\data\\temp\\"
   data_final_path = "C:\\Users\\jonat\\Dropbox\\recherche\\master_thesis\\data\\final\\"
-} else if (Sys.getenv("USERNAME") == "GARSON") {
+} else if (Sys.getenv("USER") == "GARSON") {
   setwd("/Users/GARSON/sciencespo/thesis/solar_panel")
-  data_raw_path = "/Users/GARSON/Dropbox/recherche/master_thesis/data/raw"
-  data_temp_path = "/Users/GARSON/Dropbox/recherche/master_thesis/data/temp"
-  data_final_path = "/Users/GARSON/Dropbox/recherche/master_thesis/data/final"
+  data_raw_path = "/Users/GARSON/Dropbox/recherche/master_thesis/data/raw/"
+  data_temp_path = "/Users/GARSON/Dropbox/recherche/master_thesis/data/temp/"
+  data_final_path = "/Users/GARSON/Dropbox/recherche/master_thesis/data/final/"
 } 
 
 data_raw = function(filename){
