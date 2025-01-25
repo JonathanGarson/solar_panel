@@ -61,13 +61,11 @@ So far for our analysis we use the following HS6 id (2002)
 | 854140| Electrical apparatus: photosensitive, including photovoltaic cells, whether or not assembled in modules or made up into panels, light emitting diodes | 
 | 854150 | Electrical apparatus: photosensitive semiconductor devices n.e.s. in heading no. 8541, including photovoltaic cells, whether or not assembled in modules or made up into panels |
 | 854190 | Electrical apparatus: parts for diodes, transistors and similar semiconductor devices and photosensitive semiconductor devices |
-| 853710 | Boards, panels, consoles, desks and other bases: for electric control or the distribution of electricity, (other than switching apparatus of heading no. 8517), for a voltage not exceeding 1000 volts |  
-| 853720 | Boards, panels, consoles, desks and other bases: for electric control or the distribution of electricity, (other than switching apparatus of heading no. 8517), for a voltage exceeding 1000 volts | 
+
 
 In question to integrate into the analysis:
 | Product    | HS6 (2002)    |
 |-------------|-------------|
-|854160|Crystals: mounted piezo-electric|
 |850610	|Cells and batteries: primary, manganese dioxide|
 |850630	|Cells and batteries: primary, mercuric oxide|
 |850640	|Cells and batteries: primary, silver oxide|
@@ -79,6 +77,9 @@ In question to integrate into the analysis:
 |850422	|Electrical transformers: liquid dielectric, having a power handling capacity exceeding 650kVA but not exceeding 10,000kVA|
 |850423	|Electrical transformers: liquid dielectric, having a power handling capacity exceeding 10,000kVA|
 |850431	|Electrical transformers: n.e.s. in item no. 8504.2, having a power handling capacity not exceeding 1kVA|
+| 853710 | Boards, panels, consoles, desks and other bases: for electric control or the distribution of electricity, (other than switching apparatus of heading no. 8517), for a voltage not exceeding 1000 volts |  
+| 853720 | Boards, panels, consoles, desks and other bases: for electric control or the distribution of electricity, (other than switching apparatus of heading no. 8517), for a voltage exceeding 1000 volts | 
+|854160|Crystals: mounted piezo-electric|
 |854411	|Insulated electric conductors: winding wire, of copper|
 |854419	|Insulated electric conductors: winding wire, (of other than copper)|
 |854420	|Insulated electric conductors: co-axial cable and other co-axial electric conductors|
@@ -89,6 +90,7 @@ In question to integrate into the analysis:
 |854459	|Insulated electric conductors: for a voltage exceeding 80 volts but not exceeding 1000 volts, not fitted with connectors|
 |854460	|Insulated electric conductors: for a voltage exceeding 1000 volts|
 |854470	|Insulated electric conductors: optical fibre cables|
+
 
 ### Figures
 

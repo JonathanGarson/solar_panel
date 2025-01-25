@@ -1,4 +1,4 @@
-list manufacturer
+List of manufacturers which need changes:
 
 TO MERGE:
 
@@ -21,6 +21,7 @@ SolarWorld Industries GmbH - SolarWorld Americas Inc - SolarWorld SW250 Mono - "
 "Silfab" - "Silfab Solar Inc."
 "Solaria" - "Solaria Corporation"
 Siliken - Siliken Canada - Siliken Manufacturing USA
+"Tesla Inc." - "Tesla - inc" - "SolarCity Corp" (integrated to Tesla in 2016) - produced by Hanwha and recently by Panasonic
 Zhejiang Global Group - Zhejiang Jingshang New Energy Technology - Zhejiang Kingdom Solar Energy Technic - Zhejiang Global Photovoltaic Technology
 "Znshine PV-Tech" - "ZNSHINE PV-TECH Co., Ltd."
 
@@ -48,9 +49,6 @@ SUNGEN International
 "Wenzhou Jingri Photovoltaic Technology"
 
 NON PRODUCER:
-"Tesla - inc"
-"Tesla Inc."
-"SolarCity Corp"
 "BIPV"
 
 
