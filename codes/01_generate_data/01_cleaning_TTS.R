@@ -280,6 +280,9 @@ ts[module_manufacturer_3 == "ZNSHINE PV-TECH Co., Ltd.", module_manufacturer_3 :
 ts[, module_manufacturer_1 := trimws(tolower(module_manufacturer_1))]
 ts[, module_manufacturer_2 := trimws(tolower(module_manufacturer_2))]
 ts[, module_manufacturer_3 := trimws(tolower(module_manufacturer_3))]
+ts[, module_model_1 := trimws(tolower(module_model_1))]
+ts[, module_model_2 := trimws(tolower(module_model_2))]
+ts[, module_model_3 := trimws(tolower(module_model_3))]
 
 #  New Columns ------------------------------------------------------------
 ts_long = melt(ts, 
@@ -293,6 +296,8 @@ ts_long[, module_manufacturer := fifelse(module_manufacturer == "-1", NA_charact
 ts_long = ts_long[!is.na(module_manufacturer) & !is.na(module_quantity)]
 
 # Aggregate sales by year and manufacturer
-ts_summary <- ts_long[, .(brand_sales_year = sum(module_quantity, na.rm = TRUE)), by = .(year, module_manufacturer)]
+ts_summary = ts_long[, .(brand_sales_year = sum(module_quantity, na.rm = TRUE)), by = .(year, module_manufacturer)]
+ts_summary = ts_summary[brand_sales_year >= 3000]
+
 write_parquet(ts_summary, data_temp("sales_year_brand.parquet"))
 
