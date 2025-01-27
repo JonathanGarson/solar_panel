@@ -1,4 +1,6 @@
-# This dataset propose a quick cleaning method for exploratory purpose only
+# This code clean the companies names and avoid to lose observations for mislabelling issues.
+
+gc()
 
 library(arrow)
 library(data.table)
@@ -30,18 +32,15 @@ NA_int_cols = c("efficiency_module_1", "efficiency_module_2", "efficiency_module
                 "module_quantity_1", "module_quantity_2", "module_quantity_3")
 ts[, (NA_int_cols) := lapply(.SD, function(x) fifelse(x == -1, NA_integer_, x)), .SDcols = NA_int_cols]
 
-
-# 
-# ts_f = ts[apply(ts[, ..string_filter] != , 1, all)]
-# ts_f = ts_f[apply(ts_f[, ..num_filter] != -1, 1, all)]
-# ts_f = ts_f[installation_date != "NaT",]
-
-# cleaning up memory 
-# rm(ts) 
-# gc()
+#dropping na
+na_cols = c("installation_date", "zip_code","installer_name", "module_manufacturer_1", 
+            "technology_module_1","efficiency_module_1","nameplate_capacity_module_1",
+            "module_quantity_1")
+ts = na.omit(ts, cols = na_cols)
 
 #adding a year column
 ts[, year := as.numeric(substr(installation_date, 8, 11))]
+ts[year %in% 2002:2023,]
 
 ## Merging data for module 1 manufacturer ----------------------------------
 #list of manufacturer to merge for module 1
@@ -284,20 +283,26 @@ ts[, module_model_1 := trimws(tolower(module_model_1))]
 ts[, module_model_2 := trimws(tolower(module_model_2))]
 ts[, module_model_3 := trimws(tolower(module_model_3))]
 
-#  New Columns ------------------------------------------------------------
-ts_long = melt(ts, 
-                measure.vars = list(
-                  module_quantity = c("module_quantity_1", "module_quantity_2", "module_quantity_3"),
-                  module_manufacturer = c("module_manufacturer_1", "module_manufacturer_2", "module_manufacturer_3")
-                ), 
-                variable.name = "module_type", 
-                value.name = c("module_quantity", "module_manufacturer"))
-ts_long[, module_manufacturer := fifelse(module_manufacturer == "-1", NA_character_, module_manufacturer)]
-ts_long = ts_long[!is.na(module_manufacturer) & !is.na(module_quantity)]
+# Reorganizing Tables -----------------------------------------------------
+cols = c("year","zip", "city", "state", "system_ID_1", "system_ID_2", "installation_date",
+         "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "customer_segment",
+         "expansion_system", "third_party_owned", "installer_name", 
+         "module_manufacturer_1", "module_model_1", "module_quantity_1", "technology_module_1",
+         "module_manufacturer_2", "module_model_2", "module_quantity_2", "technology_module_2",
+         "module_manufacturer_3", "module_model_3", "module_quantity_3", "technology_module_3",
+         "additional_modules", 
+         "nameplate_capacity_module_1","nameplate_capacity_module_2","nameplate_capacity_module_3",
+         "efficiency_module_1", "efficiency_module_2", "efficiency_module_3",
+         "inverter_manufacturer_2", "inverter_model_2","inverter_quantity_2",
+         "inverter_manufacturer_3", "inverter_model_3","inverter_quantity_3",
+         "additional_inverters", "micro_inverter_1","micro_inverter_2",
+         "micro_inverter_3", "built_in_meter_inverter_1","built_in_meter_inverter_2",
+         "built_in_meter_inverter_3", "output_capacity_inverter_1", "output_capacity_inverter_2",
+         "output_capacity_inverter_3", 
+         "DC_optimizer", "inverter_loading_ratio", "battery_manufacturer",
+         "battery_model","battery_rated_capacity_kW", "battery_rated_capacity_kWh",
+         "battery_price","technology_type")
 
-# Aggregate sales by year and manufacturer
-ts_summary = ts_long[, .(brand_sales_year = sum(module_quantity, na.rm = TRUE)), by = .(year, module_manufacturer)]
-ts_summary = ts_summary[brand_sales_year >= 3000]
+ts[, .SDcols = cols]
 
-write_parquet(ts_summary, data_temp("sales_year_brand.parquet"))
-
+write_parquet(ts,data_temp("TTS_clean_names.parquet"))
