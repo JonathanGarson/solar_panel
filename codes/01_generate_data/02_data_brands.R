@@ -45,20 +45,13 @@ ts_model = ts_model[, .(brand_model_year = uniqueN(model)), by = .(year, manufac
 
 # Average efficiency by Brand by year -------------------------------------
 
-test = unique(ts[year %in% 2002:2023, .(avg_eff_model_1 = mean(efficiency_module_1)), by = .(module_manufacturer_1, year)])
-
-test_2 = unique(ts[year %in% 2002:2023, .(avg_eff_model_2 = mean(efficiency_module_2)), by = .(module_manufacturer_2, year)])
-
-
-chinese_brand = c("trina solar", "canadian solar", "yingli energy (china)")
-concurrent_brand = c("rec solar", "maxeon - sunpower","lg electronics inc.")
-ggplot(test_2[module_manufacturer_2 %in% c(chinese_brand, concurrent_brand)], aes(x = year, y = avg_eff_model_2, color = module_manufacturer_2)) +
-  geom_line()
-
+ts_eff_1 = unique(ts[year %in% 2002:2023, .(avg_eff_model_1 = mean(efficiency_module_1)), by = .(module_manufacturer_1, year)])
+setnames(ts_eff_1, c("module_manufacturer_1", "avg_eff_model_1"), c("manufacturer", "avg_eff"))
 
 # Merge and Export data ------------------------------------------------------------
 
 ts_brands = merge(ts_sales, ts_model, by = c("manufacturer", "year"))
+ts_brands = merge(ts_sales, ts_eff_1, by = c("manufacturer", "year"))
 
-write_parquet(ts_summary, data_temp("sales_year_brand.parquet"))
+write_parquet(ts_brands, data_final("TTS_brands.parquet"))
 

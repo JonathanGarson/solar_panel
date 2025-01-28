@@ -29,18 +29,18 @@ ts[, (NA_char_cols) := lapply(.SD, function(x) fifelse(x == "-1", NA_character_,
 
 NA_int_cols = c("efficiency_module_1", "efficiency_module_2", "efficiency_module_3",
                 "nameplate_capacity_module_1", "nameplate_capacity_module_2", "nameplate_capacity_module_3",
-                "module_quantity_1", "module_quantity_2", "module_quantity_3")
+                "module_quantity_1", "module_quantity_2", "module_quantity_3",
+                "PV_system_size_DC")
 ts[, (NA_int_cols) := lapply(.SD, function(x) fifelse(x == -1, NA_integer_, x)), .SDcols = NA_int_cols]
 
 #dropping na
 na_cols = c("installation_date", "zip_code","installer_name", "module_manufacturer_1", 
             "technology_module_1","efficiency_module_1","nameplate_capacity_module_1",
-            "module_quantity_1")
+            "module_quantity_1", "PV_system_size_DC")
 ts = na.omit(ts, cols = na_cols)
 
 #adding a year column
 ts[, year := as.numeric(substr(installation_date, 8, 11))]
-ts[year %in% 2002:2023,]
 
 ## Merging data for module 1 manufacturer ----------------------------------
 #list of manufacturer to merge for module 1
@@ -303,6 +303,6 @@ cols = c("year","zip", "city", "state", "system_ID_1", "system_ID_2", "installat
          "battery_model","battery_rated_capacity_kW", "battery_rated_capacity_kWh",
          "battery_price","technology_type")
 
-ts[, .SDcols = cols]
+ts = ts[year %in% 2002:2023, .SDcols = cols]
 
 write_parquet(ts,data_temp("TTS_clean_names.parquet"))
