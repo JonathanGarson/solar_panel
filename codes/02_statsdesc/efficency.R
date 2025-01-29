@@ -52,7 +52,7 @@ efficiency_by_country <- ts_brands[, .(
 efficiency_by_country <- efficiency_by_country[!is.na(Country)]
 
 # Plot the trajectory of solar panel efficiency by country
-ggplot(efficiency_by_country, aes(x = year, y = avg_efficiency, color = Country)) +
+ggplot(efficiency_by_country[year %in% 2010:2022], aes(x = year, y = avg_efficiency, color = Country)) +
   geom_line(size = 1) +
   labs(
     title = "Trajectory of Solar Panel Efficiency between Brand Origin Country",

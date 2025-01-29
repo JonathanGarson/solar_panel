@@ -5,10 +5,11 @@ gc()
 library(arrow)
 library(data.table)
 library(ggplot2)
+library(zoo)
 
 # Load Data ---------------------------------------------------------------
 
-ts = read_parquet(data_raw("TTS.parquet"))
+ts = as.data.table(read_parquet(data_raw("TTS.parquet")))
 
 # Data Cleaning -----------------------------------------------------------
 
@@ -36,11 +37,21 @@ ts[, (NA_int_cols) := lapply(.SD, function(x) fifelse(x == -1, NA_integer_, x)),
 #dropping na
 na_cols = c("installation_date", "zip_code","installer_name", "module_manufacturer_1", 
             "technology_module_1","efficiency_module_1","nameplate_capacity_module_1",
-            "module_quantity_1", "PV_system_size_DC")
+            "module_quantity_1", "PV_system_size_DC", "rebate_or_grant")
 ts = na.omit(ts, cols = na_cols)
 
-#adding a year column
-ts[, year := as.numeric(substr(installation_date, 8, 11))]
+## Adding time columns -----------------------------------------------------
+ts[, year := as.numeric(substr(installation_date, 8, 11))] #adding a year column
+ts[, installation_date := as.Date(installation_date, format = "%d-%b-%Y")]
+ts[, year_quarter := as.yearqtr(installation_date, format = "%Y-%m-%d")]
+
+# ts[, year_quarter := fcase(
+#   substr(installation_date, 4, 6) %in% c("Jan","Feb", "Mar"), paste0(substr(installation_date, 8, 11), "q1"),
+#   substr(installation_date, 4, 6) %in% c("Apr","May", "Jun"), paste0(substr(installation_date, 8, 11), "q2"),
+#   substr(installation_date, 4, 6) %in% c("Jul","Aug", "Sep"), paste0(substr(installation_date, 8, 11), "q3"),
+#   substr(installation_date, 4, 6) %in% c("Oct","Nov", "Dec"), paste0(substr(installation_date, 8, 11), "q4"),
+#   default = NA_character_
+# )]
 
 ## Merging data for module 1 manufacturer ----------------------------------
 #list of manufacturer to merge for module 1
@@ -284,7 +295,7 @@ ts[, module_model_2 := trimws(tolower(module_model_2))]
 ts[, module_model_3 := trimws(tolower(module_model_3))]
 
 # Reorganizing Tables -----------------------------------------------------
-cols = c("year","zip", "city", "state", "system_ID_1", "system_ID_2", "installation_date",
+cols = c("year","year_quarter", "zip", "city", "state", "system_ID_1", "system_ID_2", "installation_date",
          "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "customer_segment",
          "expansion_system", "third_party_owned", "installer_name", 
          "module_manufacturer_1", "module_model_1", "module_quantity_1", "technology_module_1",

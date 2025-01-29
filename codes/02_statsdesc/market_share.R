@@ -19,6 +19,9 @@ ts_share = ts_brands[, .(country_share = share_country_brand/year_sales), by = .
 ggplot(ts_share[year %in% 2007:2022], aes(x = year, y = country_share, group = Country, color = Country)) +
   geom_line()
 
+#need to get the quarterly information
+#need data by firm
+
 ts_brands_alt = merge(ts_brands, top_manufacturer, by.x = "manufacturer", by.y = "Manufacturer")
 ts_brands_alt = ts_brands_alt[manufacturer %in% c("ja solar", "jinko solar")]
 ts_brands_alt[, year_sales := sum(brand_sales_year), by = .(year)]
