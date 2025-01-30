@@ -140,3 +140,32 @@ ggplot(ts_eff, aes(x = year, y = avg_eff_install)) +
     title = "Average Efficiency of the Installed Solar Panel"
   )
 ggsave("output/figures/statdesc/avg_efficiency_install_year.pdf")
+
+# Most sold panels by brand -----------------------------------------------
+
+csi_models_2014 = unique(ts_plot[year == 2014  & module_manufacturer_1 == "canadian solar", .(module_model_1, efficiency_module_1)])
+csi_models_2015 = unique(ts_plot[year == 2015  & module_manufacturer_1 == "canadian solar", .(module_model_1, efficiency_module_1)])
+csi_models_2016 = unique(ts_plot[year == 2016  & module_manufacturer_1 == "canadian solar", .(module_model_1, efficiency_module_1)])
+
+ts_plot[, sales_model_year := sum(module_quantity_1), by = .(year, module_model_1, module_manufacturer_1)]
+ts_plot[, sales_year_brand := sum(module_quantity_1), by = .(year, module_manufacturer_1)]
+ts_plot[, share_sales_model_year := sales_model_year/sales_year_brand, by = .(year, module_manufacturer_1)]
+ts_model = unique(ts_plot[, .(module_manufacturer_1, year, share_sales_model_year,sales_model_year, efficiency_module_1, module_model_1)])
+
+ggplot(ts_model[year %in% 2010:2016 & module_manufacturer_1 == "canadian solar" ], 
+       aes(x = year, y = share_sales_model_year, group = module_model_1, color = module_model_1, linetype = module_model_1)) +
+  geom_line() +
+  labs(
+    x = "Year",
+    y = "Market share (%)", 
+    title = "Market share of Chinese and Korean brands"
+  ) +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 2014, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 2018, linetype = "dashed", color = "black")
+ggsave("output/figures/statdesc/market_share_canadian_solar_panels.pdf")
+
+
+trina_models_2014 = unique(ts_plot[year == 2014  & module_manufacturer_1 == "trina solar", .(module_model_1, efficiency_module_1)])
+trina_models_2015 = unique(ts_plot[year == 2015  & module_manufacturer_1 == "trina solar", .(module_model_1, efficiency_module_1)])
+trina_models_2016 = unique(ts_plot[year == 2016  & module_manufacturer_1 == "trina solar", .(module_model_1, efficiency_module_1)])
