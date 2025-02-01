@@ -6,6 +6,7 @@ gc()
 
 library(arrow)
 library(data.table)
+library(gt)
 library(kableExtra)
 
 # Data --------------------------------------------------------------------
@@ -138,7 +139,7 @@ list_manufacturer = unique(c(top_mnf_05_10,top_mnf_10_15, top_mnf_15_20, top_mnf
 manufacturer_country <- data.table(
   Manufacturer = list_manufacturer,
   Country = c(
-    "Japan", "Singapore / USA", "United Kingdom", "Japan", "United States", 
+    "Japan", "United States", "United Kingdom", "Japan", "United States", 
     "Japan", "China", "Germany", "Japan", "China", "United States", "Norway", 
     "China", "Germany", "Germany", "China", "China", "South Korea", "China", 
     "South Korea", "South Korea", "China", "South Korea", "China", "China", 

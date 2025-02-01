@@ -4,12 +4,14 @@ gc()
 
 library(arrow)
 library(data.table)
+library(DescTools)
 library(ggplot2)
+library(lubridate)
 library(zoo)
 
 # Load Data ---------------------------------------------------------------
 
-ts = as.data.table(read_parquet(data_raw("TTS.parquet")))
+ts = read_parquet(data_raw("TTS.parquet"))
 
 # Data Cleaning -----------------------------------------------------------
 
@@ -31,9 +33,10 @@ ts[, (NA_char_cols) := lapply(.SD, function(x) fifelse(x == "-1", NA_character_,
 NA_int_cols = c("efficiency_module_1", "efficiency_module_2", "efficiency_module_3",
                 "nameplate_capacity_module_1", "nameplate_capacity_module_2", "nameplate_capacity_module_3",
                 "module_quantity_1", "module_quantity_2", "module_quantity_3",
-                "PV_system_size_DC")
+                "PV_system_size_DC", "total_installed_price")
 ts[, (NA_int_cols) := lapply(.SD, function(x) fifelse(x == -1, NA_integer_, x)), .SDcols = NA_int_cols]
-
+ts[, total_installed_price := Winsorize(total_installed_price, val = quantile(total_installed_price,probs = c(0.05, 0.95), na.rm = TRUE))]
+ts[, rebate_or_grant := Winsorize(rebate_or_grant, val = quantile(rebate_or_grant,probs = c(0.05, 0.95), na.rm = TRUE))]
 #dropping na
 na_cols = c("installation_date", "zip_code","installer_name", "module_manufacturer_1", 
             "technology_module_1","efficiency_module_1","nameplate_capacity_module_1",
@@ -41,9 +44,9 @@ na_cols = c("installation_date", "zip_code","installer_name", "module_manufactur
 ts = na.omit(ts, cols = na_cols)
 
 ## Adding time columns -----------------------------------------------------
-ts[, year := as.numeric(substr(installation_date, 8, 11))] #adding a year column
-ts[, installation_date := as.Date(installation_date, format = "%d-%b-%Y")]
-ts[, year_quarter := as.yearqtr(installation_date, format = "%Y-%m-%d")]
+ts[, installation_date := dmy(installation_date)]
+ts[, year := year(installation_date)] #adding a year column
+ts[, year_quarter := paste0(year(installation_date), "Q", quarter(installation_date))]
 
 # ts[, year_quarter := fcase(
 #   substr(installation_date, 4, 6) %in% c("Jan","Feb", "Mar"), paste0(substr(installation_date, 8, 11), "q1"),
@@ -315,5 +318,6 @@ cols = c("year","year_quarter", "zip", "city", "state", "system_ID_1", "system_I
          "battery_price","technology_type")
 
 ts = ts[year %in% 2002:2023, .SDcols = cols]
+ts = as.data.table(ts)
 
 write_parquet(ts,data_temp("TTS_clean_names.parquet"))
