@@ -2,6 +2,7 @@
 
 library(arrow)
 library(data.table)
+library(ggplot2)
 
 # Data --------------------------------------------------------------------
 
