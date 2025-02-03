@@ -23,7 +23,6 @@ cons_column = setdiff(colnames(ts), c("azimuth_1","azimuth_2","azimuth_3","tilt_
                                       "data_provider_1","data_provider_2","new_construction","tracking"))
 ts[, .SD, .SDcols = cons_column]
 
-
 ## Getting rid of missing values -------------------------------------------
 #getting rid of observations with no information for: installer, zip, manafucturer, module model, customer segment
 NA_char_cols = c("installation_date", "zip_code","installer_name", 
@@ -39,8 +38,9 @@ NA_int_cols = c("efficiency_module_1", "efficiency_module_2", "efficiency_module
 ts[, (NA_int_cols) := lapply(.SD, function(x) fifelse(x == -1, NA_integer_, x)), .SDcols = NA_int_cols]
 ts[, total_installed_price := Winsorize(total_installed_price, val = quantile(total_installed_price,probs = c(0.05, 0.95), na.rm = TRUE))]
 ts[, rebate_or_grant := Winsorize(rebate_or_grant, val = quantile(rebate_or_grant,probs = c(0.05, 0.95), na.rm = TRUE))]
+
 #dropping na
-na_cols = c("installation_date", "zip_code","installer_name", "module_manufacturer_1", 
+na_cols = c("installation_date", "zip_code","installer_name", "module_manufacturer_1",
             "technology_module_1","efficiency_module_1","nameplate_capacity_module_1",
             "module_quantity_1", "PV_system_size_DC", "rebate_or_grant")
 ts = na.omit(ts, cols = na_cols)
@@ -49,14 +49,6 @@ ts = na.omit(ts, cols = na_cols)
 ts[, installation_date := dmy(installation_date)]
 ts[, year := year(installation_date)] #adding a year column
 ts[, year_quarter := paste0(year(installation_date), "Q", quarter(installation_date))]
-
-# ts[, year_quarter := fcase(
-#   substr(installation_date, 4, 6) %in% c("Jan","Feb", "Mar"), paste0(substr(installation_date, 8, 11), "q1"),
-#   substr(installation_date, 4, 6) %in% c("Apr","May", "Jun"), paste0(substr(installation_date, 8, 11), "q2"),
-#   substr(installation_date, 4, 6) %in% c("Jul","Aug", "Sep"), paste0(substr(installation_date, 8, 11), "q3"),
-#   substr(installation_date, 4, 6) %in% c("Oct","Nov", "Dec"), paste0(substr(installation_date, 8, 11), "q4"),
-#   default = NA_character_
-# )]
 
 ## Merging data for module 1 manufacturer ----------------------------------
 #list of manufacturer to merge for module 1
