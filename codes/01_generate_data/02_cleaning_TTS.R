@@ -322,5 +322,11 @@ cols = c("year","year_quarter", "zip", "city.x", "county", "state.x", "system_ID
 
 ts = ts[year %in% 2002:2023, .SDcols = cols]
 ts[, `:=` (city.y = NULL, state.y = NULL)]
+setnames(ts, c("city.x", "state.x"), c("city", "state"))
+
+ts_HO = ts[third_party_owned == 0]
+ts_TPO = ts[third_party_owned == 1]
 
 write_parquet(ts,data_temp("TTS_clean_names.parquet"))
+write_parquet(ts_HO,data_temp("TTS_HO.parquet"))
+write_parquet(ts_TPO,data_temp("TTS_TPO.parquet"))

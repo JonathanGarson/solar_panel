@@ -17,20 +17,20 @@ us_mnf = c(top_manufacturer[Country == "United States",]$Manufacturer, "SunPower
 japan_mnf = top_manufacturer[Country == "Japan",]$Manufacturer
 
 # Overall Price evolution ---------------------------------------------------------------
-ts_price[, price_installed := total_installed_price + rebate_or_grant]
-ts_price_quarter = ts_price[year %in% 2010:2023, .(mean_install_price_quarter = mean(total_installed_price, na.rm = T),
-                                                   mean_install_gross_price_quarter = mean(price_installed, na.rm = T)), by = year_quarter]
-ts_price_quarter[, `:=`(log_mean_install_price_quarter = log(mean_install_price_quarter),
-                        log_mean_install_gross_price_quarter = log(mean_install_gross_price_quarter))]
+ts_price[, price_installed := total_installed_price - rebate_or_grant]
+ts_price_quarter = ts_price[year %in% 2010:2023, .(mean_install_gross_price_quarter = mean(total_installed_price, na.rm = T),
+                                                   mean_install_net_price_quarter = mean(price_installed, na.rm = T)), by = year_quarter]
+ts_price_quarter[, `:=`(log_mean_install_gross_price_quarter = log(mean_install_gross_price_quarter),
+                        log_mean_install_net_price_quarter = log(mean_install_net_price_quarter))]
 ts_price_quarter[, year := as.numeric(substr(year_quarter,1,4))]
 ts_price_quarter[, year_quarter := as.yearqtr(year_quarter)]
 
 # Non Log
 ggplot(ts_price_quarter, aes(x = year_quarter)) +
   # First line: Net Price (Red, Dashed)
-  geom_line(aes(y = mean_install_price_quarter, color = "Net Price"), linetype = "dashed", size = 1) +
+  geom_line(aes(y = mean_install_gross_price_quarter, color = "Gross Price"), linetype = "dashed", size = 1) +
   # Second line: Gross Price (Blue, Solid)
-  geom_line(aes(y = mean_install_gross_price_quarter, color = "Gross Price"), linetype = "solid", size = 1) +
+  geom_line(aes(y = mean_install_net_price_quarter, color = "Net Price"), linetype = "solid", size = 1) +
   # Vertical reference lines
   geom_vline(xintercept = as.yearqtr("2012 Q4"), color = "black", linetype = "dotted") +  
   geom_vline(xintercept = as.yearqtr("2014 Q4"), color = "black", linetype = "dotted") +  
@@ -57,9 +57,9 @@ ggsave("output/figures/statdesc/installation_price_evolution.pdf")
 # Log
 ggplot(ts_price_quarter, aes(x = year_quarter)) +
   # First line: Net Price (Red, Dashed)
-  geom_line(aes(y = log_mean_install_price_quarter, color = "Net Price"), linetype = "dashed", size = 1) +
+  geom_line(aes(y = log_mean_install_gross_price_quarter, color = "Net Price"), linetype = "dashed", size = 1) +
   # Second line: Gross Price (Blue, Solid)
-  geom_line(aes(y = log_mean_install_gross_price_quarter, color = "Gross Price"), linetype = "solid", size = 1) +
+  geom_line(aes(y = mean_install_net_price_quarter, color = "Gross Price"), linetype = "solid", size = 1) +
   # Vertical reference lines
   geom_vline(xintercept = as.yearqtr("2012 Q4"), color = "black", linetype = "dotted") +  
   geom_vline(xintercept = as.yearqtr("2014 Q4"), color = "black", linetype = "dotted") +  
@@ -85,11 +85,11 @@ ggsave("output/figures/statdesc/installation_price_evolution_log.pdf")
 
 # Price evolution by company and origin ---------------------------------------
 ## Brands ------------------------------------------------------------------
-ts_price_quarter_mnf = ts_price[year %in% 2010:2023, .(mean_install_price_quarter = mean(total_installed_price, na.rm = T),
-                                                   mean_install_gross_price_quarter = mean(price_installed, na.rm = T)), 
+ts_price_quarter_mnf = ts_price[year %in% 2010:2023, .(mean_install_gross_price_quarter = mean(total_installed_price, na.rm = T),
+                                                       mean_install_net_price_quarter = mean(price_installed, na.rm = T)), 
                                 by = .(year_quarter, module_manufacturer_1)]
-ts_price_quarter_mnf[, `:=`(log_mean_install_price_quarter = log(mean_install_price_quarter),
-                        log_mean_install_gross_price_quarter = log(mean_install_gross_price_quarter))]
+ts_price_quarter_mnf[, `:=`(log_mean_install_gross_price_quarter = log(mean_install_gross_price_quarter),
+                        log_mean_install_net_price_quarter = log(mean_install_net_price_quarter))]
 
 ts_price_quarter_mnf[, year := as.numeric(substr(year_quarter,1,4))]
 ts_price_quarter_mnf[, year_quarter := as.yearqtr(year_quarter)]
@@ -102,7 +102,7 @@ for (country in names(brands)) {
   ts_filtered <- ts_price_quarter_mnf[module_manufacturer_1 %in% brands[[country]]]
 
   # Generate the plot
-  p <- ggplot(ts_filtered, aes(x = year_quarter, y = mean_install_price_quarter, color = module_manufacturer_1)) +
+  p <- ggplot(ts_filtered, aes(x = year_quarter, y = mean_install_gross_price_quarter, color = module_manufacturer_1)) +
     geom_line(size = 1) +
     labs(
       x = "Year",
@@ -133,7 +133,7 @@ for (country in names(brands)) {
   ts_filtered <- ts_price_quarter_mnf[module_manufacturer_1 %in% brands[[country]]]
 
   # Generate the plot
-  p <- ggplot(ts_filtered, aes(x = year_quarter, y = log_mean_install_price_quarter, color = module_manufacturer_1)) +
+  p <- ggplot(ts_filtered, aes(x = year_quarter, y = log_mean_install_gross_price_quarter, color = module_manufacturer_1)) +
     geom_line(size = 1) +
     labs(
       x = "Year",
@@ -161,20 +161,20 @@ for (country in names(brands)) {
 ## Country -----------------------------------------------------------------
 
 ts_price = merge(ts_price, top_manufacturer, by.x = "module_manufacturer_1", by.y = "Manufacturer")
-ts_price[, price_installed := total_installed_price + rebate_or_grant]
+ts_price[, price_installed := total_installed_price - rebate_or_grant]
 ts_price_quarter_mnf= ts_price[year %in% 2010:2023, 
-                               .(mean_install_price_quarter = mean(total_installed_price, na.rm = T),
-                                 mean_install_gross_price_quarter = mean(price_installed, na.rm = T)), 
+                               .(mean_install_gross_price_quarter = mean(total_installed_price, na.rm = T),
+                                 mean_install_net_price_quarter = mean(price_installed, na.rm = T)), 
                                by = .(year_quarter, Country)]
-ts_price_quarter_mnf[, `:=` (log_mean_install_quarter = log(mean_install_price_quarter),
-                             log_mean_install_quarter_gross = log(mean_install_gross_price_quarter))]
+ts_price_quarter_mnf[, `:=` (log_mean_install_gross_price_quarter = log(mean_install_gross_price_quarter),
+                             log_mean_install_net_price_quarter = log(mean_install_net_price_quarter))]
 
 ts_price_quarter_mnf[, year := as.numeric(substr(year_quarter,1,4))]
 ts_price_quarter_mnf[, year_quarter := as.yearqtr(year_quarter)]
 
 country = c("China", "Germany", "Norway", "Japan", "South Korea", "United States")
 
-ggplot(ts_price_quarter_mnf[Country %in% country & year %in% 2013:2020], aes(x = year_quarter, y = log_mean_install_quarter_gross, color = Country)) +
+ggplot(ts_price_quarter_mnf[Country %in% country & year %in% 2013:2020], aes(x = year_quarter, y = log_mean_install_gross_price_quarter, color = Country)) +
   geom_line(size = 1) +
   labs(
     x = "Year",
@@ -193,7 +193,7 @@ ggplot(ts_price_quarter_mnf[Country %in% country & year %in% 2013:2020], aes(x =
   theme(legend.position = "bottom")
 ggsave("output/figures/statdesc/quarterly_log_install_price_country_2013_2020.pdf")
 
-ggplot(ts_price_quarter_mnf[Country %in% country & year %in% 2010:2023], aes(x = year_quarter, y = log_mean_install_quarter_gross, color = Country)) +
+ggplot(ts_price_quarter_mnf[Country %in% country & year %in% 2010:2023], aes(x = year_quarter, y = log_mean_install_gross_price_quarter, color = Country)) +
   geom_line(size = 1) +
   labs(
     x = "Year",
