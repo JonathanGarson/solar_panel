@@ -3,6 +3,7 @@ library(data.table)
 library(ggplot2)
 library(gt)
 library(scales)
+library(zoo)
 
 # Set theme ggplot --------------------------------------------------------
 
@@ -26,13 +27,14 @@ install_rebate = unique(ts_plot[, .(year_quarter, install_grant_quarter)])
 
 install = merge(install_rate, install_rebate, by = c("year_quarter"))
 install[, log_install_grant_quarter := log(install_grant_quarter)]
-install[, year := as.integer(as.numeric(year_quarter))]
+install[, year := as.integer(substr(year_quarter, 1, 4))]
+install[, year_quarter := as.yearqtr(year_quarter)]
 # install[, install_grant_quarter := as.numeric(install_grant_quarter)]
 # install[, log_install_grant_quarter := as.numeric(log_install_grant_quarter)]
 
 scale_factor <- max(install$install_per_quarter, na.rm = TRUE) / max(install$log_install_grant_quarter, na.rm = TRUE)
 
-ggplot(install[year %in% 2010:2022], aes(x = year_quarter)) +
+ggplot(install[year %in% 2010:2023], aes(x = year_quarter)) +
   geom_col(aes(y = install_per_quarter), fill = "blue", alpha = 0.7) +  # Bar chart for installations
   geom_line(aes(y = log_install_grant_quarter * scale_factor), color = "red", linewidth = 1.2, linetype = "dashed") +  # Line for avg grant
   scale_y_continuous(
@@ -44,19 +46,19 @@ ggplot(install[year %in% 2010:2022], aes(x = year_quarter)) +
     )
   ) +
   # Corrected Vertical Lines
-  geom_vline(xintercept = as.yearqtr("2012 Q2", format = "%Y Q%q"), linetype = "dashed", color = "black") +
-  geom_vline(xintercept = as.yearqtr("2014 Q3", format = "%Y Q%q"), linetype = "dashed", color = "black") +
-  geom_vline(xintercept = as.yearqtr("2018 Q1", format = "%Y Q%q"), linetype = "dashed", color = "black") +
+  geom_vline(xintercept = 2012.5, linetype = "dashed", color = "black") +
+  geom_vline(xintercept = 2014.75, linetype = "dashed", color = "black") +
+  geom_vline(xintercept = 2018.25, linetype = "dashed", color = "black") +
   annotate(
-    "text", x = as.yearqtr("2012 Q2", format = "%Y Q%q"), y = max(install$install_per_quarter, na.rm = TRUE) * 0.65, 
+    "text", x = 2012.5, y = max(install$install_per_quarter, na.rm = TRUE) * 0.65,
     label = "Tariff", angle = 45, vjust = -1.5, color = "black"
   ) +
   annotate(
-    "text", x = as.yearqtr("2014 Q3", format = "%Y Q%q"), y = max(install$install_per_quarter, na.rm = TRUE) * 0.65, 
+    "text", x = 2014.75, y = max(install$install_per_quarter, na.rm = TRUE) * 0.65,
     label = "Tariff", angle = 45, vjust = -1.5, color = "black"
   ) +
   annotate(
-    "text", x = as.yearqtr("2018 Q1", format = "%Y Q%q"), y = max(install$install_per_quarter, na.rm = TRUE) * 0.65, 
+    "text", x = 2018.25, y = max(install$install_per_quarter, na.rm = TRUE) * 0.65,
     label = "Tariff", angle = 45, vjust = -1.5, color = "black"
   ) +
   labs(
@@ -73,7 +75,7 @@ ggsave("output/figures/statdesc/install_rate_loggrant_quarter.pdf")
 
 scale_factor <- max(install$install_per_quarter, na.rm = TRUE) / max(install$install_grant_quarter, na.rm = TRUE)
 
-ggplot(install[year %in% 2010:2022], aes(x = year_quarter)) +
+ggplot(install[year %in% 2010:2023], aes(x = year_quarter)) +
   geom_col(aes(y = install_per_quarter), fill = "blue", alpha = 0.7) +  # Bar chart for installations
   geom_line(aes(y = install_grant_quarter * scale_factor), color = "red", linewidth = 1.2, linetype = "dashed") +  # Line for avg grant
   scale_y_continuous(
@@ -81,23 +83,23 @@ ggplot(install[year %in% 2010:2022], aes(x = year_quarter)) +
     labels = label_comma(),
     sec.axis = sec_axis(
       ~ . / scale_factor,  # Transform back to original scale for avg power capacity
-      name = "Average Grant or Rebate (log($))"
+      name = "Average Grant or Rebate ($)"
     )
   ) +
   # Corrected Vertical Lines
-  geom_vline(xintercept = as.yearqtr("2012 Q2", format = "%Y Q%q"), linetype = "dashed", color = "black") +
-  geom_vline(xintercept = as.yearqtr("2014 Q3", format = "%Y Q%q"), linetype = "dashed", color = "black") +
-  geom_vline(xintercept = as.yearqtr("2018 Q1", format = "%Y Q%q"), linetype = "dashed", color = "black") +
+  geom_vline(xintercept = 2012.5, linetype = "dashed", color = "black") +
+  geom_vline(xintercept = 2014.75, linetype = "dashed", color = "black") +
+  geom_vline(xintercept = 2018.25, linetype = "dashed", color = "black") +
   annotate(
-    "text", x = as.yearqtr("2012 Q2", format = "%Y Q%q"), y = max(install$install_per_quarter, na.rm = TRUE) * 0.65, 
+    "text", x = 2012.5, y = max(install$install_per_quarter, na.rm = TRUE) * 0.65,
     label = "Tariff", angle = 45, vjust = -1.5, color = "black"
   ) +
   annotate(
-    "text", x = as.yearqtr("2014 Q3", format = "%Y Q%q"), y = max(install$install_per_quarter, na.rm = TRUE) * 0.65, 
+    "text", x = 2014.75, y = max(install$install_per_quarter, na.rm = TRUE) * 0.65,
     label = "Tariff", angle = 45, vjust = -1.5, color = "black"
   ) +
   annotate(
-    "text", x = as.yearqtr("2018 Q1", format = "%Y Q%q"), y = max(install$install_per_quarter, na.rm = TRUE) * 0.65, 
+    "text", x = 2018.25, y = max(install$install_per_quarter, na.rm = TRUE) * 0.65,
     label = "Tariff", angle = 45, vjust = -1.5, color = "black"
   ) +
   labs(
