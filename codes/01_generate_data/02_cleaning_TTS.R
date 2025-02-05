@@ -294,9 +294,12 @@ ts[, city := trimws(tolower(city))]
 ts[, state := trimws(tolower(state))]
 
 # Creating var to identify efficiency system
-ts[, theo_prod_1 := total_installed_price/(PV_system_size_DC * 1000)] #express in W instead of kW
+ts[, gross_price := total_installed_price/(PV_system_size_DC * 1000)] #express in W instead of kW
 ts[, potential_prod_1 := (PV_system_size_DC*1000) * efficiency_module_1] #express in W instead of kW
 ts[, cost_potential_prod_1 := total_installed_price/potential_prod_1] #$/W
+
+# Expressing installation cost as $/W
+ts[, gross_price := total_installed_price/(PV_system_size_DC*1000)]
 
 # Reorganizing Tables -----------------------------------------------------
 ts = merge(ts, zip_county, by.x = "zip_code", by.y = "zip", all.x = TRUE)
@@ -324,8 +327,9 @@ ts = ts[year %in% 2002:2023, .SDcols = cols]
 ts[, `:=` (city.y = NULL, state.y = NULL)]
 setnames(ts, c("city.x", "state.x"), c("city", "state"))
 
-ts_HO = ts[third_party_owned == 0]
-ts_TPO = ts[third_party_owned == 1]
+ts = ts[third_party_owned != -1] #we take only the data which mentions the property type status
+ts_HO = ts[third_party_owned == 0] #we take Host Own system
+ts_TPO = ts[third_party_owned == 1] #we take Third Party Own system
 
 write_parquet(ts,data_temp("TTS_clean_names.parquet"))
 write_parquet(ts_HO,data_temp("TTS_HO.parquet"))
