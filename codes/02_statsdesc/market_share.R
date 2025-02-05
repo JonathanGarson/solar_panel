@@ -10,6 +10,13 @@ ts_brands = as.data.table(read_parquet(data_final("TTS_brands_year.parquet")))
 ts_quarter = as.data.table(read_parquet(data_final("TTS_brands_quarter.parquet")))
 top_manufacturer = read_parquet(data_temp("top_manufacturers.parquet"))
 
+# Set ggplot Theme --------------------------------------------------------
+
+theme_set(theme_minimal() +
+            theme(
+              plot.title = element_text(hjust = 0.5),
+              legend.position = "bottom"
+            ))
 # Market Share by country of origin ------------------------------------------------------------
 
 ts_brands = merge(ts_brands, top_manufacturer, by.x = "manufacturer", by.y = "Manufacturer")
@@ -26,8 +33,8 @@ ggplot(ts_share[year %in% 2010:2022], aes(x = year, y = country_share, group = C
   ) + 
   geom_vline(xintercept = 2012, linetype = "dashed", color = "black") + 
   geom_vline(xintercept = 2014, linetype = "dashed", color = "black") + 
-  geom_vline(xintercept = 2018, linetype = "dashed", color = "black")  
-ggsave("output/figures/statdesc/market_share_country.pdf")
+  geom_vline(xintercept = 2018, linetype = "dashed", color = "black") 
+ggsave("output/figures/statdesc/market_share_country.pdf", width = 10, height = 8)
 
 # ts_brands_alt = merge(ts_brands, top_manufacturer, by.x = "manufacturer", by.y = "Manufacturer")
 # ts_brands_alt = ts_brands_alt[manufacturer %in% c("ja solar", "jinko solar")]
@@ -64,8 +71,8 @@ ggplot(ts_share[year %in% 2010:2022 & manufacturer %in% c(korean_brand, chinese_
   ) +
   geom_vline(xintercept = 2012, linetype = "dashed", color = "black") + 
   geom_vline(xintercept = 2014, linetype = "dashed", color = "black") + 
-  geom_vline(xintercept = 2018, linetype = "dashed", color = "black")
-ggsave("output/figures/statdesc/market_share_corean_chinese_brands.pdf")
+  geom_vline(xintercept = 2018, linetype = "dashed", color = "black") 
+ggsave("output/figures/statdesc/market_share_corean_chinese_brands.pdf", width = 11, height = 8)
 
 # ts_quarter = merge(ts_quarter, top_manufacturer, by.x = "manufacturer", by.y = "Manufacturer")
 # ts_quarter[, quarter_sales := sum(brand_sales_quarter), by = .(year_quarter)]
