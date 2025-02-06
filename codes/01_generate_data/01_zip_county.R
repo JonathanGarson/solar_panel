@@ -8,6 +8,7 @@ library(readxl)
 # Data --------------------------------------------------------------------
 
 zip_county = as.data.table(read_excel(data_raw("FIPS/ZIP_COUNTY_122023.xlsx")))
+zip_county = as.data.table(fread(data_raw("FIPS/ZIP-COUNTY-FIPS_2017-06.csv")))
 
 # Cleaning ----------------------------------------------------------------
 # Changing the names

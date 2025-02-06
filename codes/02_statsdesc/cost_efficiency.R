@@ -18,7 +18,7 @@ us_mnf = c("maxeon - sunpower", "tesla", "mission solar energy llc")
 japan_mnf = top_manufacturer[Country == "Japan",]$Manufacturer
 
 ts_eff_cost = ts[, .(mean_eff_cost = mean(cost_potential_prod_1, na.rm = T),
-                     mean_eff_cost_theo = mean(theo_prod_1, na.rm = T)), 
+                     mean_eff_cost_theo = mean(price_w, na.rm = T)), 
                  by = .(module_manufacturer_1, year_quarter)]
 ts_eff_cost[, `:=` (log_mean_eff_cost = log(mean_eff_cost),
                     log_mean_eff_cost_theo = log(mean_eff_cost_theo))]

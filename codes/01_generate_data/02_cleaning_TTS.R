@@ -14,6 +14,7 @@ library(zoo)
 
 ts = read_parquet(data_raw("TTS.parquet"))
 zip_county = read_parquet(data_temp("zip_county_clean.parquet"))
+cpi = fread(data_raw("us_cpi.csv"))
 
 # Data Cleaning -----------------------------------------------------------
 
@@ -293,13 +294,20 @@ ts[, module_model_3 := trimws(tolower(module_model_3))]
 ts[, city := trimws(tolower(city))]
 ts[, state := trimws(tolower(state))]
 
+# Deflating 2010 $ value
+month = setdiff(colnames(cpi), c("Year", "HALF1", "HALF2"))
+cpi[, year_cpi := rowMeans(.SD), .SDcols = month]
+base_cpi = cpi[Year == 2010,]$year_cpi
+cpi = cpi[Year %in% 2010:2023, deflated_cpi := year_cpi/base_cpi]
+ts = merge(ts, cpi[, .(Year, deflated_cpi)], by.x = "year", by.y = "Year")
+ts[, total_installed_price := total_installed_price/deflated_cpi]
+ts[, rebate_or_grant := rebate_or_grant/deflated_cpi]
+
 # Creating var to identify efficiency system
-ts[, gross_price := total_installed_price/(PV_system_size_DC * 1000)] #express in W instead of kW
+ts[, price_w := total_installed_price/(PV_system_size_DC * 1000)] #express in W instead of kW
 ts[, potential_prod_1 := (PV_system_size_DC*1000) * efficiency_module_1] #express in W instead of kW
 ts[, cost_potential_prod_1 := total_installed_price/potential_prod_1] #$/W
 
-# Expressing installation cost as $/W
-ts[, gross_price := total_installed_price/(PV_system_size_DC*1000)]
 
 # Reorganizing Tables -----------------------------------------------------
 ts = merge(ts, zip_county, by.x = "zip_code", by.y = "zip", all.x = TRUE)

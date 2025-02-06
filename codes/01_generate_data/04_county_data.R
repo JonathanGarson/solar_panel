@@ -14,7 +14,6 @@ setnames(county, old_names, new_names)
 setnames(county, "label (grouping)", "label")
 
 county[, label := tolower(trimws(label))]
-# **Remove ALL leading/trailing spaces, tabs, and special spaces**
 county[, label := tolower(trimws(gsub("[[:space:]]+", " ", label)))]
 county = county[!label %in% c("total population", "        margin of error"),]
 

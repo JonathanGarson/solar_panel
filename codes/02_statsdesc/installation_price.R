@@ -3,15 +3,14 @@
 library(arrow)
 library(data.table)
 library(ggplot2)
+library(zoo)
 
 # Data --------------------------------------------------------------------
 
 ts_price = as.data.table(read_parquet(data_temp("TTS_clean_names.parquet")))
 top_manufacturer = read_parquet(data_temp('top_manufacturers.parquet'))
 
-# chinese_mnf = top_manufacturer[Country == "China",]$Manufacturer
 chinese_mnf = c("suntech power","canadian solar","et solar industry","trina solar", "yingli energy (china)","renesola america")
-# korea_mnf = top_manufacturer[Country == "South Korea", ]$Manufacturer
 korea_mnf = c("lg electronics inc.", "hanwha qcells (qidong)", "hanwha qcells", "hyundai energy solutions co., ltd.")
 us_mnf = c(top_manufacturer[Country == "United States",]$Manufacturer, "SunPower - Maxeon")
 japan_mnf = top_manufacturer[Country == "Japan",]$Manufacturer
@@ -161,6 +160,7 @@ for (country in names(brands)) {
 ## Country -----------------------------------------------------------------
 
 ts_price = merge(ts_price, top_manufacturer, by.x = "module_manufacturer_1", by.y = "Manufacturer")
+ts_price[, rebate_per_w := rebate_or_grant/(PV_system_size_DC * 1000)]
 ts_price[, price_installed := total_installed_price - rebate_or_grant]
 ts_price_quarter_mnf= ts_price[year %in% 2010:2023, 
                                .(mean_install_gross_price_quarter = mean(total_installed_price, na.rm = T),
@@ -211,4 +211,105 @@ ggplot(ts_price_quarter_mnf[Country %in% country & year %in% 2010:2023], aes(x =
   theme_minimal() +
   theme(legend.position = "bottom")
 ggsave("output/figures/statdesc/quarterly_log_install_price_country_2010_2023.pdf")
+
+# W/$ ---------------------------------------------------------------------
+
+ts_price = merge(ts_price, top_manufacturer, by.x = "module_manufacturer_1", by.y = "Manufacturer")
+ts_price[, rebate_per_w := rebate_or_grant/(PV_system_size_DC * 1000)]
+ts_price[, price_installed := price_w - rebate_per_w]
+ts_price_quarter_mnf= ts_price[year %in% 2010:2023, 
+                               .(mean_install_gross_price_quarter = mean(price_w, na.rm = T),
+                                 mean_install_net_price_quarter = mean(price_installed, na.rm = T)), 
+                               by = .(year_quarter, Country.x)]
+ts_price_quarter_mnf[, `:=` (log_mean_install_gross_price_quarter = log(mean_install_gross_price_quarter),
+                             log_mean_install_net_price_quarter = log(mean_install_net_price_quarter))]
+
+ts_price_quarter_mnf[, year := as.numeric(substr(year_quarter,1,4))]
+ts_price_quarter_mnf[, year_quarter := as.yearqtr(year_quarter)]
+
+country = c("China", "Germany", "Norway", "Japan", "South Korea", "United States")
+
+ggplot(ts_price_quarter_mnf[Country %in% country & year %in% 2012:2020], aes(x = year_quarter, y = log_mean_install_gross_price_quarter, color = Country)) +
+  geom_line(size = 1) +
+  labs(
+    x = "Year",
+    y = "Mean Installation Price (log $/W)",
+    title = paste("Quarterly Evolution of Log Price per Watt by Country"),
+    color = "Country"
+  ) +
+  scale_x_yearqtr(format = "%Y",
+                  breaks = seq(from = min(ts_price_quarter_mnf$year_quarter),
+                               to = max(ts_price_quarter_mnf$year_quarter), by = 1)) +
+  # Vertical reference lines
+  # geom_vline(xintercept = as.yearqtr("2012 Q4"), color = "black", linetype = "dotted") +
+  geom_vline(xintercept = as.yearqtr("2014 Q4"), color = "black", linetype = "dotted") +
+  geom_vline(xintercept = as.yearqtr("2018 Q1"), color = "black", linetype = "dotted") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+ggsave("output/figures/statdesc/quarterly_log_install_price_w_country_2012_2023.pdf")
+
+ggplot(ts_price_quarter_mnf[Country %in% country & year %in% 2012:2023], aes(x = year_quarter, y = mean_install_gross_price_quarter, color = Country)) +
+  geom_line(size = 1) +
+  labs(
+    x = "Year",
+    y = "Mean Installation price ($/W)",
+    title = paste("Quarterly Evolution of Mean Price per W by Country"),
+    color = "Country"
+  ) +
+  scale_x_yearqtr(format = "%Y",
+                  breaks = seq(from = min(ts_price_quarter_mnf$year_quarter),
+                               to = max(ts_price_quarter_mnf$year_quarter), by = 1)) +
+  # Vertical reference lines
+  # geom_vline(xintercept = as.yearqtr("2012 Q4"), color = "black", linetype = "dotted") +
+  geom_vline(xintercept = as.yearqtr("2014 Q4"), color = "black", linetype = "dotted") +
+  geom_vline(xintercept = as.yearqtr("2018 Q1"), color = "black", linetype = "dotted") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+ggsave("output/figures/statdesc/quarterly_install_price_w_country_2012_2023.pdf")
+
+# Price evolution by company and origin ---------------------------------------
+## Brands ------------------------------------------------------------------
+
+ts_price_quarter_mnf= ts_price[year %in% 2010:2023, 
+                               .(mean_install_gross_price_quarter = mean(price_w, na.rm = T),
+                                 mean_install_net_price_quarter = mean(price_installed, na.rm = T)), 
+                               by = .(year_quarter, module_manufacturer_1)]
+ts_price_quarter_mnf[, `:=` (log_mean_install_gross_price_quarter = log(mean_install_gross_price_quarter),
+                             log_mean_install_net_price_quarter = log(mean_install_net_price_quarter))]
+
+ts_price_quarter_mnf[, year := as.numeric(substr(year_quarter,1,4))]
+ts_price_quarter_mnf[, year_quarter := as.yearqtr(year_quarter)]
+
+brands = list("china" = chinese_mnf, "korea" = korea_mnf, "usa" = us_mnf, "japan" = japan_mnf)
+
+# Non Log
+for (country in names(brands)) {
+  # Filter data for the current country's manufacturers
+  ts_filtered <- ts_price_quarter_mnf[module_manufacturer_1 %in% brands[[country]]]
+  
+  # Generate the plot
+  p <- ggplot(ts_filtered, aes(x = year_quarter, y = mean_install_gross_price_quarter, color = module_manufacturer_1)) +
+    geom_line(size = 1) +
+    labs(
+      x = "Year",
+      y = "Mean Installation Price ($/W)",
+      title = paste("Quarterly Evolution of Mean Installation Price -", country, "Brands"),
+      color = "Brand"
+    ) +
+    scale_x_yearqtr(format = "%Y",
+                    breaks = seq(from = min(ts_price_quarter_mnf$year_quarter),
+                                 to = max(ts_price_quarter_mnf$year_quarter), by = 1)) +
+    # Vertical reference lines
+    geom_vline(xintercept = as.yearqtr("2012 Q4"), color = "black", linetype = "dotted") +
+    geom_vline(xintercept = as.yearqtr("2014 Q4"), color = "black", linetype = "dotted") +
+    geom_vline(xintercept = as.yearqtr("2018 Q1"), color = "black", linetype = "dotted") +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+  
+  # Save the plot
+  ggsave(filename = paste0("output/figures/statdesc/installation_price_per_watt_", country, "_brands.pdf"),
+         plot = p, width = 10, height = 6)
+  
+  print(paste("Saved plot for:", country))  # Print status message
+}
 

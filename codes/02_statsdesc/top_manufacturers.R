@@ -24,14 +24,14 @@ ts_brands[year %in% 2015:2020, share_sales_brand_15_20 := mean(share_sales_brand
 ts_brands[year %in% 2017:2022, share_sales_brand_17_22 := mean(share_sales_brand), by = manufacturer]
 
 ## 2005-2010 ---------------------------------------------------------------
-top_firms <- ts_brands[, .(share_sales_brand_05_10 = unique(share_sales_brand_05_10)), by = manufacturer]
-top_firms <- top_firms[order(-share_sales_brand_05_10)]  # Sort in descending order
-top_firms <- top_firms[1:15]  # Select top 10 manufacturers
+top_firms_05_10 <- ts_brands[, .(share_sales_brand_05_10 = unique(share_sales_brand_05_10)), by = manufacturer]
+top_firms_05_10 <- top_firms_05_10[order(-share_sales_brand_05_10)]  # Sort in descending order
+top_firms_05_10 <- top_firms_05_10[1:15]  # Select top 10 manufacturers
 
-top_mnf_05_10 = top_firms$manufacturer
+top_mnf_05_10 = top_firms_05_10$manufacturer
 
 # Generate the table using gt
-table_05_10 <- gt(top_firms) %>%
+table_05_10 <- gt(top_firms_05_10) %>%
   tab_header(
     title = "Mean Market Share of Top 10 Manufacturers (2005-2010)"
   ) %>%
@@ -49,14 +49,14 @@ table_05_10 <- gt(top_firms) %>%
 
 ## 2010-2015 ---------------------------------------------------------------
 
-top_firms <- ts_brands[, .(share_sales_brand_10_15 = unique(share_sales_brand_10_15)), by = manufacturer]
-top_firms <- top_firms[order(-share_sales_brand_10_15)]  # Sort in descending order
-top_firms <- top_firms[1:15]  # Select top 10 manufacturers
+top_firms_10_15 <- ts_brands[, .(share_sales_brand_10_15 = unique(share_sales_brand_10_15)), by = manufacturer]
+top_firms_10_15 <- top_firms_10_15[order(-share_sales_brand_10_15)]  # Sort in descending order
+top_firms_10_15 <- top_firms_10_15[1:15]  # Select top 10 manufacturers
 
-top_mnf_10_15 = top_firms$manufacturer
+top_mnf_10_15 = top_firms_10_15$manufacturer
 
 # Generate the table using gt
-table_10_15 <- gt(top_firms) %>%
+table_10_15 <- gt(top_firms_10_15) %>%
   tab_header(
     title = "Mean Market Share of Top 10 Manufacturers (2010-2015)"
   ) %>%
@@ -72,11 +72,13 @@ table_10_15 <- gt(top_firms) %>%
     source_note = "Data: Calculated from Tracking the Sun"
   )
 
+setnames(top_firms_10_15, colnames(top_firms_10_15), c("manufacturer_1", "share_sales_brand_10_15"))
+
 ## 2015-2020 ---------------------------------------------------------------
 
-top_firms <- ts_brands[, .(share_sales_brand_15_20 = unique(share_sales_brand_15_20)), by = manufacturer]
-top_firms <- top_firms[order(-share_sales_brand_15_20)]  # Sort in descending order
-top_firms <- top_firms[1:15]  # Select top 10 manufacturers
+top_firms_15_20 <- ts_brands[, .(share_sales_brand_15_20 = unique(share_sales_brand_15_20)), by = manufacturer]
+top_firms_15_20 <- top_firms_15_20[order(-share_sales_brand_15_20)]  # Sort in descending order
+top_firms_15_20 <- top_firms_15_20[1:15]  # Select top 10 manufacturers
 
 # Generate the table using gt
 table_15_20 <- gt(top_firms) %>%
@@ -96,6 +98,8 @@ table_15_20 <- gt(top_firms) %>%
   ) 
 
 top_mnf_15_20 = top_firms$manufacturer
+
+setnames(top_firms_15_20, colnames(top_firms_15_20), c("manufacturer_2", "share_sales_brand_15_20"))
 
 ## 2017-2022 ---------------------------------------------------------------
 
@@ -122,16 +126,38 @@ table_17_22 <- gt(top_firms) %>%
 
 top_mnf_17_22 = top_firms$manufacturer
 
+
+# 2010-2020 ---------------------------------------------------------------
+# We merge the two tables around 2015 date
+table_10_20 = cbind(top_firms_10_15, top_firms_15_20)
+table_10_20 <- gt(table_10_20) %>%
+  fmt_number(
+    columns = c(share_sales_brand_10_15),
+    decimals = 4
+  ) %>%
+  fmt_number(
+    columns = c(share_sales_brand_15_20),
+    decimals = 4
+  ) %>%
+  cols_label(
+    manufacturer_1 = "Manufacturer",
+    manufacturer_2 = "Manufacturer",
+    share_sales_brand_10_15 = "Mean Share (2010-2015)",
+    share_sales_brand_15_20 = "Mean Share (2015-2020)"
+  )
+
 # Export tables to latex --------------------------------------------------
 
 table_05_10 = as_latex(table_05_10)
 table_10_15 = as_latex(table_10_15)
 table_15_20 = as_latex(table_15_20)
 table_17_22 = as_latex(table_17_22)
+table_10_20 = as_latex(table_10_20)
 cat(table_05_10, file = "output/tables/statdesc/table_brands_share_05_10.tex")
 cat(table_10_15, file = "output/tables/statdesc/table_brands_share_10_15.tex")
 cat(table_15_20, file = "output/tables/statdesc/table_brands_share_15_20.tex")
 cat(table_17_22, file = "output/tables/statdesc/table_brands_share_17_22.tex")
+cat(table_10_20, file = "output/tables/statdesc/table_brands_share_10_20.tex")
 
 # Build a list of top brands ----------------------------------------------
 list_manufacturer = unique(c(top_mnf_05_10,top_mnf_10_15, top_mnf_15_20, top_mnf_17_22)) 
