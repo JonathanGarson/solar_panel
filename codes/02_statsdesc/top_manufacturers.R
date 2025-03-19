@@ -22,6 +22,30 @@ ts_brands[year %in% 2005:2010, share_sales_brand_05_10 := mean(share_sales_brand
 ts_brands[year %in% 2010:2015, share_sales_brand_10_15 := mean(share_sales_brand), by = manufacturer]
 ts_brands[year %in% 2015:2020, share_sales_brand_15_20 := mean(share_sales_brand), by = manufacturer]
 ts_brands[year %in% 2017:2022, share_sales_brand_17_22 := mean(share_sales_brand), by = manufacturer]
+ts_brands[year %in% 2010:2020, share_sales_brand_10_20 := mean(share_sales_brand), by = manufacturer]
+
+# 2010-2020 ---------------------------------------------------------------
+
+top_firms_10_20 <- ts_brands[, .(share_sales_brand_10_20 = unique(share_sales_brand_10_20)), by = manufacturer]
+top_firms_10_20 <- top_firms_10_20[order(-share_sales_brand_10_20)]  # Sort in descending order
+top_firms_10_20 <- top_firms_10_20[1:15]  # Select top 10 manufacturers
+
+# Generate the table using gt
+table_10_20 <- gt(top_firms_10_20) %>%
+  fmt_number(
+    columns = c(share_sales_brand_10_20),
+    decimals = 4
+  ) %>%
+  cols_label(
+    manufacturer = "Manufacturer",
+    share_sales_brand_10_20 = "Mean Share (2010-2020)"
+  ) %>%
+  tab_source_note(
+    source_note = "Sources: Tracking the Sun"
+  )
+
+table_10_20_tex = as_latex(table_10_20)
+writeLines(table_10_20_tex, "output/tables/statdesc/table_brands_share_10_20.tex") 
 
 ## 2005-2010 ---------------------------------------------------------------
 top_firms_05_10 <- ts_brands[, .(share_sales_brand_05_10 = unique(share_sales_brand_05_10)), by = manufacturer]
