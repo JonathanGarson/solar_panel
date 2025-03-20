@@ -331,14 +331,14 @@ cols = c("year","year_quarter", "zip", "city.x", "county", "state.x", "system_ID
          "battery_model","battery_rated_capacity_kW", "battery_rated_capacity_kWh",
          "battery_price","technology_type")
 
-ts = ts[year %in% 2002:2023, .SDcols = cols]
+ts = ts[year %in% 2010:2023, .SDcols = cols]
 ts[, `:=` (city.y = NULL, state.y = NULL)]
 setnames(ts, c("city.x", "state.x"), c("city", "state"))
 
 ts = ts[third_party_owned != -1] #we take only the data which mentions the property type status
-ts_HO = ts[third_party_owned == 0] #we take Host Own system
-ts_TPO = ts[third_party_owned == 1] #we take Third Party Own system
+# ts_HO = ts[third_party_owned == 0] #we take Host Own system
+# ts_TPO = ts[third_party_owned == 1] #we take Third Party Own system
 
 write_parquet(ts,data_temp("TTS_clean_names.parquet"))
-write_parquet(ts_HO,data_temp("TTS_HO.parquet"))
-write_parquet(ts_TPO,data_temp("TTS_TPO.parquet"))
+# write_parquet(ts_HO,data_temp("TTS_HO.parquet"))
+# write_parquet(ts_TPO,data_temp("TTS_TPO.parquet"))
