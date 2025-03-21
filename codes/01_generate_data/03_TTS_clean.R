@@ -49,6 +49,9 @@ tts = tts[additional_modules != 1,]
 # Reduce to our period 2010-2020
 tts = tts[year %in% c(2010:2020)]
 
+# Clean ZIP code of more than 5 letter ZIP code
+tts = tts[nchar(zip_code) <= 5,]
+
 # We get rid of column now being useless
 column_to_suppress = setdiff(grep(pattern = "_2$|_3$", colnames(tts), value = TRUE), c("inverter_manufacturer_2", "inverter_model_2", "inverter_quantity_2",
                                                                   "inverter_manufacturer_3", "inverter_model_3","inverter_quantity_3",
@@ -56,3 +59,4 @@ column_to_suppress = setdiff(grep(pattern = "_2$|_3$", colnames(tts), value = TR
                                                                   "built_in_meter_inverter_3","output_capacity_inverter_2","output_capacity_inverter_3"))
 tts = tts[, .SD, .SDcols = setdiff(colnames(tts), c(column_to_suppress, "azimuth_1","tilt_1","additional_modules"))]
 
+write_parquet(tts, data_temp("TTS_clean.parquet"))
