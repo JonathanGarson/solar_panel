@@ -13,7 +13,7 @@ library(zoo)
 # Load Data ---------------------------------------------------------------
 
 ts = read_parquet(data_raw("TTS.parquet"))
-zip_county = read_parquet(data_temp("zip_county_clean.parquet"))
+# zip_county = read_parquet(data_temp("zip_county_clean.parquet"))
 cpi = fread(data_raw("us_cpi.csv"))
 
 # Data Cleaning -----------------------------------------------------------
@@ -305,8 +305,8 @@ ts[, rebate_or_grant := rebate_or_grant/deflated_cpi]
 
 # Creating var to identify efficiency system
 ts[, price_w := total_installed_price/(PV_system_size_DC * 1000)] #express in W instead of kW
-ts[, potential_prod_1 := (PV_system_size_DC*1000) * efficiency_module_1] #express in W instead of kW
-ts[, cost_potential_prod_1 := total_installed_price/potential_prod_1] #$/W
+ts[, potential_prod := (PV_system_size_DC*1000) * efficiency_module_1] #express in W instead of kW
+ts[, price_w_potential_prod := total_installed_price/potential_prod] #$/W
 
 
 # Reorganizing Tables -----------------------------------------------------
@@ -336,8 +336,9 @@ ts[, `:=` (city.y = NULL, state.y = NULL)]
 setnames(ts, c("city.x", "state.x"), c("city", "state"))
 
 ts = ts[third_party_owned != -1] #we take only the data which mentions the property type status
-# ts_HO = ts[third_party_owned == 0] #we take Host Own system
-# ts_TPO = ts[third_party_owned == 1] #we take Third Party Own system
+ts[, ho := ifelse(third_party_owned == 0, 1, 0)]
+ts[, tpo := ifelse(third_party_owned == 1, 1, 0)]
+ts[, third_party_owned := NULL]
 
 write_parquet(ts,data_temp("TTS_clean_names.parquet"))
 # write_parquet(ts_HO,data_temp("TTS_HO.parquet"))
