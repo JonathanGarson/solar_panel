@@ -1,33 +1,34 @@
-# This code generates clean zip county files
+# This code use the ZIP code from the TTS files to link it to a county
 
 library(arrow)
 library(data.table)
-library(DescTools)
-library(readxl)
+library(zipcodeR)
 
 # Data --------------------------------------------------------------------
 
-zip_county = as.data.table(read_excel(data_raw("FIPS/ZIP_COUNTY_122023.xlsx")))
-zip_county = as.data.table(fread(data_raw("FIPS/ZIP-COUNTY-FIPS_2017-06.csv")))
+tts_clean = read_parquet(data_temp("TTS_clean.parquet"), col_select = c("zip_code"))
 
-# Cleaning ----------------------------------------------------------------
-# Changing the names
-old_cols_names = colnames(zip_county)
-new_cols_names = tolower(colnames(zip_county))
-setnames(zip_county, old = old_cols_names, new = new_cols_names)
+# Matching ZIP code to county ---------------------------------------------
 
-# setting to lower cases and removing white spaces
-zip_county[, county := tolower(trimws(county))]
-zip_county[, city := tolower(trimws(usps_zip_pref_city))]
-zip_county[, state := tolower(trimws(usps_zip_pref_state))]
+uniqueN(tts_clean$zip_code)
+zip_to_county = reverse_zipcode(tts_clean$zip_code)
+setDT(zip_to_county)
 
-# ZIP code do not necessarily match county, so we propose to attribute to a county the ZIP codes 
-# with the highest number of attribution to a specific county.
-zip_county = unique(zip_county[, .SD, .SDcols = c("zip", "city", "county", "state")])
-zip_county_ranked = zip_county[, .N, by = .(city, zip)] # Count occurrences of each ZIP code per city
-zip_county_most_common = zip_county_ranked[order(city, -N), .SD[1], by = city] # Keep only the ZIP code with the highest occurrence per city
-zip_county_final = merge(zip_county_most_common, zip_county, by = c("city", "zip"), all.x = TRUE) # Merge back with the original `zip_county` to retrieve other columns
-zip_county_final[, N := NULL]
+keep = c("zipcode", "major_city", "county", "population", "population_density", "land_area_in_sqmi", "median_home_value","median_household_income")
+zip_to_county = zip_to_county[, .SD, .SDcols = keep]
 
-# Exporting ---------------------------------------------------------------
-write_parquet(zip_county_unique,data_temp("zip_county_clean.parquet"))
+# tracts_list <- lapply(zip_to_county$zipcode, function(z) {
+#   tryCatch({
+#     get_tracts(z)
+#   }, error = function(e) {
+#     message(sprintf("Skipping ZIP code %s: %s", z, e$message))
+#     return(NULL)
+#   })
+# })
+
+# tracts_dt <- rbindlist(tracts_list, fill = TRUE)
+# setDT(zip_to_county)
+
+# zip_to_county = merge(zip_to_county, tracts_dt, by.x = "zipcode", by.y = "ZCTA5")
+
+fwrite(zip_to_county, data_temp("zip_county_data.csv"))
