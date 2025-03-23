@@ -59,4 +59,10 @@ column_to_suppress = setdiff(grep(pattern = "_2$|_3$", colnames(tts), value = TR
                                                                   "built_in_meter_inverter_3","output_capacity_inverter_2","output_capacity_inverter_3"))
 tts = tts[, .SD, .SDcols = setdiff(colnames(tts), c(column_to_suppress, "azimuth_1","tilt_1","additional_modules"))]
 
+toclean_colnames = setdiff(grep(pattern = "_1$", colnames(tts), value = TRUE), c("inverter_manufacturer_1","inverter_model_1","inverter_quantity_1","micro_inverter_1", 
+                                                                               "built_in_meter_inverter_1", "output_capacity_inverter_1"))
+clean_colnames = c("data_provider","system_ID","module_manufacturer","module_model","module_quantity","technology_module","BIPV_module","bifacial_module"
+                   ,"nameplate_capacity_module","efficiency_module")
+setnames(tts, toclean_colnames, clean_colnames)
+
 write_parquet(tts, data_temp("TTS_clean.parquet"))
