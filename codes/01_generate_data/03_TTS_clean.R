@@ -14,7 +14,6 @@ tts = read_parquet(data_temp("TTS_clean_names.parquet"))
 # Get rid of likely misspecification like solar panel being more than 100 subsidied
 tts = tts[total_installed_price > rebate_or_grant, ]
 
-
 # Customer segment we are interested in
 tts = tts[customer_segment %in% c("RES"),]
 
@@ -46,6 +45,9 @@ tts[, system_manufacturing_situation := fcase(
 tts[, .N, by = system_manufacturing_situation]
 tts = tts[additional_modules != 1,]
 
+# Clean out of battery pack up (pollute price evaluation and chosen independently of solar panels brand)
+tts = tts[technology_type == "pv-only",]
+
 # Reduce to our period 2010-2020
 tts = tts[year %in% c(2010:2020)]
 
@@ -64,5 +66,8 @@ toclean_colnames = setdiff(grep(pattern = "_1$", colnames(tts), value = TRUE), c
 clean_colnames = c("data_provider","system_ID","module_manufacturer","module_model","module_quantity","technology_module","BIPV_module","bifacial_module"
                    ,"nameplate_capacity_module","efficiency_module")
 setnames(tts, toclean_colnames, clean_colnames)
+
+# We also get rid of Tesla and Solar city, even for HO system, following the recommendation of the LNBL
+tts = tts[module_manufacturer != "tesla"]
 
 write_parquet(tts, data_temp("TTS_clean.parquet"))
