@@ -209,7 +209,14 @@ ggplot(tts[year %in% 2017:2020,], aes(x = reorder(module_manufacturer, efficienc
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggsave("output/figures/firms_list/distrib_efficiency_2017_2020.pdf", width = 10, height = 7)
 
-
-
 ## Combo inverter + high efficiency ----------------------------------------
+# Mono cristalyne are categorized as top quality solar panel, more innovative and more efficient
+# The presence of micro inverter improve the overall efficiency of the system and makes it more desirable
 
+tts[year %in% 2010:2013, quality_2_ad1 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
+tts[year %in% 2013:2016, quality_2_ad2 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
+tts[year %in% 2017:2020, quality_2_st := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
+
+
+# Export Data -------------------------------------------------------------
+write_parquet(tts, data_final("tts_final.parquet"))
