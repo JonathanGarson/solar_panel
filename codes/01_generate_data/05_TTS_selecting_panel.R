@@ -128,6 +128,8 @@ for (y in c(2011, 2013, 2017, 2019)) {
 ## Overall Premium ---------------------------------------------------------
 setDT(pct_eff_dt)
 # AD 1 : 2010-2013
+tts[, quality_1 := ifelse(efficiency_module > 0.20, 1, 0) ]
+
 for (y in c(2010:2013)) {
   tts[year == `y`, quality_1_ad1 := ifelse(efficiency_module > pct_eff_dt[year == 2011,]$p90, 1, 0) ]
 }
@@ -213,6 +215,7 @@ ggsave("output/figures/firms_list/distrib_efficiency_2017_2020.pdf", width = 10,
 # Mono cristalyne are categorized as top quality solar panel, more innovative and more efficient
 # The presence of micro inverter improve the overall efficiency of the system and makes it more desirable
 
+tts[, quality_2 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
 tts[year %in% 2010:2013, quality_2_ad1 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
 tts[year %in% 2013:2016, quality_2_ad2 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
 tts[year %in% 2017:2020, quality_2_st := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
