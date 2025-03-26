@@ -217,6 +217,9 @@ tts[year %in% 2010:2013, quality_2_ad1 := ifelse(technology_module == "Mono-c-Si
 tts[year %in% 2013:2016, quality_2_ad2 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
 tts[year %in% 2017:2020, quality_2_st := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
 
+# Setting Price and Demand Variables --------------------------------------
+
+
 
 # Export Data -------------------------------------------------------------
 write_parquet(tts, data_final("tts_final.parquet"))
