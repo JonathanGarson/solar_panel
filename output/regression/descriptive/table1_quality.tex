@@ -1,0 +1,53 @@
+\begin{table}
+\centering
+\begin{tblr}[         %% tabularray outer open
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
+column{3,4,5,7,8,9}={}{halign=c,},
+column{1}={}{halign=l,},
+cell{2}{2}={}{halign=c,},
+cell{2}{6}={}{halign=c,},
+cell{3}{2}={}{halign=c,},
+cell{3}{6}={}{halign=c,},
+cell{4}{2}={}{halign=c,},
+cell{4}{6}={}{halign=c,},
+cell{5}{2}={}{halign=c,},
+cell{5}{6}={}{halign=c,},
+cell{6}{2}={}{halign=c,},
+cell{6}{6}={}{halign=c,},
+cell{7}{2}={}{halign=c,},
+cell{7}{6}={}{halign=c,},
+cell{8}{2}={}{halign=c,},
+cell{8}{6}={}{halign=c,},
+cell{9}{2}={}{halign=c,},
+cell{9}{6}={}{halign=c,},
+cell{10}{2}={}{halign=c,},
+cell{10}{6}={}{halign=c,},
+cell{11}{2}={}{halign=c,},
+cell{11}{6}={}{halign=c,},
+cell{12}{2}={}{halign=c,},
+cell{12}{6}={}{halign=c,},
+cell{13}{2}={}{halign=c,},
+cell{13}{6}={}{halign=c,},
+cell{1}{2}={c=4,}{halign=c, halign=c,},
+cell{1}{6}={c=4,}{halign=c, halign=c,},
+hline{7}={1,2,3,4,5,6,7,8,9}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& Quality 1 &  &  &  & Quality 2 &  &  &  \\ \cmidrule[lr]{2-5}\cmidrule[lr]{6-9}
+& (1) & (2) & (3) & (4) & (5) & (6) & (7) & (8) \\ \midrule %% TinyTableHeader
+Premium Panels & \num{-0.335} & \num{0.036} & \num{-0.024} & \num{0.007} &  &  &  &  \\
+& (\num{0.020}) & (\num{0.002}) & (\num{0.011}) & (\num{0.001}) &  &  &  &  \\
+Premium Installations &  &  &  &  & \num{-0.370} & \num{0.064} & \num{0.022} & \num{0.044} \\
+&  &  &  &  & (\num{0.017}) & (\num{0.010}) & (\num{0.017}) & (\num{0.016}) \\
+Num.Obs. & \num{910472} & \num{910472} & \num{910472} & \num{910472} & \num{910472} & \num{910472} & \num{910472} & \num{910472} \\
+R2 & \num{0.009} & \num{0.458} & \num{0.258} & \num{0.471} & \num{0.013} & \num{0.461} & \num{0.258} & \num{0.472} \\
+FE: zip\_code &  & X & X & X &  & X & X & X \\
+FE: year\_quarter &  & X & X & X &  & X & X & X \\
+FE: module\_manufacturer &  &  & X & X &  &  & X & X \\
+FE: installer\_name &  & X &  & X &  & X &  & X \\
+F-test p-value & \num{0.000} & \num{1.000} & \num{1.000} & \num{1.000} & \num{0.000} & \num{1.000} & \num{1.000} & \num{1.000} \\
+\bottomrule
+\end{tblr}
+\end{table}
