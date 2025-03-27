@@ -98,7 +98,7 @@ for (q in c("quality_1", "quality_2")){
   table1_quality_char = as.character(table1_quality)
   table1_quality_char <- gsub("\\bX\\b", "Yes", table1_quality_char)
   
-  writeLines(table1_quality_char, glue("output/regression/descriptive/table1_{q}}.tex"))
+  writeLines(table1_quality_char, glue("output/regression/descriptive/table1_{q}.tex"))
 }
 
 # Table 1 - Period -----------------------------------------------------
