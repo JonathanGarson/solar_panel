@@ -77,6 +77,13 @@ top_firms = export_dt[, .(module_manufacturer, list_country)]
 tts = merge(tts, top_firms, by = "module_manufacturer")
 # Note that the merge above does not have the all.x = TRUE argument which implies that non-matched observations are dropped. 
 
+tts[, china := ifelse(list_country == "China", 1, 0)]
+tts[, korea := ifelse(list_country == "South Korea", 1, 0)]
+tts[, usa := ifelse(list_country == "USA", 1, 0)]
+tts[, norway := ifelse(list_country == "Norway", 1, 0)]
+tts[, germany := ifelse(list_country == "Germany", 1, 0)]
+tts[, japan := ifelse(list_country == "Japan", 1, 0)]
+
 # Setting different quality criteria --------------------------------------
 # models_dt = unique(tts[, .(module_model, efficiency_module, year)])
 models_dt = unique(tts[, .(module_model, efficiency_module, year, module_manufacturer)])
@@ -127,8 +134,8 @@ for (y in c(2011, 2013, 2017, 2019)) {
 
 ## Overall Premium ---------------------------------------------------------
 setDT(pct_eff_dt)
-# AD 1 : 2010-2013
 tts[, quality_1 := ifelse(efficiency_module > 0.20, 1, 0) ]
+# AD 1 : 2010-2013
 
 for (y in c(2010:2013)) {
   tts[year == `y`, quality_1_ad1 := ifelse(efficiency_module > pct_eff_dt[year == 2011,]$p90, 1, 0) ]
