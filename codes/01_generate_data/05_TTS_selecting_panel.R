@@ -134,7 +134,7 @@ for (y in c(2011, 2013, 2017, 2019)) {
 
 ## Overall Premium ---------------------------------------------------------
 setDT(pct_eff_dt)
-tts[, quality_1 := ifelse(efficiency_module > 0.20, 1, 0) ]
+tts[, quality_1 := ifelse(efficiency_module >= 0.20, 1, 0) ]
 # AD 1 : 2010-2013
 
 for (y in c(2010:2013)) {

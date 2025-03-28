@@ -25,48 +25,82 @@ run_wave_models <- function(data, quality_var) {
   list(
     "No FE"  = feols(
       as.formula(paste0("ln_price_w ~ ", quality_var)),
-                     cluster = ~state, data = data),
+                     cluster = ~zip_code, data = data),
+
+    "FE: Year + State" = feols(
+      as.formula(paste0("ln_price_w ~ ", quality_var, "  | year + state")),
+      cluster = ~zip_code, data = data),
     
-    "FE: Year + Installer + Zip" = feols(
-      as.formula(paste0("ln_price_w ~ ", quality_var, "  | year_quarter + installer_name + zip_code")),
-      cluster = ~state, data = data),
+    "FE: Year + State + Module Manufacturer" = feols(
+      as.formula(paste0("ln_price_w ~ ", quality_var, "  | year + state + module_manufacturer")),
+      cluster = ~zip_code, data = data),
     
-    "FE: Year + Module Manufacturer + Zip" = feols(
-      as.formula(paste0("ln_price_w ~ ", quality_var, "  | year_quarter + module_manufacturer + zip_code")),
-      cluster = ~state, data = data),
-    
-    "FE: + Module Manufacturer" = feols(
-      as.formula(paste0("ln_price_w ~ ", quality_var, "  | year_quarter + installer_name + zip_code + module_manufacturer")),
-      cluster = ~state, data = data)
+    "FE: Year + State + Module Manufacturer + Installer" = feols(
+      as.formula(paste0("ln_price_w ~ ", quality_var, "  | year + state + module_manufacturer + installer_name")),
+      cluster = ~zip_code, data = data)
   )
 }
+
+# Promising regression -> all the variation seems to be absorbed by installer
+# test = feols(ln_price_w ~ quality_1 + quality_1*china + quality_1 * korea + quality_1 * usa | state + module_manufacturer  + year , 
+#              cluster = ~zip_code,data = tts[ho == 1])
+# fitstat(test, type = c("f", "wald"))
+# test_2 = feols(ln_price_w ~ quality_2 + quality_2*china + quality_2 * korea + quality_2 * usa | state + module_manufacturer +  year ,
+#              cluster = ~zip_code,data = tts[ho == 1])
+# fitstat(test_2, type = c("f", "wald"))
 
 # Run all models and name them carefully for each wave and quality measure
 for (q in c("quality_1", "quality_2")){
   models_1 <- list(
     "HO" = list(
       run_wave_models(tts[ho == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["No FE"]],
-      run_wave_models(tts[ho == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + Module Manufacturer + Zip"]],
-      run_wave_models(tts[ho == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + Installer + Zip"]],
-      run_wave_models(tts[ho == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["FE: + Module Manufacturer"]]),
+      run_wave_models(tts[ho == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State"]],
+      run_wave_models(tts[ho == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State + Module Manufacturer"]],
+      run_wave_models(tts[ho == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State + Module Manufacturer + Installer"]]
+      ),
     
     "TPO" = list(
       run_wave_models(tts[tpo == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["No FE"]],
-      run_wave_models(tts[tpo == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + Module Manufacturer + Zip"]],
-      run_wave_models(tts[tpo == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + Installer + Zip"]],
-      run_wave_models(tts[tpo == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["FE: + Module Manufacturer"]])
+      run_wave_models(tts[tpo == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State"]],
+      run_wave_models(tts[tpo == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State + Module Manufacturer"]],
+      run_wave_models(tts[tpo == 1], glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State + Module Manufacturer + Installer"]]
+      )
     )
   
-  add_row = data.frame(
-    term = "F-test p-value",
-    p1 = fitstat(models_1$HO[[1]], type = "f")$f$p,
-    p2 = fitstat(models_1$HO[[2]], type = "f")$f$p,
-    p3 = fitstat(models_1$HO[[3]], type = "f")$f$p,
-    p4 = fitstat(models_1$HO[[4]], type = "f")$f$p,
-    p5 = fitstat(models_1$TPO[[1]], type = "f")$f$p,
-    p6 = fitstat(models_1$TPO[[2]], type = "f")$f$p,
-    p7 = fitstat(models_1$TPO[[3]], type = "f")$f$p,
-    p8 = fitstat(models_1$TPO[[4]], type = "f")$f$p
+  df_add_row <- data.frame(
+    term = c("F-test p-value", "Wald-test p-value"),
+    HO_model1 = c(
+      fitstat(models_1$HO[[1]], type = "f")$f$p,
+      fitstat(models_1$HO[[1]], type = "wald")$wald$p
+    ),
+    HO_model2 = c(
+      fitstat(models_1$HO[[2]], type = "f")$f$p,
+      fitstat(models_1$HO[[2]], type = "wald")$wald$p
+    ),
+    HO_model3 = c(
+      fitstat(models_1$HO[[3]], type = "f")$f$p,
+      fitstat(models_1$HO[[3]], type = "wald")$wald$p
+    ),
+    HO_model4 = c(
+      fitstat(models_1$HO[[4]], type = "f")$f$p,
+      fitstat(models_1$HO[[4]], type = "wald")$wald$p
+    ),
+    TPO_model1 = c(
+      fitstat(models_1$TPO[[1]], type = "f")$f$p,
+      fitstat(models_1$TPO[[1]], type = "wald")$wald$p
+    ),
+    TPO_model2 = c(
+      fitstat(models_1$TPO[[2]], type = "f")$f$p,
+      fitstat(models_1$TPO[[2]], type = "wald")$wald$p
+    ),
+    TPO_model3 = c(
+      fitstat(models_1$TPO[[3]], type = "f")$f$p,
+      fitstat(models_1$TPO[[3]], type = "wald")$wald$p
+    ),
+    TPO_model4 = c(
+      fitstat(models_1$TPO[[4]], type = "f")$f$p,
+      fitstat(models_1$TPO[[4]], type = "wald")$wald$p
+    )
   )
   
   # Map raw coefficient names to prettier labels
@@ -82,17 +116,19 @@ for (q in c("quality_1", "quality_2")){
     "quality_2:usa" = "Premium Installations × USA Brand"
   )
   
+ 
   # Create the side-by-side (cbind) table
   table1_quality <- modelsummary(
     models_1,
-    estimate = "{estimate} ({std.error}) [{p.value}]",
     coef_map = coef_map,
     stars = F,
     shape = 'cbind',
     escape = TRUE,
-    gof_omit = "Adj|AIC|BIC|Log|Within|Pseudo|RMSE|Std.",
-    output = "latex",
-    add_rows = add_row
+    gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
+    add_rows = df_add_row,
+    notes = "Notes: The dependent variable is a log price per W, so the estimate reports percent variations in price.
+    HO and TPO correspond to 'Host Owned' and 'Third Party Owned' systems. The standard errors are clustered at the zip code level shown between parenthesis.",
+    output = "latex"
   )
   
   table1_quality_char = as.character(table1_quality)
