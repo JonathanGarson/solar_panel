@@ -11,6 +11,8 @@ library(gt)
 # Data --------------------------------------------------------------------
 
 tts = setDT(read_parquet(data_temp("TTS_merged.parquet")))
+ad_2012 = fread(data_final("ad_2012_final.csv"))
+ad_2015 = fread(data_final("ad_2015_final.csv"))
 
 # Selecting firms ---------------------------------------------------------
 
@@ -228,7 +230,11 @@ tts[year %in% 2013:2016, quality_2_ad2 := ifelse(technology_module == "Mono-c-Si
 tts[year %in% 2017:2020, quality_2_st := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
 
 # Setting Price and Demand Variables --------------------------------------
+setnames(ad_2012, "module_manufacturer_2012", "module_manufacturer")
+setnames(ad_2015, "module_manufacturer_2015", "module_manufacturer")
 
+tts = merge(tts, ad_2012, by = "module_manufacturer" ,all.x = TRUE)
+tts = merge(tts, ad_2015, by = "module_manufacturer" ,all.x = TRUE)
 
 
 # Export Data -------------------------------------------------------------
