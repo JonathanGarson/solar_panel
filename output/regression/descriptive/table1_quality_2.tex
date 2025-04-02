@@ -2,8 +2,8 @@
 \centering
 \begin{talltblr}[         %% tabularray outer open
 entry=none,label=none,
-note{}={Notes: The dependent variable is a log price per W, so estimate reports percent variations in price.
-    HO and TPO correspond to 'Host Owned' and 'Third Party Owned' system. The standard errors are clustered at the zip code level.},
+note{}={Notes: The dependent variable is a log price per W, so the estimate reports percent variations in price.
+    HO and TPO correspond to 'Host Owned' and 'Third Party Owned' systems. The standard errors are clustered at the zip code level shown between parenthesis.},
 ]                     %% tabularray outer close
 {                     %% tabularray inner open
 colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
@@ -50,21 +50,21 @@ hline{11}={1,2,3,4,5,6,7,8,9}{solid, black, 0.05em},
 \toprule
 & HO &  &  &  & TPO &  &  &  \\ \cmidrule[lr]{2-5}\cmidrule[lr]{6-9}
 & (1) & (2) & (3) & (4) & (5) & (6) & (7) & (8) \\ \midrule %% TinyTableHeader
-Premium Installations & \num{-0.076} & \num{-0.017} & \num{-0.100} & \num{-0.017} & \num{-0.206} & \num{-0.334} & \num{-0.354} & \num{-0.127} \\
-& (\num{0.005}) & (\num{0.005}) & (\num{0.017}) & (\num{0.020}) & (\num{0.029}) & (\num{0.020}) & (\num{0.022}) & (\num{0.013}) \\
-Premium Installations × Chinese Brand & \num{0.006} & \num{0.107} & \num{0.174} & \num{0.049} & \num{0.059} & \num{0.390} & \num{0.407} & \num{0.203} \\
-& (\num{0.008}) & (\num{0.007}) & (\num{0.018}) & (\num{0.021}) & (\num{0.029}) & (\num{0.019}) & (\num{0.022}) & (\num{0.012}) \\
-Premium Installations × Korean Brand & \num{0.011} & \num{-0.019} & \num{0.066} & \num{0.006} & \num{0.259} & \num{0.412} & \num{0.462} & \num{0.234} \\
-& (\num{0.007}) & (\num{0.007}) & (\num{0.017}) & (\num{0.020}) & (\num{0.031}) & (\num{0.022}) & (\num{0.023}) & (\num{0.015}) \\
-Premium Installations × USA Brand & \num{0.119} & \num{0.078} & \num{0.151} & \num{0.071} & \num{0.368} & \num{0.493} & \num{0.591} & \num{0.187} \\
-& (\num{0.012}) & (\num{0.010}) & (\num{0.018}) & (\num{0.021}) & (\num{0.066}) & (\num{0.063}) & (\num{0.067}) & (\num{0.019}) \\
+Premium Installations & \num{-0.076} & \num{-0.017} & \num{-0.100} & \num{-0.014} & \num{-0.206} & \num{-0.334} & \num{-0.354} & \num{-0.125} \\
+& (\num{0.005}) & (\num{0.005}) & (\num{0.017}) & (\num{0.019}) & (\num{0.029}) & (\num{0.020}) & (\num{0.022}) & (\num{0.013}) \\
+Premium Installations × Chinese Brand & \num{0.006} & \num{0.107} & \num{0.174} & \num{0.050} & \num{0.059} & \num{0.390} & \num{0.407} & \num{0.202} \\
+& (\num{0.008}) & (\num{0.007}) & (\num{0.018}) & (\num{0.020}) & (\num{0.029}) & (\num{0.019}) & (\num{0.022}) & (\num{0.012}) \\
+Premium Installations × Korean Brand & \num{0.011} & \num{-0.019} & \num{0.066} & \num{0.004} & \num{0.259} & \num{0.412} & \num{0.462} & \num{0.233} \\
+& (\num{0.007}) & (\num{0.007}) & (\num{0.017}) & (\num{0.019}) & (\num{0.031}) & (\num{0.022}) & (\num{0.023}) & (\num{0.015}) \\
+Premium Installations × USA Brand & \num{0.119} & \num{0.078} & \num{0.151} & \num{0.068} & \num{0.368} & \num{0.493} & \num{0.591} & \num{0.153} \\
+& (\num{0.012}) & (\num{0.010}) & (\num{0.018}) & (\num{0.020}) & (\num{0.066}) & (\num{0.063}) & (\num{0.067}) & (\num{0.020}) \\
 Num.Obs. & \num{509728} & \num{509728} & \num{509728} & \num{509728} & \num{400744} & \num{400744} & \num{400744} & \num{400744} \\
-R2 & \num{0.053} & \num{0.237} & \num{0.248} & \num{0.491} & \num{0.093} & \num{0.219} & \num{0.242} & \num{0.578} \\
+R2 & \num{0.053} & \num{0.237} & \num{0.248} & \num{0.450} & \num{0.093} & \num{0.219} & \num{0.242} & \num{0.571} \\
 FE: year &  & Yes & Yes & Yes &  & Yes & Yes & Yes \\
 FE: state &  & Yes & Yes & Yes &  & Yes & Yes & Yes \\
 FE: module\_manufacturer &  &  & Yes & Yes &  &  & Yes & Yes \\
 FE: installer\_name &  &  &  & Yes &  &  &  & Yes \\
-F-test p-value & \num{0.000} & \num{0.000} & \num{0.000} & \num{1.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} \\
+F-test p-value & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} \\
 Wald-test p-value & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} \\
 \bottomrule
 \end{talltblr}

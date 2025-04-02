@@ -229,12 +229,44 @@ tts[year %in% 2010:2013, quality_2_ad1 := ifelse(technology_module == "Mono-c-Si
 tts[year %in% 2013:2016, quality_2_ad2 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
 tts[year %in% 2017:2020, quality_2_st := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
 
+# Grouping Small Observation ----------------------------------------------
+install = unique(tts[, .(installer_count = .N), by = installer_name])
+install[, sum_installer_count := sum(installer_count)]
+
+setorder(install, installer_count)
+install[, cum_N := cumsum(installer_count)]
+install[, cum_pct := cum_N / sum_installer_count]
+
+# Identify the installers whose cumulative percentage is <= 5%
+list_small_installer = install[cum_pct <= 0.05, installer_name]
+tts[installer_name %in% list_small_installer, installer_name := "other"]
+
 # Setting Price and Demand Variables --------------------------------------
 setnames(ad_2012, "module_manufacturer_2012", "module_manufacturer")
 setnames(ad_2015, "module_manufacturer_2015", "module_manufacturer")
 
-tts = merge(tts, ad_2012, by = "module_manufacturer" ,all.x = TRUE)
-tts = merge(tts, ad_2015, by = "module_manufacturer" ,all.x = TRUE)
+tts = merge(tts, ad_2012, by = c("module_manufacturer", "year_quarter") ,all.x = TRUE)
+tts = merge(tts, ad_2015, by = c("module_manufacturer", "year_quarter") ,all.x = TRUE)
+
+# # Normalize keys in tts
+# tts[, module_manufacturer := trimws(tolower(as.character(module_manufacturer)))]
+# tts[, year_quarter := trimws(as.character(year_quarter))]
+# 
+# # Normalize keys in ad_2012
+# ad_2012[, module_manufacturer := trimws(tolower(as.character(module_manufacturer)))]
+# ad_2012[, year_quarter := trimws(as.character(year_quarter))]
+# 
+# # Normalize keys in ad_2015
+# ad_2015[, module_manufacturer := trimws(tolower(as.character(module_manufacturer)))]
+# ad_2015[, year_quarter := trimws(as.character(year_quarter))]
+# 
+# # Merge with ad_2012
+# tts <- merge(tts, ad_2012, by = c("module_manufacturer", "year_quarter"), all.x = TRUE)
+# 
+# # Merge with ad_2015
+# tts <- merge(tts, ad_2015, by = c("module_manufacturer", "year_quarter"), all.x = TRUE)
+
+# Cleaning before export --------------------------------------------------
 
 
 # Export Data -------------------------------------------------------------

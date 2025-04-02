@@ -305,12 +305,13 @@ ts[, rebate_or_grant := rebate_or_grant/deflated_cpi]
 
 # Creating var to identify efficiency system
 ts[, price_w := total_installed_price/(PV_system_size_DC * 1000)] #express in W instead of kW
+ts[, rebate_w := rebate_or_grant/(PV_system_size_DC * 1000)] #express in W instead of kW
 ts[, potential_prod := (PV_system_size_DC*1000) * efficiency_module_1] #express in W instead of kW
 ts[, price_w_potential_prod := total_installed_price/potential_prod] #$/W
 
 
 # Reorganizing Tables -----------------------------------------------------
-ts = merge(ts, zip_county, by.x = "zip_code", by.y = "zip", all.x = TRUE)
+# ts = merge(ts, zip_county, by.x = "zip_code", by.y = "zip", all.x = TRUE)
 
 cols = c("year","year_quarter", "zip", "city.x", "county", "state.x", "system_ID_1", "system_ID_2", "installation_date",
          "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "potential_prod_1", "cost_potential_prod_1",
@@ -333,7 +334,7 @@ cols = c("year","year_quarter", "zip", "city.x", "county", "state.x", "system_ID
 
 ts = ts[year %in% 2010:2023, .SDcols = cols]
 ts[, `:=` (city.y = NULL, state.y = NULL)]
-setnames(ts, c("city.x", "state.x"), c("city", "state"))
+# setnames(ts, c("city.x", "state.x"), c("city", "state"))
 
 ts = ts[third_party_owned != -1] #we take only the data which mentions the property type status
 ts[, ho := ifelse(third_party_owned == 0, 1, 0)]

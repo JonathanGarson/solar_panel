@@ -41,14 +41,6 @@ run_wave_models <- function(data, quality_var) {
   )
 }
 
-# Promising regression -> all the variation seems to be absorbed by installer
-# test = feols(ln_price_w ~ quality_1 + quality_1*china + quality_1 * korea + quality_1 * usa | state + module_manufacturer  + year , 
-#              cluster = ~zip_code,data = tts[ho == 1])
-# fitstat(test, type = c("f", "wald"))
-# test_2 = feols(ln_price_w ~ quality_2 + quality_2*china + quality_2 * korea + quality_2 * usa | state + module_manufacturer +  year ,
-#              cluster = ~zip_code,data = tts[ho == 1])
-# fitstat(test_2, type = c("f", "wald"))
-
 # Run all models and name them carefully for each wave and quality measure
 for (q in c("quality_1", "quality_2")){
   models_1 <- list(
@@ -128,7 +120,7 @@ for (q in c("quality_1", "quality_2")){
     add_rows = df_add_row,
     notes = "Notes: The dependent variable is a log price per W, so the estimate reports percent variations in price.
     HO and TPO correspond to 'Host Owned' and 'Third Party Owned' systems. The standard errors are clustered at the zip code level shown between parenthesis.",
-    output = "latex"
+    # output = "latex"
   )
   
   table1_quality_char = as.character(table1_quality)

@@ -47,6 +47,13 @@ ad_2015[module_manufacturer_2015 == "Baoding Tianwei Yingli New Energy Resources
 ad_2015 <- rbind(ad_2015, data.table(
     module_manufacturer_2015 = "renesola", ad_rate_2015 = 78.42,cvd_rate_2015 = 38.43, ad_temp_measure_2015 = "31/07/2014", cvd_temp_measure_2015 = "10/06/2014", cvd_temp_end_2015 = "08/10/2014"))
 
+# Format Date
+ad_2012[, p_dump_date_2012_fmt := dmy(p_dump_date_2012)]
+ad_2012[, year_quarter := paste0(year(p_dump_date_2012_fmt), "Q", quarter(p_dump_date_2012_fmt))]
+
+ad_2015[, ad_temp_measure_2015_fmt := dmy(ad_temp_measure_2015)]
+ad_2015[, year_quarter := paste0(year(ad_temp_measure_2015_fmt), "Q", quarter(ad_temp_measure_2015_fmt))]
+
 # Export ------------------------------------------------------------------
 ad_2012_final = unique(ad_2012)
 ad_2015_final = unique(ad_2015)

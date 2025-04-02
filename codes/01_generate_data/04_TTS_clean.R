@@ -69,5 +69,6 @@ setnames(tts, toclean_colnames, clean_colnames)
 
 # We also get rid of Tesla and Solar city, even for HO system, following the recommendation of the LNBL
 tts = tts[module_manufacturer != "tesla"]
+tts = tts[installer_name != "tesla"]
 
 write_parquet(tts, data_temp("TTS_clean.parquet"))
