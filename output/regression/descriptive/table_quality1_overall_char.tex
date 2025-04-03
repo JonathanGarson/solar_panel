@@ -1,0 +1,35 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+note{ }={Notes: The dependent variable is a price in \$ per W, so the estimate reports a dollar variation in price. Standard errors are clustered at the zip code level.},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]},
+column{2,3,4,5}={}{halign=c,},
+column{1}={}{halign=l,},
+hline{10}={1,2,3,4,5}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& (1) & (2) & (3) & (4) \\ \midrule %% TinyTableHeader
+Premium Panels & \num{-1.239}*** & \num{-0.515}*** & \num{-0.240}*** & \num{-0.159}*** \\
+& (\num{0.041}) & (\num{0.034}) & (\num{0.025}) & (\num{0.022}) \\
+Premium Panels × USA Brand & \num{0.281}*** & \num{0.493}*** & \num{0.012} & \num{0.111}* \\
+& (\num{0.049}) & (\num{0.038}) & (\num{0.038}) & (\num{0.046}) \\
+Premium Panels × Chinese Brand & \num{0.497}*** & \num{0.317}*** & \num{0.011} & \num{0.056} \\
+& (\num{0.066}) & (\num{0.061}) & (\num{0.049}) & (\num{0.048}) \\
+Premium Panels × Korean Brand & \num{1.015}*** & \num{0.438}*** & \num{0.293}*** & \num{0.245}*** \\
+& (\num{0.046}) & (\num{0.042}) & (\num{0.029}) & (\num{0.026}) \\
+Num.Obs. & \num{508634} & \num{508438} & \num{508438} & \num{508438} \\
+R2 & \num{0.069} & \num{0.224} & \num{0.232} & \num{0.394} \\
+FE: year &  & X & X & X \\
+FE: state &  & X & X & X \\
+FE: module\_manufacturer &  &  & X & X \\
+FE: installer\_name &  &  &  & X \\
+F-test p-value & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} \\
+Wald-test p-value & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} \\
+Dependent Variable Mean & \num{3.895} & \num{3.895} & \num{3.895} & \num{3.895} \\
+\bottomrule
+\end{talltblr}
+\end{table}

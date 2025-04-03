@@ -1,0 +1,224 @@
+\section{Theory} \label{sec:theory}
+
+In this section, we develop the environment in which we assume the solar market evolves and that motivates our empirical analysis.
+
+For this purpose, we adopt the \citet{melitzMarketSizeTrade2008} framework, prolonged by \citet{antoniadesHeterogeneousFirmsQuality2015} and \citet{ludemaTariffPassthroughFirm2016} to integrate endogenous quality choice and disentangle the quality effect impact on pass-through. We prolonged this model by adding a third country unaffected by the newly imposed tariffs. The interest is both theoretical in assessing the welfare repartition when we include a third country and empirical in that the U.S. solar panel market is largely dominated by three countries of origin brands: the United States, China, and South Korea.
+
+\subsection{Demand}
+
+The world is divided into two countries: Home (H) and Foreign (F). For simplicity, we assume that both countries have a representative consumer with a quasi-linear utility function. This function is largely borrowed from \citet{ludemaTariffPassthroughFirm2016} and was developed in trade by \cite{ottavianoAgglomerationTradeRevisited2002}.
+
+\begin{equation} \label{eq:utility}
+    U = q_0^c + \int_{i \in \Omega} (\alpha + z_i) q_i^c di - \frac{1}{2} \gamma \int_{i \in \Omega} (q_i^c)^2 di - \frac{1}{2} \eta \left(\int_{i \in \Omega} q_i^c \right)^2 
+\end{equation}
+
+
+We have a $q_0^c$ the numeraire good which is homogeneous and produced by a unit of labor and is always consumed. The presence of a numeraire in our setup gives a partial equilibrium flavor to our model, since wages will not vary with trade and firms always have enough workers to deliver to all markets. In our case this partial equilibrium effect is not necessarily problematic since we only consider the specific case of tariff absorption in solar panel trade with the U.S. We also have a differentiated good $q_i^c$ over which consumers maximize their utility. The differentiated good is indexed by variety $i \in \Omega$ and each firm produces a unique variety of this good (in our specific case solar panels). $\alpha$ and $\eta $ are strictly positive and capture the substitutability between the numeraire and the differentiated good, while $\gamma$ captures the degree of horizontal differentiation between varieties. $z_i$ is the quality scaling factor.
+
+Using quasi-linear utility functions has the double convenience of providing a tractable framework for firms' heterogeneity while allowing for markups and quality to be determined endogenously at the firm level. The classical CES function posits constant elasticity of substitution and then constant markups which can hide strategic patterns of tariffs absorption which are precious in our context.
+
+\begin{tcolorbox}[title=To Do, colback=white, colframe=orange]
+\begin{itemize}
+    \item  why did we choose it over CES/CREMR/translog
+    \item provide the "demand manifold" \cite{mrazovaNotDemandingDemand2017} 
+    \item explaining why choosing quasi linear and caveats \citep{demidovaTradePoliciesFirm2017, bagwellTradePolicyMonopolistic2020}
+\end{itemize}
+\end{tcolorbox}
+
+We assume that the two markets are segmented and derive the following inverse demand function:
+
+\begin{equation} \label{eq:inverse_demand}
+    p_i^l = \alpha + z_i^l - \gamma (q_i^c)^l - \eta Q_c^l
+\end{equation}
+
+with $l \in \{H,F\}$ and $Q_c^l = \int_{i \in \Omega} (q_i^c)^l di$
+
+From here we can derive the linear demand for any variety in a country $l$ by just inverting the function : 
+
+\begin{equation} \label{eq:linear_demand}
+q^l \equiv L^l q_i^c = \frac{L^l \alpha}{\gamma + \eta N^l} +\frac{L^l}{\gamma} z_i^l - \frac{L^l}{\gamma} p_i^l - \frac{L^l N^l \eta}{\gamma + \eta N^l}\bar{z}^l + \frac{L^l N^l \eta}{\gamma + \eta N^l} \bar{p}^l
+\end{equation}
+
+\subsection{Firms}
+
+We assume that there is a continuum of firms $N^l$ operating in each country and that those firms are in monopolistic competitions. They can endogenously set markups and quality, and take decisions independently of each other.
+\textbf{describe results from \citet{antoniadesHeterogeneousFirmsQuality2015}}
+
+They all face an entry cost in the market determined by $f_E$ and produce a single variety. 
+
+Thanks to monopolistic competition property and the inelastic labor supply, they can deal independently with each market setting markups and quality of goods to export \textbf{cite papers going in that direction}.
+
+We model the firms costs as follow : 
+
+\begin{equation} \label{eq:cost}
+    \text{TC}_i^l = c_iq_i^l + \theta z_i^lq_i^l + \theta (z_i^l)^2
+\end{equation}
+
+$c_i q_i^l$ marks here the raising marginal cost $c$ with the quantity produced, it is an output dependent "processing cost". $\theta z_i^l q_i^l$ refers here to the additional cost of producing quality goods and $\theta (z_i^l)^2$ is the design or research cost of upgrading. $\theta$ here refers to the "ability" to upgrade, in \citet{antoniadesHeterogeneousFirmsQuality2015} it is understood at the country level as the high and low innovation countries. These different elements integrated in the cost function allow firms to vary in quality and quantity by destination.
+
+Firms ignore their productivity before entering the market; it is revealed when they pick a marginal cost of production $c$ in a distribution $G(c)$. Entering a market comes with a fixed cost of entry $f_E$, which is considered sunk here since the model is static. If the expected profit $\pi$ of a firm is revealed to be inferior to $f_E$ then the firm stops producing and exits the market. 
+
+In our setup, we are in an open economy \textbf{at the equilibrium}, firms make profit at Home (H) and at Foreign (F). 
+
+\begin{equation}
+\begin{aligned}
+\pi^{hh} &= p^{hh}q^{hh} - c\,q^{hh} - \theta\,z^{hh}q^{hh} - \theta\,(z^{hh})^2 \\
+\pi^{hf} &= \frac{p^{hf}}{\tau^f} q^{hf} - \delta c\,q^{hf} - \theta\,z^{hf}q^{hf} - \theta\,(z^{hf})^2 \\
+\pi^{ff} &= p^{ff}q^{ff} - c\,q^{ff} - \theta\,z^{ff}q^{ff} - \theta\,(z^{ff})^2 \\
+\pi^{fh} &= \frac{p^{fh}}{\tau^h} q^{fh} - \delta c\,q^{fh} - \theta\,z^{fh}q^{fh} - \theta\,(z^{fh})^2
+\end{aligned}
+\end{equation}
+
+With $p^{hh}$ and $q^{hh}$ respectively indicating price and quantity of firms producing at Home $h$ and selling on the same market. Conversely, firms face trade costs when exporting $\tau^f$, they are independent of quality\footnote{Here we choose to follow \cite{antoniadesHeterogeneousFirmsQuality2015} and impose trade cost included in the production price rather than iceberg cost. Also there is no reason to believe \textit{a priori} that high quality solar panels are more expensive to trade than low quality ones since most of the technology we observe is on the chemical treatment of raw materials or semi-conductor manufacturing, rather than on the size.}, and are our variable of interest in our case of pass-through evaluation.
+
+In our case, we are interested in the effect of Home imposing tariffs on Foreign exports to its domestic market. Therefore we focus on : 
+
+\begin{equation}
+    \begin{aligned}
+        \pi^{hh} &= p^{hh}q^{hh} - c\,q^{hh} - \theta\,z^{hh}q^{hh} - \theta\,(z^{hh})^2 \\
+        \pi^{fh} &= \frac{p^{fh}}{\tau^h} q^{fh} - \delta c\,q^{fh} - \theta\,z^{fh}q^{fh} - \theta\,(z^{fh})^2
+    \end{aligned}
+\end{equation}
+
+And more precisely the pass through of the tariffs on the tariff inclusive import price: $\frac{p^{fh}}{\tau^h}$.
+
+Firms choose quality and price to deliver to each market independently to maximize their profits. 
+The optimal quality (see \autoref{app:firms) is defined as : 
+\begin{equation}
+    \begin{aligned}
+        z^{fh} &= \lambda^{fh}\delta \tau^h(c^{fh} - c) \\
+        z^{hh} &= \lambda^{hh}(c^{hh} - c)
+    \end{aligned}
+\end{equation}
+
+With $\lambda^{fh} = \frac{L^h (1 - \theta \tau^h)}{4 \gamma \theta \tau^h - L^h(1 - \theta \tau^h)^2}$ and $\lambda^{hh} = \frac{L^h (1 - \theta)}{4 \gamma \theta - L^h(1 - \theta)^2}$\footnote{We assume that $4\theta \gamma > L^l (1-\theta \tau^l)^2$ and $1>\theta \tau^l$ so that the scope is always positive.}. $\lambda$ is defined as the "quality scope" the ladder of quality on which an industry operates. A flat ladder ($\lambda = 1$) would mean that the industry produces homogeneous goods and there is not much room for differentiation. In that case, prices are declining with productivity and we are back to \citet{melitzImpactTradeIntraIndustry2003, melitzMarketSizeTrade2008}. Conversely, with a steep ladder ($\lambda >1 $), firms with higher productivity can set both higher quality and prices. 
+
+More generally, the quality scope is increasing in market size ($L$) and substituability between differentiated goods ($\gamma$). On the other hand, it decreases with tariff ($\tau$)and toughness to upgrade ($\theta$). In a nutshell, a large market, with steep competition between differentiated goods and with a high ability to innovate (e.g. a \textit{developed} country) would have more variation in the quality of goods proposed because a larger market means more possibility for firms to make up their upgrading cost. Conversely, a market with strong tariff $\tau$ is analogous to a shock in size (market size reduction) in this two-country framework, reducing the opportunity to pay back for quality upgrading cost, and then leading to a more homogeneous market.
+
+From the firm perspective, the choice to deliver a certain quality to a given market is synthesized by this scope for quality (market-based parameter) and their relative marginal cost relative to the market cost-cutoff ($c^{fh} - c$). Since the scope for quality on a given market is set by the market conditions, the quality of the variety delivered to a given market is monotonically increasing with the firm productivity ($1/c)$. This relation between cost differential and quality scope is crucial since the tariff will affect firms differently depending on their productivity level.
+
+For foreign firms exporting to the domestic markets : 
+
+\begin{equation} \label{eq:price_quality_equation}
+    \begin{aligned}
+    z^{fh} & = \lambda^{fh}\delta \tau^h(c^{fh} - c) \\
+    p^{fh} &= \frac{1}{2}\delta \tau^h ( c^{fh} +  c) + \frac{1}{2} (1 + \tau^h\theta)\lambda^{fh}\delta \tau^h(c^{fh} - c)  \\
+    q^{fh} &= \frac{L^h}{2\gamma} \big[ \delta \tau^h ( c^{fh} -  c) + (1 - \tau^h\theta) \lambda^{fh}\delta \tau^h(c^{fh} - c)\big] \\
+    \pi^{fh} &= \frac{\delta^2 L^h \tau^h}{4\gamma} \big[ 1 + (1 - \theta \tau^h)\lambda^{fh}\big](c^{fh} - c)^2 
+    \end{aligned}
+\end{equation}
+
+For domestic firms producing for the domestic market we obtain the following functions:
+
+\begin{equation}
+\begin{aligned}
+    z^{hh} &= \lambda^{hh}(c^{hh} - c) \\
+    p^{hh} &= \frac{1}{2}( c^{hh} +  c) + \frac{1}{2} (1 + \theta)\lambda^{hh}(c^{hh} - c)  \\
+    q^{hh} &= \frac{L^h}{2\gamma} \big[( c^{hh} -  c) + (1 - \theta) \lambda^{hh}(c^{hh} - c)\big] \\
+    \pi^{hh} &= \frac{L^h}{4\gamma} \big[ 1 + (1 - \theta )\lambda^{hh}\big](c^{hh} - c)^2
+\end{aligned}
+\end{equation}
+
+\subsection{Market Equilibrium}
+
+To close the model we need equilibrium conditions under which firm can operate in a given market. For that they must have positive profit just so to pay the fixed entry cost ($f_E$) of entering a given market. When a firm draws its marginal cost $c$ if $c>c^{fh}$ then the firm is losing money and stops producing. It states that a firm must cover the fixed cost entry by its profit at home or abroad.
+
+\begin{equation} \label{eq:free_entry}
+\begin{aligned}
+    f_E &= \int_{0}^{c^{fh}} \pi^{fh} dG(c) + \int_{0}^{c^{ff}} \pi^{ff} dG(c) \\  
+    f_E &= \int_{0}^{c^{hf}} \pi^{hf} dG(c) + \int_{0}^{c^{hh}} \pi^{hh} dG(c)   
+\end{aligned}
+\end{equation}
+
+From these equations we can determine the market cost-cutoff above which firms cannot operate profitably. As it is standard, we will assume that the marginal cost $c$ is distributed Pareto such that $G(c) = (c/c_M)^k$ with a support $c \in [0, c_M]$ with $c_M$ being the maximum value $c$ can take and $k$ the shape parameter. A higher $k$ implies more concentration of firms on the right tail of the distribution. Using Pareto distribution is convenient as it is a scale free distribution with noticeably interesting properties for left truncation.
+
+However, if the Pareto distribution is convenient due to its analytical tractability and its aggregate properties, it has been subject to critics by \textbf{\citet{headWelfareTradePareto2014}} and support \textbf{\citet{amandParetoDistributionsInternational2016}}.
+
+~
+
+\[
+\begin{cases}
+    \gamma \phi = L^h \delta^{-k} (\tau^h)^{-k-1}[1 + (1-\theta \tau^h)\lambda^{fh}](c^{hh})^{k+2} + L^f[1 +  (1-\theta)\lambda^{ff}](c^{ff})^{k+2} \\
+        \gamma \phi = L^f \delta^{-k} (\tau^f)^{-k-1}[1 + (1-\theta \tau^f)\lambda^{hf}](c^{ff})^{k+2} + L^h[1 + (1-\theta)\lambda^{hh}](c^{hh})^{k+2} \\
+\end{cases}
+\]
+
+With $\phi = c_M^k 2(k+2)(k+1)f_E$, $c^{fh} = \frac{c^{hh}}{\delta \tau^h}$. Then we have this system of two equations that we can build on to obtain the expression of the cost cutoff of $h$ and $f$: 
+
+\begin{equation} \label{cost_cutoff}
+    \resizebox{0.9\textwidth}{!}{
+        \begin{aligned}
+        c^{hh} &= \left( \frac{\gamma \phi}{L^h} 
+        \frac{\left[1+(1 - \theta)\lambda^{ff}\right] - \rho^f\left[1 + (1 - \theta\tau^f)\lambda^{hf}\right]}
+        {\left[1+(1-\theta)\lambda^{hh}\right]\left[1+(1-\theta)\lambda^{ff}\right] - \rho^h \rho^f \left[1+(1-\theta \tau^h)\lambda^{fh}\right]\left[1 + (1- \theta \tau^f)\lambda^{hf}\right] }
+        \right)^{\frac{1}{k+2}} 
+        \\[10pt]
+        c^{fh} &= \left( \frac{\gamma \phi}{\delta \tau^h L^h} 
+        \frac{\left[1+(1 - \theta)\lambda^{ff}\right] - \rho^f\left[1 + (1 - \theta\tau^f)\lambda^{hf}\right]}
+        {\left[1+(1-\theta)\lambda^{hh}\right]\left[1+(1-\theta)\lambda^{ff}\right] - \rho^h \rho^f \left[1+(1-\theta \tau^h)\lambda^{fh}\right]\left[1 + (1- \theta \tau^f)\lambda^{hf}\right] }
+        \right)^{\frac{1}{k+2}}
+        \end{aligned}
+    }
+\end{equation}
+
+Note that $\rho^l = \delta^{-k}(\tau^l)^{-k-1} \text{ with } l \in \{h,f\}$ is the inverse measure of economic freedom as in \citet{melitzMarketSizeTrade2008}. These expressions provide closed forms solutions of the model and intuition on what are the dynamics at play. We can see that the import cutoff value (from \textit{home} perspective) is given by $c^{fh}$. $\frac{\gamma \phi}{\delta \tau^h L^h}$ give intuition on home market profitability with $\gamma \phi$ being the objective measure of market access conditions divided by the trade cost $\delta \tau^h$. $L$ plays its competitive role as in \citet{melitzMarketSizeTrade2008}, an increase in size leads to a lower cost-cutoff leading less productive firms to exit the market, increasing the productivity. However, the vertical quality differentiation changes the intuition on prices and markups which do not necessarily decrease with market size increases since firms producing high-quality variety can also impose a higher markup (see \autoref{eq:price_quality_equation}).
+
+We now turn our analysis to the equilibrium import price structure, we can decompose it following \autoref{eq:price_quality_equation} as being formed of two components productivity and quality: 
+
+\begin{equation} \label{eq:optimal_import_price}
+    \begin{aligned}
+        p^* \equiv \frac{p^{fh}}{\tau^h} \Longrightarrow p^* = \underbrace{\frac{\delta}{2} ( c^{fh} +  c)}_{\text{Productivity}} + \underbrace{\frac{\delta}{2} \kappa (c^{fh} - c)}_{\text{Quality}}
+    \end{aligned}
+\end{equation}
+
+To alleviate the notation we have set $\kappa = (1 + \tau^h\theta)\lambda^{fh}$ which is a proportional measure of the quality scope for differentiation in the market. We now have an expression of import price determined by three key parameters: firm productivity $c$, market import cost-cutoff $c^{fh}$, and the quality scope for differentiation $\kappa$. Taking the total log derivative we have (full derivation in \autoref{app:market_equilibrium}): 
+
+\begin{equation} \label{eq:log_derivative_optimal_import_price}
+\resizebox{0.9\textwidth}{!}{$
+    d \ln(p^*) = \frac{\delta}{2} \bigg[\underbrace{\frac{(1 + \kappa)c^{fh}d\ln(c^{fh})}{p^*}}_{\text{Market Condition}} - \underbrace{\frac{(1 - \kappa)c d\ln(\frac{1}{c})}{p^*}}_{\text{Productivity}} + \underbrace{\frac{(c^{fh} - c)\kappa d\ln(\kappa)}{p^*}}_{\text{Quality}}\bigg] 
+    $}
+\end{equation}
+
+We can clearly see the different effects at play in the import price equilibrium, while trade cost $\frac{\delta}{2}$ mechanically increases the cost of import, the quality, productivity, and market conditions interplay in non-trivial ways. 
+
+First, depending on the value of $\kappa$ the sign of productivity effect on price can change. If $\kappa <1$ then productivity correlates negatively with prices, and more productive firms will set a lower price than less productive ones. This is the traditional pro-competitive effect of trade identified in \citet{melitzMarketSizeTrade2008} which reduces markups and prices (if we omit the quality component). If $\kappa > 1$ then the sign of the productivity effect shift, and the correlation between productivity and prices appears to be positive (\textbf{quote studies that find this results}). This result, at first glance at odds with \citet{melitzMarketSizeTrade2008}, comes from the quality scope of consumed goods. In that case, both quality and productivity would push up the prices. The logic is that more productive firms would also produce more high-quality goods (see \eqref{eq:price_quality_equation}). Hence, quality adds ambiguity to the correlation between productivity and import/export prices. The sign of the correlation is an empirical question that we will tackle in \autoref{sec:empiricics}. 
+
+Second, the cost cutoff is always positively correlated to the import prices, an increase in cost cutoff will make this market less competitive by allowing less productive firms to maintain themselves in the market. It will also create the possibility for more productive firms to charge higher markups, making the market more profitable. This situation then would decrease the average productivity and increase the prices and markups. A decrease in the cost cutoff would have the opposite effect.
+
+Third, quality, when it plays, always tends to increase the prices of imports as higher-quality goods are more expensive. 
+
+Then overall effect of tariffs depends on the degree of goods homogeneity (following \citet{ludemaTariffPassthroughFirm2016} we define as good homogeneous goods which $\kappa <1$ and quality differentiated goods which $\kappa > 1$), and the tariff absorption of firm exporting to \textit{home}. 
+
+%In that condition, a marginal decrease (increase) of import cost-cutoff $c^{fh}$ will push to exit less productive firms (open the market to less productive firms), in doing so increasing (lowering) the average productivity and then pushing down (up) the prices\footnote{Since $\kappa = (1 + \theta \tau^h)\lambda^{fh}$ then $\kappa < 1 \Longrightarrow \lambda^{fh} <1$ which means the quality scope is very low. Conversely, if $\kappa > 1 \Longrightarrow \lambda^{fh} >1$ then there is a range for quality differentiation.}. This is the traditional pro-competitive effect of trade identified in \citet{melitzMarketSizeTrade2008} which reduces markups and prices. However, quality increases the equilibrium import price as firms exporting higher-quality goods are also more expensive.
+
+%Second, in the case of $\kappa > 1$ then the sign of the productivity effect shift, and the correlation between productivity and prices appear to be positive (\textbf{quote studies that find this results}). This result, at first glance at odds with \citet{melitzMarketSizeTrade2008}, comes from the quality scope of consumed goods. In that case, both quality and productivity would push up the prices. The logic is that more productive firms would also produce more high-quality goods (see \eqref{eq:price_quality_equation}) and then a variation of the cost-cutoff would have the opposite effect than in the first case. A decrease (increase) of the cost-cutoff would increase (decrease) the average productivity of firms accessing \textit{home} markets, then it would increase (decrease) prices, markups, and quality available for the consumers.
+
+%Therefore, adding the vertical quality component to our heterogeneous firm model introduces rich insights to our analysis. Depending on the degree of homogeneity of a good, the effect of lowering the cost-cutoff of import are opposite: the first case is the melitzian case in which trade pro-competitive effects over a (fairly) homogeneous good leads more productive companies to stay in the market proposing a homogeneous good for cheaper prices and with lower markups; the second case in which trade induce innovation and lead firms to propose more quality differentiated goods, with higher prices and markups. Hence, quality adds ambiguity to the sign of the markups and prices due to tariff change, it is an empirical question that we will tackle in \autoref{sec:empiricics}. 
+
+\subsection{Tariffs Absorption}
+
+Now that we have our core setup with the equilibrium import price defined, we can study the elasticity of prices with respect to tariffs, which will give us the level of pass-through onto consumers that we should expect. Given the linear form of the demand, unlike in CES function, the pass-through can vary by firm. These non-constant markups allow for strategic pricing of firms depending on the elasticity of demand they face. The elasticity of demand faced by firms largely shapes their behavior and then transmission of the pass-through \citep{parentiTheoryMonopolisticCompetition2017, mrazovaNotDemandingDemand2017}. 
+
+The tariff absorption elasticity is defined as (see derivation in \autoref{app:tariff}): 
+\begin{equation} \label{eq:elasticity_price}
+    \begin{aligned}
+        \epsilon_{p^*} = - \frac{\partial \ln(p^*)}{\partial \ln \tau^h}
+    \end{aligned}
+\end{equation}
+
+It measures the impact of $1\%$ increase in tariff on home price in \%. We can in \eqref{eq:elasticity_price} that the tariffs influence the price through the quality and cost-cutoff channels, so far productivity is left aside as tariffs are not directly impacting firms in our model\footnote{We implicitly assume that the productivity of firms is unaffected because firms produce in their homeland $f$ or $h$ and are not internationalized or do not choose to invest in another country market (FDI) like in \citet{helpmanExportFDIHeterogeneous2004}. It comes from the fact that our unique factor of production is labor and is assumed to be immutable.}. 
+
+\textbf{So far we assume that the result of the derivation is identical as in \cite{ludemaTariffPassthroughFirm2016}}. 
+
+\begin{tcolorbox}[title = To Do, colback = white, colframe = orange]
+\begin{itemize}
+    \item \textbf{We can also build on the theoretical work of "demand manifolds" }\citep{mrazovaNotDemandingDemand2017} and access from the residual firms faces their likely reaction. Our linear demand functions fall under the "manifold invariance" due to its "bipolar direct" family. It implies that the shape of "demand manifold" does not change, only the level given the parameter. Therefore, comparative statistics are easier at the equilibrium. 
+    \item "demand manifold" concept, check if we are in the context of bipolar function (i.e. : $P(x) = A x^{-\alpha} + B x^{-\beta}$) of parameter $\alpha = 0 \text{ and } \beta = -1$
+    \item Be critical about the use of Pareto-inversion price
+    \item Include the theory bits and clarification from \textbf{Parenti \& al (2017)}
+\end{itemize}
+\end{tcolorbox}
+
+
+%\subsubsection{Three Countries Setup}
+\subsection{Quality choice and quasi-Metzler paradox}

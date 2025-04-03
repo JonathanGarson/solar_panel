@@ -1,0 +1,289 @@
+\appendix
+\section{Mathematical Appendix} \label{mathematical_appendix}
+
+\subsection{Consumer Demand} \label{app:consumer_demand}
+Development of the calculus for \eqref{eq:linear_demand}:
+
+
+\begin{align*}
+    \gamma q_i^c &= \alpha + z_i^l - p_i^l - \eta Q_c^l  \\
+    \Longleftrightarrow q_i^c &= \frac{1}\gamma\Bigr[\alpha + z_i^l -  p_i^l - \eta \int_{i \in \Omega } q_i^c di\Bigl] \\
+    \Longleftrightarrow  q_i^c &= \frac{1}\gamma \Big[\alpha + z_i^l - p_i^l - \eta N^l \bar{q} \Bigr] \\
+    \Longleftrightarrow  q_i^c &= \frac{1}\gamma\Bigr[\alpha + z_i^l - p_i^l - \eta N^l \left(\frac{1}{\gamma + \eta N^l}\large[ \alpha - \bar{z}^l + \bar{p} \large]\right) \Big] \\
+    \Longleftrightarrow q_i^c &= \frac{1}{\gamma}\frac{\alpha \gamma}{\gamma + \eta N^l} +\frac{1}{\gamma} z_i^l - \frac{1}{\gamma} p_i^l - \frac{1}{\gamma} \frac{N^l \eta}{\gamma + \eta N^l}\bar{z}^l + \frac{1}{\gamma} \frac{N^l \eta}{\gamma + \eta N^l} \bar{p}^l \\
+     \Longleftrightarrow q_i^c &= \frac{\alpha}{\gamma + \eta N} +\frac{1}{\gamma} z_i^l - \frac{1}{\gamma} p_i^l - \frac{1}{\gamma} \frac{N^l \eta}{\gamma + \eta N^l}\bar{z}^l + \frac{1}{\gamma}\frac{N^l \eta}{\gamma + \eta N^l} \bar{p}^l \\
+     \Longleftrightarrow q^c \equiv L^l q_i^c &= \frac{L^l \alpha}{\gamma + \eta N^l} +\frac{L^l}{\gamma} z_i^l - \frac{L^l}{\gamma} p_i^l - \frac{L^l}{\gamma} \frac{N^l \eta}{\gamma + \eta N^l}\bar{z}^l + \frac{L^l}{\gamma} \frac{N^l \eta}{\gamma + \eta N^l} \bar{p}^l 
+\end{align*}
+
+with $\bar{q} = \frac{1}{N} \int_{i \in \Omega^*} q_i^c di$, $\bar{p} = \frac{1}{N} \int_{i \in \Omega^*} p_i di$, $\bar{z} = \frac{1}{N} \int_{i \in \Omega^*} z_i di$ and $\Omega^* \subset \Omega$ the subset of consumed differentiated goods.
+
+\subsection{Firms} \label{app:firms}
+Development of the calculus for \eqref{eq:price_quality_equation}. We want to derive from the profit function the profit-maximizing equations for quantity, price, and quality.
+
+First we take the derivative of $\pi$ with respect to $p$, to obtain the optimal quantity function:
+\begin{align*}
+    \frac{\partial \pi^{fh}}{\partial p^{fh}} & = q^{fh} + \frac{\partial q^{fh}}{\partial p^{fh}} p^{fh} - \delta \tau^h c\frac{\partial q^{fh}}{\partial p^{fh}} - \tau^h\theta z^{fh} \frac{\partial q^{fh}}{\partial p^{fh}} \\
+    q^{fh} &= \frac{L^h}{\gamma} \left(p^{fh} - \delta \tau^h c - \tau^h\theta z \right)
+\end{align*}
+
+Then we use \eqref{eq:linear_demand} when the firm produces at the threshold price $p_{max}$ for which the demand is $q(p_{max}) = 0$ and $z = 0$: 
+
+\begin{align*}
+    0 &= \frac{L^h \alpha}{\gamma + \eta N^h} - \frac{L^h}{\gamma} p_{max} - \frac{L^h}{\gamma}\frac{N^h \eta}{\gamma + \eta N^h}\bar{z}^h + \frac{L^h}{\gamma} \frac{ N^h \eta}{\gamma + \eta N^h} \bar{p}^h \\
+    \Longleftrightarrow \frac{L^h}{\gamma} p_{max} &= \frac{L^h \alpha}{\gamma + \eta N^h} - \frac{L^h}{\gamma} \frac{N^h \eta}{\gamma + \eta N^h}\bar{z}^h + \frac{L^h}{\gamma} \frac{N^h \eta}{\gamma + \eta N^h} \bar{p}^h
+\end{align*}
+
+Then we plug $\frac{L^h}{\gamma} p_{max}$ in \eqref{eq:linear_demand} and find : 
+
+\begin{align*}
+    q^{fh} &= \underbrace{\frac{L^h \alpha}{\gamma + \eta N^h} - \frac{L^h}{\gamma} \frac{N^h \eta}{\gamma + \eta N^h}\bar{z}^h + \frac{L^h}{\gamma} \frac{N^h \eta}{\gamma + \eta N^h} \bar{p}^h}_{\frac{L^h}{\gamma} p_{max}} +\frac{L^h}{\gamma} z_i^{fh} - \frac{L^h}{\gamma} p_i^{fh} \\
+    \Longleftrightarrow q^{fh} &= \frac{L^h}{\gamma} p_{max} + \frac{L^h}{\gamma} z_i^{fh} - \frac{L^h}{\gamma} p_i^{fh}
+\end{align*}
+
+Finally we can equate with $q^{fh} = \frac{L^h}{\gamma} \left(p^{fh} - \delta \tau^h c - \tau^h\theta z \right)$: 
+
+\begin{align*}
+     \frac{L^h}{\gamma} \left(p^{fh} - \delta \tau^h c - \tau^h\theta z^{fh} \right) &= \frac{L^h}{\gamma} p_{max} + \frac{L^h}{\gamma} z_i^{fh} - \frac{L^h}{\gamma} p_i^{fh} \\
+     \Longleftrightarrow  p^{fh} - \delta \tau^h c - \tau^h\theta z^{fh} &= p_{max} + z_i^{fh} - p_i^{fh} \\
+     \Longleftrightarrow p^{fh} &= \frac{1}{2}\big[ \underbrace{p_{max}}_{\delta \tau^h c^{fh}}  + \delta \tau^hc + (1 + \tau^h\theta) z^{fh} \big] \\
+     \Longleftrightarrow p^{fh} &= \frac{1}{2}\big[ \delta \tau^h ( c^{fh} +  c) + (1 + \tau^h\theta) z^{fh} \big] \\
+     \Longleftrightarrow p^{fh} &= \frac{1}{2}\delta \tau^h ( c^{fh} +  c) + \frac{1}{2} (1 + \tau^h\theta) z^{fh}
+\end{align*}
+
+With $c^{fh}$ the cost cutoff for exporting to the $h$ market above which demand is 0. We deduce $p_{max}$ as the maximum price for which demand is negative as the transport and tariff inclusive price: $p_{max} = \delta \tau^h c^{fh}$.
+
+Hence we can rewrite the profit-maximizing price, quantity and profit functions as:
+
+\begin{align*}
+    p^{fh} &= \frac{1}{2}\delta \tau^h ( c^{fh} +  c) + \frac{1}{2} (1 + \tau^h\theta) z^{fh} \\
+    q^{fh} &= \frac{L^h}{2\gamma} \big[ \delta \tau^h ( c^{fh} -  c) + (1 - \tau^h\theta) z^{fh}\big] \\
+    \pi^{fh} &= \frac{L^h}{4\gamma} \big[\delta \tau^h (c^{fh} - c) + (1 - \theta \tau^h)z^{fh} \big]^2 - \theta (z^{fh})^2    
+\end{align*}
+
+For the quality function we just take the derivative of the profit function with respect to $z$ :
+
+\begin{align*}
+    \frac{\partial \pi^{fh}}{\partial z^{fh}} &= 0 \\
+    \Longleftrightarrow L^h \big[\delta \tau^h (c^{fh} - c) + (1 - \theta \tau^h) z^{fh}\big](1 - \theta \tau^h)& = 4 \gamma \theta \tau^h z^{fh}  \\ 
+    \Longleftrightarrow L^h (1 - \theta \tau^h) \delta \tau^h (c^{fh} - c)& = z^{fh} \big[4 \gamma \theta \tau^h - L^h(1 - \theta \tau^h)^2 \big] \\ 
+    \Longleftrightarrow \frac{L^h (1 - \theta \tau^h)}{4 \gamma \theta \tau^h - L^h(1 - \theta \tau^h)^2} \delta \tau^h(c^{fh} - c)& = z^{fh}   \\
+    \Longleftrightarrow \lambda^{fh}\delta \tau^h(c^{fh} - c)& = z^{fh}
+\end{align*}
+
+Therefore, the final optimal quality functions are:
+\begin{align*}
+    z^{fh} &= \lambda^{fh}\delta \tau^h(c^{fh} - c) \\
+    z^{hh} &= \lambda^{hh}(c^{hh} - c)
+\end{align*}
+
+With $\lambda^{fh} = \frac{L^h (1 - \theta \tau^h)}{4 \gamma \theta \tau^h - L^h(1 - \theta \tau^h)^2}$ and $\lambda^{hh} = \frac{L^h (1 - \theta)}{4 \gamma \theta - L^h(1 - \theta )^2}$ defining the "quality scope" of good exporting from $f$ to $h$ and from home firms $h$ for \textit{Home} markets. 
+
+And finally, by plugging this optimal quality choice function in our previous equations we obtain : 
+
+\begin{align*}
+    p^{fh} &= \frac{1}{2}\delta \tau^h ( c^{fh} +  c) + \frac{1}{2} (1 + \tau^h\theta)\lambda^{fh}\delta \tau^h(c^{fh} - c)  \\
+    q^{fh} &= \frac{L^h}{2\gamma} \big[ \delta \tau^h ( c^{fh} -  c) + (1 - \tau^h\theta) \lambda^{fh}\delta \tau^h(c^{fh} - c)\big] \\
+    \pi^{fh} &= \frac{\delta^2 L^h \tau^h}{4\gamma} \big[ 1 + (1 - \theta \tau^h)\lambda^{fh}\big](c^{fh} - c)^2
+\end{align*}
+
+For home firm we just need to set $\delta = \tau = 1$:
+
+\begin{align*}
+     p^{hh} &= \frac{1}{2}( c^{hh} +  c) + \frac{1}{2} (1 + \theta)\lambda^{hh}(c^{hh} - c)  \\
+    q^{hh} &= \frac{L^h}{2\gamma} \big[( c^{hh} -  c) + (1 - \theta) \lambda^{hh}(c^{hh} - c)\big] \\
+    \pi^{hh} &= \frac{L^h}{4\gamma} \big[ 1 + (1 - \theta )\lambda^{hh}\big](c^{hh} - c)^2
+\end{align*}
+
+\subsection{Market Equilibrium} \label{app:market_equilibrium}
+We can rewrite \eqref{eq:free_entry} as :
+
+\begin{equation*}
+\resizebox{\textwidth}{!}{$
+    f_E = \int_{0}^{c^{fh}} \frac{\delta^2 L^h \tau^h}{4\gamma} \big[ 1 + (1 - \theta \tau^h)\lambda^{fh}\big](c^{fh} - c)^2 dG(c) + \int_{0}^{c^{ff}} \frac{L^h}{4\gamma} \big[ 1 + (1 - \theta)\lambda^{ff}\big](c^{ff} - c)^2 dG(c) 
+    $}
+\end{equation*}
+
+We will only consider the profit made in $h$ since the reasoning for the profit made at home (i.e. $f$, since we take \textit{Foreign} point of view) is similar to the exception of $\tau = \delta = 1$.
+
+We remind that we are considering a Pareto distribution so that $G(c) = (\frac{c}{c_M})^k$ with $c \in [0,c_M]$. To ease the re-expression of our distribution we can derive the value of $G(c)$:
+
+\begin{align*}
+    \frac{d}{dc}G(c) &= g(c) = k c^{k-1}c_M^{-k} \\
+    dG(c) &= g(c)dc = k c^{k-1}c_M^{-k} dc
+\end{align*}
+
+We can plug this in our first member:
+\begin{align*}
+    \frac{\delta^2 L^h \tau^h}{4\gamma} \big[ 1 + (1 - \theta \tau^h)\lambda^{fh}\big] \int_{0}^{c^{fh}} (c^{fh} - c)^2  k c^{k-1}c_M^{-k} dc
+\end{align*}
+
+For the rest of the calculation we set the following variable $u = \frac{c}{c^{fh}}$ such that : 
+
+\begin{align*}
+    &u = \frac{c}{c^{fh}} \Longleftrightarrow c = c^{fh} u \text{ and } dc = c^{fh}du \\
+    &\text{and } c^{fh} - c = (1 - u)c^{fh}
+\end{align*}
+
+Now we have all the elements to simplify our cost-cutoff functions:
+
+\begin{align*}
+    &\frac{\delta^2 L^h \tau^h}{4\gamma} \big[ 1 + (1 - \theta \tau^h)\lambda^{fh}\big] \int_{0}^{1} (1 - u)^2 (c^{fh})^2  k (c^{fh})^{k-1} u^{k-1} c_M^{-k} c^{fh}du \\
+    \Longleftrightarrow &\frac{\delta^2 L^h \tau^h}{4\gamma} \big[ 1 + (1 - \theta \tau^h)\lambda^{fh}\big](c^{fh})^{k+2}k c_M^{-k} \underbrace{\int_{0}^{1} (1 - u)^2 u^{k-1} du}_{B(k,3) = \frac{\Gamma(3)\Gamma(k)}{\Gamma(k+3)}} \\
+    \Longleftrightarrow &\frac{\delta^2 L^h \tau^h}{4\gamma} \big[ 1 + (1 - \theta \tau^h)\lambda^{fh}\big](c^{fh})^{k+2}k c_M^{-k}\frac{2}{(k+2)(k+1)} \\
+    \Longleftrightarrow &\frac{\delta^2 L^h \tau^h}{2\gamma (k+2)(k+1)} \big[ 1 + (1 - \theta \tau^h)\lambda^{fh}\big](c^{fh})^{k+2}k c_M^{-k} 
+\end{align*}
+
+Symmetrically we have:
+
+\begin{equation*}
+    \frac{L^h}{2\gamma (k+2)(k+1)} \big[ 1 + (1 - \theta)\lambda^{ff}\big](c^{ff})^{k+2}k c_M^{-k}
+\end{equation*}
+
+Then plugging back in our free entry equation we obtain : 
+
+\begin{equation*}
+\resizebox{\textwidth}{!}{$
+    f_E = \frac{\delta^2 L^h \tau^h}{2\gamma (k+2)(k+1)} \big[ 1 + (1 - \theta \tau^h)\lambda^{fh}\big](c^{fh})^{k+2}k c_M^{-k} + \frac{L^h}{2\gamma (k+2)(k+1)} \big[ 1 + (1 - \theta)\lambda^{ff}\big](c^{ff})^{k+2}k c_M^{-k}
+    $}
+\end{equation*}
+
+Which naturally leads to : 
+
+\[
+\begin{cases}
+\gamma \phi = L^h\, \delta^{-k} (\tau^h)^{-k-1} [1 + (1 - \theta \tau^h)\lambda^{fh}](c^{hh})^{k+2} + L^f\, [1 + (1 - \theta)\lambda^{ff}](c^{ff})^{k+2}\\[1em]
+\gamma \phi = L^f\, \delta^{-k} (\tau^f)^{-k-1} [1 + (1 - \theta \tau^f)\lambda^{fh}](c^{ff})^{k+2} + L^h\, [1 + (1 - \theta)\lambda^{hh}](c^{hh})^{k+2}
+\end{cases}
+\]
+
+with $\phi = 2f_E(k+2)(k+1)c_M^k$, $c^{fh} = \frac{c^{hh}}{\delta\tau^h}$ and $c^{fh} = \frac{c^{ff}}{\delta\tau^f}$.
+
+From there we just need to re-express this system of equations in function of $c^{hh}$ and $c^{ff}$:
+
+\begin{align*}
+\resizebox{\textwidth}{!}{%
+\begin{aligned}
+    c^{hh} &= \left( \frac{\gamma \phi}{L^h} \frac{[1+(1 - \theta)\lambda^{ff}] - p^f[1 + (1 - \theta\tau^f)\lambda^{fh}]}{[1+(1-\theta)\lambda^{hh}][1+(1-\theta)\lambda^{ff}] - p^h p^f [1+(1-\theta \tau^h)\lambda^{fh}][1 + (1- \theta \tau^f)\lambda^{fh}]}\right)^{\frac{1}{k+2}} \\[1em]
+    c^{ff} &= \left( \frac{\gamma \phi}{L^f} \frac{[1+(1 - \theta)\lambda^{hh}] - p^h[1 + (1 - \theta\tau^h)\lambda^{fh}]}{[1+(1-\theta)\lambda^{hh}][1+(1-\theta)\lambda^{ff}] - p^h p^f [1+(1-\theta \tau^h)\lambda^{fh}][1 + (1- \theta \tau^f)\lambda^{fh}]}\right)^{\frac{1}{k+2}}
+\end{aligned}
+}
+\end{align*}
+
+Now that we have the cutoff value we can determine a certain number of aggregate values, such as the average quality, prices, and markup with respect to the cutoff value $c^{hh}$.
+
+In this section, we develop the calculation of the tariff absorption mechanisms of our model. 
+We develop here the total log derivative of \eqref{eq:optimal_import_price}.
+
+First, we rewrite \eqref{eq:optimal_import_price} such that we have it expressed in function of the cost-cutoff and firm productivity separately: 
+
+\begin{align*}
+    p^* = \frac{\delta}{2}[c^{fh}(1 + \kappa) + c(1 - \kappa)]    
+\end{align*}
+
+We differentiate with respect to each key elements: $c, c^{fh}, \kappa$
+
+\begin{align*}
+    d p^* &= \frac{\delta}{2}[(1 + \kappa)dc^{fh} + c^{fh}d(1 + \kappa) + (1 - \kappa)dc + cd(1 - \kappa)] \\
+    \Longleftrightarrow d p^* &= \frac{\delta}{2}[(1 + \kappa)dc^{fh} + c^{fh}d\kappa + (1 - \kappa)dc - cd\kappa]\\
+    \Longleftrightarrow d p^* &= \frac{\delta}{2}[(1 + \kappa)dc^{fh} + (1 - \kappa)dc  + (c^{fh} - c)d\kappa]
+\end{align*}
+
+And the log derivation :
+
+\begin{align*}
+    d \ln(p^*) &=\frac{dp^*}{p^*} \\
+    \Longleftrightarrow d \ln(p^*) &= \frac{\frac{\delta}{2} [(1 + \kappa)dc^{fh} + (1 - \kappa)dc  + (c^{fh} - c)d\kappa]}{p^*} \\
+    \Longleftrightarrow d \ln(p^*) &= \frac{\delta}{2}\frac{[(1 + \kappa)c^{fh}d\ln(c^{fh}) + (1 - \kappa)cd\ln(c)  + (c^{fh} - c)\kappa d\ln(\kappa)]}{p^*} \\
+    \Longleftrightarrow d \ln(p^*) &= \frac{\delta}{2}\frac{[(1 + \kappa)c^{fh}d\ln(c^{fh}) - (1 - \kappa)cd\ln(\frac{1}{c})  + (c^{fh} - c)\kappa d\ln(\kappa)]}{p^*} \\
+     \Longleftrightarrow d \ln(p^*) &= \frac{\delta}{2} \bigg[\underbrace{\frac{(1 + \kappa)c^{fh}d\ln(c^{fh})}{p^*}}_{\text{Market Condition}} - \underbrace{\frac{(1 - \kappa)c d\ln(\frac{1}{c})}{p^*}}_{\text{Productivity}} + \underbrace{\frac{(c^{fh} - c)\kappa d\ln(\kappa)}{p^*}}_{\text{Quality}}\bigg]
+\end{align*}
+
+\subsection{Tariffs Absorption} \label{app:tariff}
+
+In this section, we develop the proof of derivation for the elasticity of prices with respect to tariffs \eqref{eq:elasticity_price}.
+
+\begin{align*}
+    \frac{\partial \ln p^*}{\partial \ln \tau^h} &= \frac{\delta}{2} \frac{\partial}{\partial \tau^h}\bigg[{\frac{(1 + \kappa)c^{fh}\ln(c^{fh})}{p^*}} - \frac{(1 - \kappa)c\ln(\frac{1}{c})}{p^*} + \frac{(c^{fh} - c)\kappa\ln(\kappa)}{p^*}\bigg] 
+\end{align*}
+
+We derive separately $\frac{\partial \ln(c^{fh})}{\partial \ln \tau^h}$ and $\frac{\partial \ln(1+\kappa)}{\partial \ln \tau^h}$. 
+
+\begin{align*}
+    \frac{\partial \ln(c^{fh})}{\partial \ln \tau^h} = 
+\end{align*}
+\subsection{Aggregation}
+
+First, we determine the average prices of exports to $H$ and firms in $H$ selling to their domestic market. We start from our price equations in : 
+
+\begin{align*}
+    p^{fh} &= \frac{1}{2}\delta \tau^h ( c^{fh} +  c) + \frac{1}{2} (1 + \tau^h\theta)\lambda^{fh}\delta \tau^h(c^{fh} - c)  \\
+    p^{hh} &= \frac{1}{2}( c^{hh} +  c) + \frac{1}{2} (1 + \theta)\lambda^{hh}(c^{hh} - c)
+\end{align*}
+
+We take the average of those prices : 
+
+\begin{align*}
+    \int_{0}^{c^{fh}} p^{fh} &=  \int_{0}^{c^{fh}} \frac{1}{2}\delta \tau^h ( c^{fh} +  c) + \frac{1}{2} (1 + \tau^h\theta)\lambda^{fh}\delta \tau^h(c^{fh} - c) dc\\
+    \Longleftrightarrow \bar{p}^{fh} &= \frac{1}{2}\delta \tau^h \int_{0}^{c^{fh}} ( c^{fh} +  c) dc+  \frac{1}{2} (1 + \tau^h\theta)\lambda^{fh}\delta \tau^h \int_{0}^{c^{fh}}(c^{fh} - c) dc\\
+    \Longleftrightarrow \bar{p}^{fh} &= \frac{1}{2}\delta \tau^h c^{fh} \frac{2k +1}{k+1} + \frac{1}{2} (1 + \tau^h\theta)\lambda^{fh}\delta \tau^h \frac{c^{fh}}{k+1} \\
+    \Longleftrightarrow \bar{p}^{fh} &= c^{fh} \Bigg[\frac{(2k +1)\tau^h\delta + (1 + \tau^h\theta)\lambda^{fh}\delta \tau^h}{2k+2} \Bigg] \\
+    \Longleftrightarrow \bar{p}^{fh} &= c^{hh} \Bigg[\frac{(2k +1) + (1 + \tau^h\theta)\lambda^{fh}}{2k+2} \Bigg]
+\end{align*}
+
+The third equation comes from the Pareto distribution of $c$ and the rule of integration. The last equation comes from $c^{fh} = \frac{c^{hh}}{\delta \tau^h}$ and we factor out $\delta\tau^h$ from the numerator.
+
+\begin{align*}
+    &\frac{1}{2} (1 + \tau^h\theta)\lambda^{fh}\delta \tau^h \int_{0}^{c^{fh}}(c^{fh} - c) dc \\
+    \Longleftrightarrow & \frac{1}{2} (1 + \tau^h\theta)\lambda^{fh}\delta \tau^h \int_{0}^{c^{fh}} c^{fh} dc -\int_{0}^{c^{fh}} c dc \\
+    \Longleftrightarrow &\frac{1}{2} (1 + \tau^h\theta)\lambda^{fh}\delta \tau^h c^{fh} - \underbrace{\frac{kc^{fh}}{k+1}}_{\text{Mean of a Pareto distribution}} \\
+    \Longleftrightarrow &\frac{1}{2} (1 + \tau^h\theta)\lambda^{fh}\delta \tau^h \frac{c^{fh}}{k+1}
+\end{align*}
+
+We follow the same logic to find $\bar{p}^{hh}$ and find: 
+
+\begin{align*}
+\bar{p}^{hh} &= \frac{1}{2}( c^{hh} +  \bar{c}) + \frac{1}{2} (1 + \theta)\lambda^{hh}(c^{hh} - \bar{c}) \text{ with } \bar{c} = \frac{c^{hh}k}{k+1} \\
+\Longleftrightarrow  \bar{p}^{hh} &= \frac{1}{2}\left( c^{hh} + \frac{c^{hh}k}{k+1}\right) + \frac{1}{2} (1 + \theta)\lambda^{hh} \left(c^{hh} - \frac{c^{hh}k}{k+1} \right)\\
+\Longleftrightarrow \bar{p}^{hh} &= c^{hh} \left(\frac{2k +1 + (1 + \theta)\lambda^{hh}}{2k + 2} \right)
+\end{align*}
+
+Then, we can estimate the average price applied in the market $h$ as being the weighted prices of \textit{home} and \textit{foreign} companies: 
+
+\begin{align*}
+    \bar{p}_H &= \frac{N_H^f}{N_H} \bar{p}^{fh} + \frac{N_H^h}{N_H} \bar{p}^{hh} \\
+    \Longleftrightarrow \bar{p}_H &= \frac{N_H^f}{N_H} c^{hh} \Bigg[\frac{(2k +1) + (1 + \tau^h\theta)\lambda^{fh}}{2k+2} \Bigg] + \frac{N_H^h}{N_H}c^{hh} \Bigg[\frac{2k +1 + (1 + \theta)\lambda^{hh}}{2k + 2} \Bigg] \\
+    \Longleftrightarrow \bar{p}_H &= \frac{c^{hh}}{2k +2} \Bigg[\frac{N_H^f}{N_H} ((2k +1) + (1 + \tau^h\theta)\lambda^{fh})\Bigg] + \Bigg[\frac{N_H^h}{N_H}(2k +1 + (1 + \theta)\lambda^{hh})\Bigg] \\
+    \Longleftrightarrow \bar{p}_H &= \frac{c^{hh}}{2k +2} \Bigg[\frac{N_H^h + N_H^f}{N_H}(2k +1) + \frac{N_H^f}{N_H}(1 + \tau^h\theta)\lambda^{fh}) + \frac{N_H^h}{N_H} (1 + \theta)\lambda^{hh}\Bigg] \text{ with } \frac{N_H^h + N_H^f}{N_H} = 1\\
+    \Longleftrightarrow \bar{p}_H &= \frac{c^{hh}}{2k +2} \Bigg[(2k +1) + \frac{N_H^f}{N_H}(1 + \tau^h\theta)\lambda^{fh}) + \frac{N_H^h}{N_H} (1 + \theta)\lambda^{hh}\Bigg] 
+\end{align*}
+
+Hence we see that average prices increase with $c^{hh}$
+From here we can develop further aggregate measures of quality and markups: 
+
+\begin{align*}
+     \bar{z}^{fh} &= \lambda^{fh}\delta \tau^h(c^{fh} - \bar{c}) \\
+     \Longleftrightarrow \bar{z}^{fh} &= \lambda^{fh}\delta \tau^h(c^{fh} - \frac{c^{fh}k}{k+1}) \\
+     \Longleftrightarrow \bar{z}^{fh} &= \lambda^{fh}\delta \tau^h \left(\frac{c^{fh}}{k+1}\right)
+\end{align*}
+
+\begin{align*}
+     \bar{z}^{hh} &= \lambda^{hh}(c^{hh} - \bar{c}) \\
+     \Longleftrightarrow \bar{z}^{hh} &= \lambda^{hh}(c^{hh} - \frac{c^{hh}k}{k+1}) \\
+     \Longleftrightarrow \bar{z}^{hh} &= \lambda^{hh}\left(\frac{c^{hh}}{k+1}\right)
+\end{align*}
+
+\begin{align*}
+     \bar{z}_{H} &= \frac{N_H^f}{N_H} \bar{z}^{fh} + \frac{N_H^h}{N_H} \bar{z}^{hh} \\
+     \bar{z}_{H} &= \frac{N_H^f}{N_H} \lambda^{fh}\delta \tau^h \left(\frac{c^{fh}}{k+1}\right) + \frac{N_H^h}{N_H} \lambda^{hh}\left(\frac{c^{hh}}{k+1}\right) \\
+     \bar{z}_{H} &= \frac{N_H^f}{N_H} \lambda^{fh}\left(\frac{c^{hh}}{k+1}\right) + \frac{N_H^h}{N_H} \lambda^{hh}\left(\frac{c^{hh}}{k+1}\right) \\
+     \bar{z}_{H} &= \frac{c^{hh}}{k+1} \underbrace{\left(\frac{N_H^f \lambda^{fh} + N_H^h\lambda^{hh}}{N_H} \right)}_{\bar{\lambda}_H} \\
+\end{align*}
+
+With $\bar{\lambda}_H$ being the \textit{weighted average quality scope} of goods on market $h$, also coined as the \textit{effective quality scope} \citep{antoniadesHeterogeneousFirmsQuality2015}.
+
+The average markups can be expressed as $\mu = p - c$, bringing then : 
+\begin{align*}
+    \bar{\mu}_H^{fh} &= \frac{1}{2} \frac{c^{hh}}{k+1} [1 + (1 + \delta \tau^h\theta)\lambda^{fh}] \\
+    \bar{\mu}_H^{hh} &= \frac{1}{2} \frac{c^{hh}}{k+1} [1 + (1 + \theta)\lambda^{hh}] \\
+    \bar{\mu}_H &= \frac{1}{2} \frac{c^{hh}}{k+1} \bigg[1 + \underbrace{\frac{N_H^{fh}}{N_H} (1 + \theta \delta \tau^h)\lambda^{fh}+ \frac{N_H^{hh}}{N_H} (1 + \theta )\lambda^{hh}}_{\bar{\psi}}\bigg]
+\end{align*}

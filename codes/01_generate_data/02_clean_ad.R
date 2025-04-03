@@ -1,6 +1,7 @@
 # This document clean the anti-dumping database we built based on the commerce department
 
 library(data.table)
+library(lubridate)
 
 # Data --------------------------------------------------------------------
 
@@ -53,6 +54,11 @@ ad_2012[, year_quarter := paste0(year(p_dump_date_2012_fmt), "Q", quarter(p_dump
 
 ad_2015[, ad_temp_measure_2015_fmt := dmy(ad_temp_measure_2015)]
 ad_2015[, year_quarter := paste0(year(ad_temp_measure_2015_fmt), "Q", quarter(ad_temp_measure_2015_fmt))]
+
+# Transform tariff to numeric
+ad_2012[, ad_rate_2012 := as.numeric(gsub(",", ".", ad_rate_2012))]
+ad_2012[, cvd_rate_2012 := as.numeric(gsub(",", ".", cvd_rate_2012))]
+ad_2015[, ad_rate_2015 := as.numeric(gsub(",", ".", ad_rate_2015))]
 
 # Export ------------------------------------------------------------------
 ad_2012_final = unique(ad_2012)

@@ -1,16 +1,67 @@
+\documentclass[a4paper, 12pt]{article}
+\hyphenpenalty=8000
+% \textwidth=125mm
+% \textheight=185mm
+\textwidth=140mm
+\textheight=210mm
+
+\usepackage{tabularray}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{codehigh}
+\usepackage[normalem]{ulem}
+\UseTblrLibrary{booktabs}
+\UseTblrLibrary{siunitx}
+\newcommand{\tinytableTabularrayUnderline}[1]{\underline{#1}}
+\newcommand{\tinytableTabularrayStrikeout}[1]{\sout{#1}}
+\NewTableCommand{\tinytableDefineColor}[3]{\definecolor{#1}{#2}{#3}}
+\usepackage{subcaption}
+\usepackage{alltt}
 \usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{}
+\usepackage{caption}
+\usepackage[pdftex, colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue]{hyperref}
+\usepackage{natbib} % To manage bibliography
+\bibliographystyle{chicago} % For Chicago author-date style
+\usepackage{tcolorbox}
+
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+% \renewcommand{\thefootnote}{\roman{footnote}}
+\newcommand{\doi}[1]{\href{https://doi.org/#1}{\texttt{https://doi.org/#1}}}
+
+% BEGIN DOCUMENT
 
 \begin{document}
 
-\begin{equation}
-\begin{aligned}
-\text{minimize} \quad & \sum_{i=1}^{n} \sum_{j=1}^{m} c_{ij} x_{ij} \\
-\text{subject to} \quad & \sum_{j=1}^{m} x_{ij} = a_i, \quad i = 1, \ldots, n, \\
-& \sum_{i=1}^{n} x_{ij} \leq b_j, \quad j = 1, \ldots, m, \\
-& x_{ij} \geq 0, \quad i = 1, \ldots, n, \quad j = 1, \ldots, m.
-\end{aligned}
-\end{equation}
+\begin{center}
+\LARGE
+\textbf{Trade, quality and pass-through: \\ The U.S.-China solar panel dispute}
+\small \\
+\textbf {Garson Jonathan}\\[6pt]
+SciencesPo\\Department of Economics
+\end{center}
+
+\begin{abstract}
+The 2018 U.S.-China trade war has received a lot of attention for its impact on the term of trade and overall was evaluated to have a small negative impact on U.S. consumers. However, some dimensions of this trade war are left untouched, noticeably the importance of quality of the traded goods in assessing the welfare effects of the tariffs. We base our analysis on a heterogeneous firms model including endogenous markups and quality. Leveraging an installed solar system level database, we can access the importance of quality in the terms of trade. We found \textbf{results}, inline/not inline with the model predictions due to \textbf{explanation}\vskip 2mm
+
+\textbf{Keywords:} Trade, Quality, Tariffs, Heterogeneous Firms, Endogeneous Markups, Endogeneous Quality.
+
+\end{abstract}
+
+% Import Sections of the master thesis
+\clearpage
+\include{sections/01_introduction}
+\include{sections/02_theory  }
+\include{sections/03_data}
+\include{sections/04_empirics}
+
+\clearpage
+\bibliography{references}
+
+\clearpage
+\input{sections/math_appendix}
+\clearpage
+\input{sections/data_appendix}
 
 \end{document}

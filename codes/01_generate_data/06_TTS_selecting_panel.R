@@ -103,13 +103,13 @@ for (y in c(2011, 2013, 2017, 2019)) {
                       probs = c(0.5, 0.75, 0.9, 0.95), 
                       na.rm = TRUE)
   
-  # Append the calculated values to the data frame
-  pct_eff_dt <- rbind(pct_eff_dt, 
-                      data.frame(year = y, 
-                                 p50 = round(as.numeric(pct_eff[1]), 2), 
-                                 p75 = round(as.numeric(pct_eff[2]), 2), 
-                                 p90 = round(as.numeric(pct_eff[3]), 2), 
-                                 p95 = round(as.numeric(pct_eff[4]), 2)))
+  # # Append the calculated values to the data frame
+  # pct_eff_dt <- rbind(pct_eff_dt, 
+  #                     data.frame(year = y, 
+  #                                p50 = round(as.numeric(pct_eff[1]), 2), 
+  #                                p75 = round(as.numeric(pct_eff[2]), 2), 
+  #                                p90 = round(as.numeric(pct_eff[3]), 2), 
+  #                                p95 = round(as.numeric(pct_eff[4]), 2)))
   
   # Prepare label for the plot annotation
   pct_eff_labs <- paste0(
@@ -134,100 +134,79 @@ for (y in c(2011, 2013, 2017, 2019)) {
          plot = p, width = 10, height = 8)
 }
 
-## Overall Premium ---------------------------------------------------------
+
+## Effiency Premium ---------------------------------------------------------
 setDT(pct_eff_dt)
-tts[, quality_1 := ifelse(efficiency_module >= 0.20, 1, 0) ]
-# AD 1 : 2010-2013
+# Overall
+tts[, premium_panel_overall := ifelse(efficiency_module >= 0.20, 1, 0) ]
 
-for (y in c(2010:2013)) {
-  tts[year == `y`, quality_1_ad1 := ifelse(efficiency_module > pct_eff_dt[year == 2011,]$p90, 1, 0) ]
-}
+# Relative Premium
+thresholds <- tts[, .(efficiency_threshold = quantile(efficiency_module, 0.90, na.rm = TRUE)), by = year]
+tts <- merge(tts, thresholds, by = "year", all.x = TRUE)
+tts[, premium_panel_relative := as.integer(efficiency_module >= efficiency_threshold)]
 
-# AD 2 : 2013-2016
-for (y in c(2013:2016)) {
-  tts[year == `y`, quality_1_ad2 := ifelse(efficiency_module > pct_eff_dt[year == 2013,]$p90, 1, 0) ]
-}
-
-# Safeguard : 2017-2020
-for (y in c(2017:2020)) {
-  tts[year == `y`, quality_1_st := ifelse(efficiency_module > pct_eff_dt[year == 2017,]$p90, 1, 0) ]
-}
-
-# Cleaning mistakes
-tts[module_model == "cs1h-325ms", module_manufacturer := "canadian solar"]
-tts[module_model == "spr-225-blk-u", module_manufacturer := "maxeon - sunpower"]
-tts[module_model == "spr-e19-320", module_manufacturer := "maxeon - sunpower"]
-tts[module_model == "spr-e19-320", module_manufacturer := "maxeon - sunpower"]
-tts[module_model == "spr-e19-320", module_manufacturer := "maxeon - sunpower"]
-tts[module_model == "spr-x21-345-d-ac", module_manufacturer == "maxeon - sunpower"]
-tts[module_model == "spr-a400", module_manufacturer == "maxeon - sunpower"]
-tts[module_model == "spr-a400-g-ac", module_manufacturer == "maxeon - sunpower"]
-tts[module_model == "d6m310h3a", module_manufacturer := "neo solar power"]
-tts[module_model == "lr6-60hpb-310m", module_manufacturer := "longi green energy technology co., ltd."]
-tts[module_model == "lr6-60hpb-315m", module_manufacturer := "longi green energy technology co., ltd."]
-tts[module_model == "lg305n1c-b3", module_manufacturer := "lg electronics inc."]
-tts[module_model == "lg305a1w-b3", module_manufacturer := "lg electronics inc."]
-tts[module_model == "lg320n1c-g4", module_manufacturer := "lg electronics inc."]
-tts[module_model == "lg335n1c-a5", module_manufacturer := "lg electronics inc."]
-tts[module_model == "lg365q1c-a5", module_manufacturer := "lg electronics inc."]
-tts[module_model == "lg375a1c-v5", module_manufacturer := "lg electronics inc."]
-tts[module_model == "lg360q1c-a5", module_manufacturer := "lg electronics inc."]
-tts[module_model == "lg320n1k-a5", module_manufacturer := "lg electronics inc."]
-tts[module_model == "sc315b2", module_manufacturer := "tesla"]
-tts[module_model == "sc330", module_manufacturer := "tesla"]
-tts[module_model == "tsm-335dd06h.05(ii)", module_manufacturer := "trina solar"]
-tts[module_model == "tsm-400de15h(ii)", module_manufacturer := "trina solar"]
-tts[module_model == "sg310m", module_manufacturer := "peimar"]
-tts[module_model == "q.peak duo-g5 325", module_manufacturer := "hanwha qcells"]
-tts[module_model == "q.peak duo blk-g5 315", module_manufacturer := "hanwha qcells"]
-tts[module_model == "jkm320m-60hbl-q", module_manufacturer := "jinko solar"]
+# # AD 1 : 2010-2013
+# for (y in c(2010:2013)) {
+#   tts[year == `y`, quality_1_ad1 := ifelse(efficiency_module > pct_eff_dt[year == 2011,]$p90, 1, 0) ]
+# }
+# 
+# # AD 2 : 2013-2016
+# for (y in c(2013:2016)) {
+#   tts[year == `y`, quality_1_ad2 := ifelse(efficiency_module > pct_eff_dt[year == 2013,]$p90, 1, 0) ]
+# }
+# 
+# # Safeguard : 2017-2020
+# for (y in c(2017:2020)) {
+#   tts[year == `y`, quality_1_st := ifelse(efficiency_module > pct_eff_dt[year == 2017,]$p90, 1, 0) ]
+# }
 
 list_firms = top_firms$module_manufacturer
 tts = tts[module_manufacturer %in% list_firms,]
 
 ## Relative Premium --------------------------------------------------------
 
-ggplot(tts[year %in% 2010:2012,], aes(x = reorder(module_manufacturer, efficiency_module, FUN = mean), 
-                y = efficiency_module)) +
-  geom_boxplot(fill = "steelblue", color = "black") +
-  labs(
-    x = "Manufacturer",
-    y = "Efficiency Module (%)"
-  ) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/figures/firms_list/distrib_efficiency_2010_2012.pdf", width = 10, height = 7)
-
-ggplot(tts[year %in% 2013:2016,], aes(x = reorder(module_manufacturer, efficiency_module, FUN = mean), 
-                                      y = efficiency_module)) +
-  geom_boxplot(fill = "steelblue", color = "black") +
-  labs(
-    x = "Manufacturer",
-    y = "Efficiency Module (%)"
-  ) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/figures/firms_list/distrib_efficiency_2013_2016.pdf", width = 10, height = 7)
-
-ggplot(tts[year %in% 2017:2020,], aes(x = reorder(module_manufacturer, efficiency_module, FUN = mean), 
-                                      y = efficiency_module)) +
-  geom_boxplot(fill = "steelblue", color = "black") +
-  labs(
-    x = "Manufacturer",
-    y = "Efficiency Module (%)"
-  ) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("output/figures/firms_list/distrib_efficiency_2017_2020.pdf", width = 10, height = 7)
+# ggplot(tts[year %in% 2010:2012,], aes(x = reorder(module_manufacturer, efficiency_module, FUN = mean), 
+#                 y = efficiency_module)) +
+#   geom_boxplot(fill = "steelblue", color = "black") +
+#   labs(
+#     x = "Manufacturer",
+#     y = "Efficiency Module (%)"
+#   ) +
+#   theme_bw() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggsave("output/figures/firms_list/distrib_efficiency_2010_2012.pdf", width = 10, height = 7)
+# 
+# ggplot(tts[year %in% 2013:2016,], aes(x = reorder(module_manufacturer, efficiency_module, FUN = mean), 
+#                                       y = efficiency_module)) +
+#   geom_boxplot(fill = "steelblue", color = "black") +
+#   labs(
+#     x = "Manufacturer",
+#     y = "Efficiency Module (%)"
+#   ) +
+#   theme_bw() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggsave("output/figures/firms_list/distrib_efficiency_2013_2016.pdf", width = 10, height = 7)
+# 
+# ggplot(tts[year %in% 2017:2020,], aes(x = reorder(module_manufacturer, efficiency_module, FUN = mean), 
+#                                       y = efficiency_module)) +
+#   geom_boxplot(fill = "steelblue", color = "black") +
+#   labs(
+#     x = "Manufacturer",
+#     y = "Efficiency Module (%)"
+#   ) +
+#   theme_bw() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggsave("output/figures/firms_list/distrib_efficiency_2017_2020.pdf", width = 10, height = 7)
 
 ## Combo inverter + high efficiency ----------------------------------------
 # Mono cristalyne are categorized as top quality solar panel, more innovative and more efficient
 # The presence of micro inverter improve the overall efficiency of the system and makes it more desirable
 
-tts[, quality_2 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
-tts[year %in% 2010:2013, quality_2_ad1 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
-tts[year %in% 2013:2016, quality_2_ad2 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
-tts[year %in% 2017:2020, quality_2_st := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
+tts[, premium_installation := ifelse(technology_module == "Mono-c-Si" & micro_inverter_1 == "Y", 1, 0)]
+# tts[, premium_installation := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
+# tts[year %in% 2010:2012, quality_2_ad1 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
+# tts[year %in% 2013:2015, quality_2_ad2 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
+# tts[year %in% 2016:2020, quality_2_st := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
 
 # Grouping Small Observation ----------------------------------------------
 install = unique(tts[, .(installer_count = .N), by = installer_name])
@@ -245,29 +224,35 @@ tts[installer_name %in% list_small_installer, installer_name := "other"]
 setnames(ad_2012, "module_manufacturer_2012", "module_manufacturer")
 setnames(ad_2015, "module_manufacturer_2015", "module_manufacturer")
 
-tts = merge(tts, ad_2012, by = c("module_manufacturer", "year_quarter") ,all.x = TRUE)
-tts = merge(tts, ad_2015, by = c("module_manufacturer", "year_quarter") ,all.x = TRUE)
+tts = merge(tts, ad_2012, by = c("module_manufacturer"), all.x = TRUE)
+tts = merge(tts, ad_2015, by = c("module_manufacturer"), all.x = TRUE)
 
-# # Normalize keys in tts
-# tts[, module_manufacturer := trimws(tolower(as.character(module_manufacturer)))]
-# tts[, year_quarter := trimws(as.character(year_quarter))]
-# 
-# # Normalize keys in ad_2012
-# ad_2012[, module_manufacturer := trimws(tolower(as.character(module_manufacturer)))]
-# ad_2012[, year_quarter := trimws(as.character(year_quarter))]
-# 
-# # Normalize keys in ad_2015
-# ad_2015[, module_manufacturer := trimws(tolower(as.character(module_manufacturer)))]
-# ad_2015[, year_quarter := trimws(as.character(year_quarter))]
-# 
-# # Merge with ad_2012
-# tts <- merge(tts, ad_2012, by = c("module_manufacturer", "year_quarter"), all.x = TRUE)
-# 
-# # Merge with ad_2015
-# tts <- merge(tts, ad_2015, by = c("module_manufacturer", "year_quarter"), all.x = TRUE)
+tts[, tariff_2012 := ad_rate_2012 + cvd_rate_2012]
+tts[, tariff_2015 := ad_rate_2015]
+tts[, tariff_2015_temp := ad_rate_2015 + cvd_rate_2015]
+
+# Exploiting variation in tariff implementation
+tts[year %in% 2010:2013, tariff_2012_treated := ifelse(china == 1 & year_quarter.x > "2012Q2", 1, 0)]
+tts[year %in% 2013:2016, tariff_2015_treated := ifelse(china == 1 & year_quarter.x > "2014Q3", 1, 0)]
+
+# We keep zip code with population different from 0 since it would imply that zip code correspond to a commercial area
+tts = tts[population > 0,]
+tts[, installation_zip_code := .N, by = .(zip_code, year)]
+tts[, demand_zip_code := (installation_zip_code/population)*1000]
 
 # Cleaning before export --------------------------------------------------
+tts[, year_quarter := NULL]
+tts[, year_quarter.y := NULL]
+tts[, list_country := NULL]
+tts[, installation_zip_code := NULL]
+tts[, sales_per_model := NULL]
+tts[, sales_per_brand := NULL]
+tts[, sales_overall := NULL]
+tts[, nb_manufacturer := NULL]
+setnames(tts, "year_quarter.x", "year_quarter")
 
+# We only keep HO data
+tts = tts[ho == 1,]
 
 # Export Data -------------------------------------------------------------
 write_parquet(tts, data_final("tts_final.parquet"))
