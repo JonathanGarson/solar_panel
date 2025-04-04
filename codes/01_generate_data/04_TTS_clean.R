@@ -73,7 +73,7 @@ tts = tts[installer_name != "Tesla Energy"]
 tts = tts[installer_name != "SolarCity"]
 
 # Conserving smaller than 10kW size system, as bigger model can be of double use
-tts[PV_system_size_DC <= 10,]
+tts[PV_system_size_DC <= 20,]
 
 # Exporting
 write_parquet(tts, data_temp("TTS_clean.parquet"))

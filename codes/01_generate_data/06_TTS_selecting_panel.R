@@ -103,13 +103,13 @@ for (y in c(2011, 2013, 2017, 2019)) {
                       probs = c(0.5, 0.75, 0.9, 0.95), 
                       na.rm = TRUE)
   
-  # # Append the calculated values to the data frame
-  # pct_eff_dt <- rbind(pct_eff_dt, 
-  #                     data.frame(year = y, 
-  #                                p50 = round(as.numeric(pct_eff[1]), 2), 
-  #                                p75 = round(as.numeric(pct_eff[2]), 2), 
-  #                                p90 = round(as.numeric(pct_eff[3]), 2), 
-  #                                p95 = round(as.numeric(pct_eff[4]), 2)))
+  # Append the calculated values to the data frame
+  pct_eff_dt <- rbind(pct_eff_dt,
+                      data.frame(year = y,
+                                 p50 = round(as.numeric(pct_eff[1]), 2),
+                                 p75 = round(as.numeric(pct_eff[2]), 2),
+                                 p90 = round(as.numeric(pct_eff[3]), 2),
+                                 p95 = round(as.numeric(pct_eff[4]), 2)))
   
   # Prepare label for the plot annotation
   pct_eff_labs <- paste0(
@@ -140,25 +140,25 @@ setDT(pct_eff_dt)
 # Overall
 tts[, premium_panel_overall := ifelse(efficiency_module >= 0.20, 1, 0) ]
 
-# Relative Premium
-thresholds <- tts[, .(efficiency_threshold = quantile(efficiency_module, 0.90, na.rm = TRUE)), by = year]
-tts <- merge(tts, thresholds, by = "year", all.x = TRUE)
-tts[, premium_panel_relative := as.integer(efficiency_module >= efficiency_threshold)]
+# # Relative Premium
+# thresholds <- tts[, .(efficiency_threshold = quantile(efficiency_module, 0.90, na.rm = TRUE)), by = year]
+# tts <- merge(tts, thresholds, by = "year", all.x = TRUE)
+# tts[, premium_panel_relative := as.integer(efficiency_module >= efficiency_threshold), by = year]
 
-# # AD 1 : 2010-2013
-# for (y in c(2010:2013)) {
-#   tts[year == `y`, quality_1_ad1 := ifelse(efficiency_module > pct_eff_dt[year == 2011,]$p90, 1, 0) ]
-# }
-# 
-# # AD 2 : 2013-2016
-# for (y in c(2013:2016)) {
-#   tts[year == `y`, quality_1_ad2 := ifelse(efficiency_module > pct_eff_dt[year == 2013,]$p90, 1, 0) ]
-# }
-# 
-# # Safeguard : 2017-2020
-# for (y in c(2017:2020)) {
-#   tts[year == `y`, quality_1_st := ifelse(efficiency_module > pct_eff_dt[year == 2017,]$p90, 1, 0) ]
-# }
+# AD 1 : 2010-2013
+for (y in c(2010:2013)) {
+  tts[year == `y`, premium_panel_ad1 := ifelse(efficiency_module > pct_eff_dt[year == 2011,]$p90, 1, 0) ]
+}
+
+# AD 2 : 2013-2016
+for (y in c(2013:2016)) {
+  tts[year == `y`, premium_panel_ad2 := ifelse(efficiency_module > pct_eff_dt[year == 2013,]$p90, 1, 0) ]
+}
+
+# Safeguard : 2017-2020
+for (y in c(2017:2020)) {
+  tts[year == `y`, premium_panel_st := ifelse(efficiency_module > pct_eff_dt[year == 2017,]$p90, 1, 0) ]
+}
 
 list_firms = top_firms$module_manufacturer
 tts = tts[module_manufacturer %in% list_firms,]

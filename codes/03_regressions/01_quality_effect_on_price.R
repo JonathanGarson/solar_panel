@@ -26,10 +26,18 @@ coef_map = c(
   "premium_panel_overall:usa" = "Premium Panel Overall x USA Brands",
   "premium_panel_overall:korea" = "Premium Panel Overall x Korea Brands",
   "premium_panel_overall:china" = "Premium Panel Overall x China Brands",
-  "premium_panel_relative" = "Premium Panel Relative",
-  "premium_panel_relative:usa" = "Premium Panel Relative x USA Brands",
-  "premium_panel_relative:korea" = "Premium Panel Relative x Korea Brands",
-  "premium_panel_relative:china" = "Premium Panel Relative x China Brands"
+  "premium_panel_ad1" = "Premium Panel Relative",
+  "premium_panel_ad1:usa" = "Premium Panel Relative x USA Brands",
+  "premium_panel_ad1:korea" = "Premium Panel Relative x Korea Brands",
+  "premium_panel_ad1:china" = "Premium Panel Relative x China Brands",
+  "premium_panel_ad2" = "Premium Panel Relative",
+  "premium_panel_ad2:usa" = "Premium Panel Relative x USA Brands",
+  "premium_panel_ad2:korea" = "Premium Panel Relative x Korea Brands",
+  "premium_panel_ad2:china" = "Premium Panel Relative x China Brands",
+  "premium_panel_st" = "Premium Panel Relative",
+  "premium_panel_st:usa" = "Premium Panel Relative x USA Brands",
+  "premium_panel_st:korea" = "Premium Panel Relative x Korea Brands",
+  "premium_panel_st:china" = "Premium Panel Relative x China Brands"
 )
 
 # --- Helper function (as given) ---
@@ -41,17 +49,17 @@ run_wave_models <- function(data, quality_var) {
     ),
     
     "FE: Year + State" = feols(
-      as.formula(paste0("price_w ~ ", quality_var, " + median_home_value + median_household_income + population_density | year + state")),
+      as.formula(paste0("price_w ~ ", quality_var, " + median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2| year + state")),
       cluster = ~zip_code, data = data
     ),
     
-    "FE: Year + State + Module Manufacturer" = feols(
-      as.formula(paste0("price_w ~ ", quality_var, " + median_home_value + median_household_income + population_density | year + state + module_manufacturer + utility_service_territory")),
+    "FE: Year + State + Installer" = feols(
+      as.formula(paste0("price_w ~ ", quality_var, " + median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2| year + state + installer_name")),
       cluster = ~zip_code, data = data
     ),
     
     "FE: Year + State + Module Manufacturer + Installer" = feols(
-      as.formula(paste0("price_w ~ ", quality_var, " + median_home_value + median_household_income + population_density | year + state + module_manufacturer + utility_service_territory + installer_name")),
+      as.formula(paste0("price_w ~ ", quality_var, " + median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2| year + state + installer_name +  module_manufacturer")),
       cluster = ~zip_code, data = data
     )
   )
@@ -62,29 +70,29 @@ models_1 <- list(
   "Quality 1 Overall" = list(
     run_wave_models(tts, "premium_panel_overall*china + premium_panel_overall*korea + premium_panel_overall*usa")[["No FE"]],
     run_wave_models(tts, "premium_panel_overall*china + premium_panel_overall*korea + premium_panel_overall*usa")[["FE: Year + State"]],
-    run_wave_models(tts, "premium_panel_overall*china + premium_panel_overall*korea + premium_panel_overall*usa")[["FE: Year + State + Module Manufacturer"]],
+    run_wave_models(tts, "premium_panel_overall*china + premium_panel_overall*korea + premium_panel_overall*usa")[["FE: Year + State + Installer"]],
     run_wave_models(tts, "premium_panel_overall*china + premium_panel_overall*korea + premium_panel_overall*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
   ),
   
   "Quality 1 : 2010 - 2013" = list(
-    run_wave_models(tts, "premium_panel_relative*china + premium_panel_relative*korea + premium_panel_relative*usa")[["No FE"]],
-    run_wave_models(tts, "premium_panel_relative*china + premium_panel_relative*korea + premium_panel_relative*usa")[["FE: Year + State"]],
-    run_wave_models(tts, "premium_panel_relative*china + premium_panel_relative*korea + premium_panel_relative*usa")[["FE: Year + State + Module Manufacturer"]],
-    run_wave_models(tts, "premium_panel_relative*china + premium_panel_relative*korea + premium_panel_relative*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
+    run_wave_models(tts, "premium_panel_ad1*china + premium_panel_ad1*korea + premium_panel_ad1*usa")[["No FE"]],
+    run_wave_models(tts, "premium_panel_ad1*china + premium_panel_ad1*korea + premium_panel_ad1*usa")[["FE: Year + State"]],
+    run_wave_models(tts, "premium_panel_ad1*china + premium_panel_ad1*korea + premium_panel_ad1*usa")[["FE: Year + State + Installer"]],
+    run_wave_models(tts, "premium_panel_ad1*china + premium_panel_ad1*korea + premium_panel_ad1*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
   ),  
   
   "Quality 1 : 2013 - 2015" = list(
-    run_wave_models(tts, "premium_panel_relative*china + premium_panel_relative*korea + premium_panel_relative*usa")[["No FE"]],
-    run_wave_models(tts, "premium_panel_relative*china + premium_panel_relative*korea + premium_panel_relative*usa")[["FE: Year + State"]],
-    run_wave_models(tts, "premium_panel_relative*china + premium_panel_relative*korea + premium_panel_relative*usa")[["FE: Year + State + Module Manufacturer"]],
-    run_wave_models(tts, "premium_panel_relative*china + premium_panel_relative*korea + premium_panel_relative*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
+    run_wave_models(tts, "premium_panel_ad2*china + premium_panel_ad2*korea + premium_panel_ad2*usa")[["No FE"]],
+    run_wave_models(tts, "premium_panel_ad2*china + premium_panel_ad2*korea + premium_panel_ad2*usa")[["FE: Year + State"]],
+    run_wave_models(tts, "premium_panel_ad2*china + premium_panel_ad2*korea + premium_panel_ad2*usa")[["FE: Year + State + Installer"]],
+    run_wave_models(tts, "premium_panel_ad2*china + premium_panel_ad2*korea + premium_panel_ad2*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
   ),
   
   "Quality 1 : 2016 - 2020" = list(
-    run_wave_models(tts, "premium_panel_relative + premium_panel_relative*korea + premium_panel_relative*usa")[["No FE"]],
-    run_wave_models(tts, "premium_panel_relative + premium_panel_relative*korea + premium_panel_relative*usa")[["FE: Year + State"]],
-    run_wave_models(tts, "premium_panel_relative + premium_panel_relative*korea + premium_panel_relative*usa")[["FE: Year + State + Module Manufacturer"]],
-    run_wave_models(tts, "premium_panel_relative + premium_panel_relative*korea + premium_panel_relative*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
+    run_wave_models(tts, "premium_panel_st*china + premium_panel_st*korea + premium_panel_st*usa")[["No FE"]],
+    run_wave_models(tts, "premium_panel_st*china + premium_panel_st*korea + premium_panel_st*usa")[["FE: Year + State"]],
+    run_wave_models(tts, "premium_panel_st*china + premium_panel_st*korea + premium_panel_st*usa")[["FE: Year + State + Installer"]],
+    run_wave_models(tts, "premium_panel_st*china + premium_panel_st*korea + premium_panel_st*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
   )
 )
 
@@ -153,7 +161,7 @@ table_premium_premium <- modelsummary(
   gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
   add_rows = df_period_add_rows,
   notes = "Notes: The dependent variable is a price in $ per W, so the estimate reports a dollar variation in price. Standard errors are clustered at the zip code level.",
-  # output = "latex"
+  output = "latex"
 )
 
 table_premium_overall_char <- as.character(table_premium_overall)
@@ -163,8 +171,6 @@ writeLines(table_premium_overall_char, "output/regression/descriptive/table_prem
 writeLines(table_premium_relative_char, "output/regression/descriptive/table_premium_relative.tex")
 
 ## Short ---------------------------------------------------------
-
-
 
 for (q in c("quality_1", "quality_2")){
   models_1 <- list(
@@ -250,7 +256,7 @@ for (q in c("quality_1", "quality_2")){
   table1_quality_char = as.character(table1_quality)
   table1_quality_char <- gsub("\\bX\\b", "Yes", table1_quality_char)
   
-  writeLines(table1_quality_char, glue("output/regression/descriptive/table1_{q}.tex"))
+  # writeLines(table1_quality_char, glue("output/regression/descriptive/table1_{q}.tex"))
 }
 
 # Table 2 - Quality 2 -----------------------------------------------------
@@ -266,7 +272,7 @@ models_2 = list(
   "Overall" = list(
     run_wave_models(tts, "premium_installation*china + premium_installation*korea + premium_installation*usa")[["No FE"]],
     run_wave_models(tts, "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State"]],
-    run_wave_models(tts, "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Module Manufacturer"]],
+    run_wave_models(tts, "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Installer"]],
     run_wave_models(tts, "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
     )
   ,
@@ -274,28 +280,28 @@ models_2 = list(
   "Quality 2 : 2010 - 2013" = list(
     run_wave_models(tts[year %in% 2010:2013], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["No FE"]],
     run_wave_models(tts[year %in% 2010:2013], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State"]],
-    run_wave_models(tts[year %in% 2010:2013], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Module Manufacturer"]],
+    run_wave_models(tts[year %in% 2010:2013], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Installer"]],
     run_wave_models(tts[year %in% 2010:2013], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
   ),
 
   "Quality 2 : 2013 - 2015" = list(
     run_wave_models(tts[year %in% 2013:2015], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["No FE"]],
     run_wave_models(tts[year %in% 2013:2015], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State"]],
-    run_wave_models(tts[year %in% 2013:2015], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Module Manufacturer"]],
+    run_wave_models(tts[year %in% 2013:2015], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Installer"]],
     run_wave_models(tts[year %in% 2013:2015], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
   ),
 
   "Quality 2 : 2016 - 2020" = list(
     run_wave_models(tts[year %in% 2016:2020], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["No FE"]],
     run_wave_models(tts[year %in% 2016:2020], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State"]],
-    run_wave_models(tts[year %in% 2016:2020], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Module Manufacturer"]],
+    run_wave_models(tts[year %in% 2016:2020], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Installer"]],
     run_wave_models(tts[year %in% 2016:2020], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
   )
 )
 
-# --- Create a table for "Quality 1 Overall" ---
-# models_quality2_overall <- models_2[["Overall"]]
-models_quality2_overall <- models_2
+# --- Create a table for "Quality 2 Overall" ---
+models_quality2_overall <- models_2[["Overall"]]
+# models_quality2_overall <- models_2
 
 # Compute add_rows for overall models
 results_list_overall <- list()
@@ -307,6 +313,7 @@ for(i in seq_along(models_quality2_overall)) {
   col_name <- paste0("Overall_model", i)
   results_list_overall[[col_name]] <- c(f_p, wald_p, my)
 }
+
 df_overall_add_rows <- data.frame(
   term = c("F-test p-value", "Wald-test p-value", "Dependent Variable Mean"),
   results_list_overall,
@@ -314,20 +321,43 @@ df_overall_add_rows <- data.frame(
 )
 
 table_premium_install_overall <- modelsummary(
-  models_2,
+  models_quality2_overall,
   coef_map = coef_map,
   stars = TRUE,
   escape = TRUE,
-  shape = "cbind",
+  # shape = "cbind",
   gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
-  # add_rows = df_overall_add_rows,
+  add_rows = df_overall_add_rows,
   notes = "Notes: The dependent variable is a price in $ per W, so the estimate reports a dollar variation in price. Standard errors are clustered at the zip code level.",
   # output = "latex"
 )
 
+# Test --------------------------------------------------------------------
+tts[, micro_inverter_1 := fcase(micro_inverter_1 == "Y", 1, 
+                                micro_inverter_1 == "N", 0,
+                                default = NA)]
 
-# Experimentation ---------------------------------------------------------
+tts[, ground_mounted := fcase(ground_mounted == "1", 1, 
+                              ground_mounted == "0", 0,
+                              default = NA)]
+tts[, new_construction := fcase(new_construction == "1", 1,
+                                new_construction == "0", 0,
+                                default = NA)]
+tts[, premium := ifelse(efficiency_module > 0.20, 1, 0)]
 
-feols(ln_price_w ~ new_construction + quality_1*china + quality_1*korea,
-      fixef = c("module_manufacturer", "installer_name", "zip_code", "year_quarter"), cluster = ~zip_code,data = tts[ho == 1]) 
+feols(price_w ~ PV_system_size_DC + PV_system_size_DC^2 + premium_panel_overall + micro_inverter_1 + DC_optimizer + ground_mounted 
+      | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[year == 2018])
+
+# VERY CLOSE TO SHAUGHNESSY BUT DO NOT HOLD FOR OTHER YEAR THAN 2017 AND 2018
+feols(price_w ~ premium_panel_overall + median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2 +
+        micro_inverter_1 + DC_optimizer + ground_mounted 
+      | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[year == 2018])
+feols(price_w ~ premium_panel_overall + median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2 +
+        micro_inverter_1 + DC_optimizer + ground_mounted 
+      | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[year == 2017])
+
+
+rep = feols(price_w ~ PV_system_size_DC + PV_system_size_DC^2 + premium_1 + micro_inverter_1 + DC_optimizer + ground_mounted 
+            | state + year_quarter + installer_name + module_manufacturer_1, cluster = ~zip_code, data = tts_clean)
+
 

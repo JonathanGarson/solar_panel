@@ -326,7 +326,7 @@ ts[, state := trimws(tolower(state))]
 # Deflating 2010 $ value
 month = setdiff(colnames(cpi), c("Year", "HALF1", "HALF2"))
 cpi[, year_cpi := rowMeans(.SD), .SDcols = month]
-base_cpi = cpi[Year == 2010,]$year_cpi
+base_cpi = cpi[Year == 2018,]$year_cpi
 cpi = cpi[Year %in% 2010:2023, deflated_cpi := year_cpi/base_cpi]
 ts = merge(ts, cpi[, .(Year, deflated_cpi)], by.x = "year", by.y = "Year")
 ts[, total_installed_price := total_installed_price/deflated_cpi]
