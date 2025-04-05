@@ -12,6 +12,7 @@ library(hhi)
 # Data --------------------------------------------------------------------
 
 tts = read_parquet(data_final("tts_final.parquet"))
+market_assignments_ioc = fread(data_temp("market_assignments_ioc.csv"))
 
 # Table 1 - Effect of Quality 1 on Price ------------------------------------
 
@@ -346,6 +347,9 @@ tts[, new_construction := fcase(new_construction == "1", 1,
                                 default = NA)]
 tts[, premium := ifelse(efficiency_module > 0.20, 1, 0)]
 
+market_assignments_ioc[, zip_code := as.character(zip_code)]
+tts = merge(tts, market_assignments_ioc, by = "zip_code")
+
 # Building HHI zip_code level
 installer_counts <- tts[, .(installs_by_installer = .N), by = .(county, installer_name, year)]
 zip_totals <- tts[, .(total_installs_zip = .N), by = .(county, year)]
@@ -357,16 +361,27 @@ tts <- merge(tts, market_share[, .(county, installer_name, hhi_index_c, year)],
 tts[, market_size := .N, by = .(county, year)]
 tts[, hhi_index_c_sqr := hhi_index_c^2]
 
+# Building HHI market_id level
+installer_counts <- tts[, .(installs_by_installer = .N), by = .(market_id, installer_name, year)]
+zip_totals <- tts[, .(total_installs_zip = .N), by = .(market_id, year)]
+market_share <- merge(installer_counts, zip_totals, by = c('market_id', 'year'))
+market_share[, market_share_installer := installs_by_installer / total_installs_zip]
+market_share[, hhi_index_md := sum(market_share_installer^2), by = .(market_id, year)]
+tts <- merge(tts, market_share[, .(market_id, installer_name, hhi_index_md, year)],
+             by = c("market_id", "installer_name", "year"), all.x = TRUE)
+tts[, market_size := .N, by = .(market_id, year)]
+tts[, hhi_index_md_sqr := hhi_index_md^2]
+
 feols(price_w ~ PV_system_size_DC + PV_system_size_DC^2 + premium_panel_overall + micro_inverter_1 + DC_optimizer + ground_mounted 
       | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[year == 2018])
 
 # VERY CLOSE TO SHAUGHNESSY BUT DO NOT HOLD FOR OTHER YEAR THAN 2017 AND 2018
-feols(price_w ~ premium_panel_overall + median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2 +
-        micro_inverter_1 + DC_optimizer + ground_mounted+ hhi_index_c + hhi_index_c_sqr + market_size 
-      | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[year == 2018])
+feols(price_w ~ premium_panel_ad1 +  premium_panel_ad2 + premium_panel_st+ median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2 +
+        micro_inverter_1 + DC_optimizer + ground_mounted+ hhi_index_md + hhi_index_md_sqr + market_size 
+      | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[state == "ca"])
 feols(price_w ~ premium_panel_overall + median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2 +
         micro_inverter_1 + DC_optimizer + ground_mounted 
-      | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[year == 2017])
+      | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[year == 2018])
 
 
 rep = feols(price_w ~ PV_system_size_DC + PV_system_size_DC^2 + premium_1 + micro_inverter_1 + DC_optimizer + ground_mounted 
