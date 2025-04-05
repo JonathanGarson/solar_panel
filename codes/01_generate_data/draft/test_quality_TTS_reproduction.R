@@ -69,6 +69,21 @@ tts[, new_construction := fcase(new_construction == "1", 1,
                                 new_construction == "0", 0,
                                 default = NA)]
 
+zip_code = fread(data_temp("zip_county_data.csv"))
+zip_code = zip_code[, zipcode := as.character(zipcode)]
+zip_code = unique(zip_code)
+tts = merge(tts, zip_code, by.x = "zip_code", by.y = "zipcode", all.x = TRUE)
+
+installer_counts <- tts[, .(installs_by_installer = .N), by = .(county, installer_name, year)]
+zip_totals <- tts[, .(total_installs_zip = .N), by = .(county, year)]
+market_share <- merge(installer_counts, zip_totals, by = c('county', 'year'))
+market_share[, market_share_installer := installs_by_installer / total_installs_zip]
+market_share[, hhi_index_c := sum(market_share_installer^2), by = .(county, year)]
+tts <- merge(tts, market_share[, .(county, installer_name, hhi_index_c, year)],
+             by = c("county", "installer_name", "year"), all.x = TRUE)
+tts[, market_size := .N, by = .(county, year)]
+tts[, hhi_index_c_sqr := hhi_index_c^2]
+
 # Regression --------------------------------------------------------------
 tts[, log_price_w := log(price_w)]
 tts[, PV_sqr := (PV_system_size_DC)^2]
@@ -81,7 +96,7 @@ tts_clean = tts[, .SD, .SDcols = c("price_w", "PV_system_size_DC", "premium_1", 
                                    "ground_mounted", "year_quarter", "installer_name","zip_code", "module_manufacturer_1",
                                    "state", "installer_name", "new_construction")]
   
-rep = feols(price_w ~ PV_system_size_DC + PV_system_size_DC^2 + premium_1 + micro_inverter_1 + DC_optimizer + ground_mounted 
-            | state + year_quarter + installer_name + module_manufacturer_1, cluster = ~zip_code, data = tts_clean)
+rep = feols(price_w ~ PV_system_size_DC + PV_system_size_DC^2 + premium_1 + micro_inverter_1 + DC_optimizer + ground_mounted + market_size + hhi_index_c + hhi_index_c_sqr
+            | state + year_quarter + installer_name + module_manufacturer_1, cluster = ~zip_code, data = tts)
 
 sub = model.frame(reproduction)
