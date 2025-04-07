@@ -13,6 +13,8 @@ library(gt)
 tts = setDT(read_parquet(data_temp("TTS_merged.parquet")))
 ad_2012 = fread(data_final("ad_2012_final.csv"))
 ad_2015 = fread(data_final("ad_2015_final.csv"))
+wages = fread(data_temp("wage_installer_PV.csv"))
+elec = fread(data_temp("elec_price.csv"))
 
 # Selecting firms ---------------------------------------------------------
 
@@ -97,7 +99,7 @@ pct_eff_dt <- data.frame(year = numeric(),
                          p95 = numeric())
 
 # Loop over the years of interest
-for (y in c(2011, 2013, 2017, 2019)) {
+for (y in c(2010, 2012, 2014, 2017, 2019)) {
   # Calculate the quantiles for the given year; include na.rm = TRUE to handle missing values.
   pct_eff <- quantile(models_dt[year == y]$efficiency, 
                       probs = c(0.5, 0.75, 0.9, 0.95), 
@@ -140,19 +142,14 @@ setDT(pct_eff_dt)
 # Overall
 tts[, premium_panel_overall := ifelse(efficiency_module >= 0.20, 1, 0) ]
 
-# # Relative Premium
-# thresholds <- tts[, .(efficiency_threshold = quantile(efficiency_module, 0.90, na.rm = TRUE)), by = year]
-# tts <- merge(tts, thresholds, by = "year", all.x = TRUE)
-# tts[, premium_panel_relative := as.integer(efficiency_module >= efficiency_threshold), by = year]
-
 # AD 1 : 2010-2013
 for (y in c(2010:2013)) {
-  tts[year == `y`, premium_panel_ad1 := ifelse(efficiency_module > pct_eff_dt[year == 2011,]$p90, 1, 0) ]
+  tts[year == `y`, premium_panel_ad1 := ifelse(efficiency_module > pct_eff_dt[year == 2012,]$p90, 1, 0) ]
 }
 
 # AD 2 : 2013-2016
-for (y in c(2013:2016)) {
-  tts[year == `y`, premium_panel_ad2 := ifelse(efficiency_module > pct_eff_dt[year == 2013,]$p90, 1, 0) ]
+for (y in c(2014:2016)) {
+  tts[year == `y`, premium_panel_ad2 := ifelse(efficiency_module > pct_eff_dt[year == 2014,]$p90, 1, 0) ]
 }
 
 # Safeguard : 2017-2020
@@ -226,19 +223,37 @@ setnames(ad_2015, "module_manufacturer_2015", "module_manufacturer")
 
 tts = merge(tts, ad_2012, by = c("module_manufacturer"), all.x = TRUE)
 tts = merge(tts, ad_2015, by = c("module_manufacturer"), all.x = TRUE)
+tts[, year_quarter.y := NULL]
+tts[, year_quarter:= NULL]
+setnames(tts, "year_quarter.x", "year_quarter")
 
-tts[, tariff_2012 := ad_rate_2012 + cvd_rate_2012]
-tts[, tariff_2015 := ad_rate_2015]
-tts[, tariff_2015_temp := ad_rate_2015 + cvd_rate_2015]
-
-# Exploiting variation in tariff implementation
-tts[year %in% 2010:2013, tariff_2012_treated := ifelse(china == 1 & year_quarter.x > "2012Q2", 1, 0)]
-tts[year %in% 2013:2016, tariff_2015_treated := ifelse(china == 1 & year_quarter.x > "2014Q3", 1, 0)]
+# CHECK APPLICATION DATE
+tts[year_quarter >= "2012Q2" & year_quarter <= "2013Q4", tariff:= ad_rate_2012 + cvd_rate_2012]
+tts[year_quarter >= "2014Q2" & year_quarter <= "2017Q4", tariff:= ad_rate_2015]
+tts[year_quarter >= "2014Q2" & year_quarter <= "2017Q4", tariff_temp := ad_rate_2015 + cvd_rate_2015] #Interesting to note here that there is a strong tariff discontinuity with CVD stopping
+tts[, tariff := ifelse(is.na(tariff), 0, tariff)]
 
 # We keep zip code with population different from 0 since it would imply that zip code correspond to a commercial area
 tts = tts[population > 0,]
 tts[, installation_zip_code := .N, by = .(zip_code, year)]
 tts[, demand_zip_code := (installation_zip_code/population)*1000]
+
+# We merge with electricity price and wages 
+tts = merge(tts, elec, by = c("state", "year_quarter"), all.x = TRUE)
+setnames(wages, c("state_short", "state"), c("state", "state_long"))
+tts[, year.y := NULL]
+setnames(tts, "year.x", "year")
+
+tts = merge(tts, wages, by = c("state", "year"), all.x = TRUE)
+
+ggplot(tts[state == "ca", ], 
+       aes(x = year, y = h_median, group = 1, color = state)) +
+  geom_line(size = 1, color = "blue") +
+  labs(x = "Year", y = "Hourly Wage ($)", color = "State") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.text = element_text(size = 14),
+        legend.title = element_text(size = 16))
 
 # Cleaning before export --------------------------------------------------
 tts[, year_quarter := NULL]
@@ -249,7 +264,7 @@ tts[, sales_per_model := NULL]
 tts[, sales_per_brand := NULL]
 tts[, sales_overall := NULL]
 tts[, nb_manufacturer := NULL]
-setnames(tts, "year_quarter.x", "year_quarter")
+# setnames(tts, "year_quarter.x", "year_quarter")
 
 # We only keep HO data
 tts = tts[ho == 1,]
