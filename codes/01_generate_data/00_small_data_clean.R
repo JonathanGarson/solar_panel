@@ -77,9 +77,11 @@ dt_long <- melt(elec,
 dt_long[, year := gsub(".* (\\d{4})$", "\\1", quarter)]
 dt_long[, mean_price_year := mean(elec_price), by = .(state, year)]
 
+dt_long[, year_quarter := format(as.yearqtr(quarter, format = "Q%q %Y"), format = "%YQ%q")]
+dt_long = dt_long[, .SD, .SDcols = c("state", "year_quarter", "elec_price", "mean_price_year")]
 
 ggplot(dt_long[state %in% c("ca", "tx"), ], 
-       aes(x = quarter, group = state, color = state)) +
+       aes(x = year_quarter, group = state, color = state)) +
   geom_line(aes(y = elec_price), linewidth = 0.8) +
   geom_line(aes(y = mean_price_year), linetype = "dashed", linewidth = 1.2) +
   theme_classic() +
@@ -90,8 +92,6 @@ ggplot(dt_long[state %in% c("ca", "tx"), ],
         legend.text = element_text(size = 14),
         legend.title = element_text(size = 16))
 ggsave("output/figures/statdesc/elec_price_california_real_price.pdf", width = 10, height = 8)
-
-dt_long[, year_quarter := format(as.yearqtr(quarter, format = "Q%q %Y"), format = "%YQ%q")]
 
 fwrite(dt_long, data_temp("elec_price.csv"))
 
@@ -150,20 +150,43 @@ for (f in files) {
                a_median =as.numeric(a_median))]
   base_cpi <- deflated_cpi[year == year_extracted, deflated_cpi]
   temp_data[, h_mean := h_mean / base_cpi]
-  temp_data[, a_mean := h_mean / base_cpi]
+  temp_data[, a_mean := a_mean / base_cpi]
   temp_data[, h_median := h_median / base_cpi]
-  temp_data[, a_median := h_median / base_cpi]
+  temp_data[, a_median := a_median / base_cpi]
   
   # Append the cleaned data from this file to the export data table
   data_to_export <- rbind(data_to_export, temp_data[, .(state_short,state, year, tot_emp, jobs_1000, h_mean, h_median, a_mean, a_median)], fill = TRUE)
 }
+
+# 2019 is not working properly, we add it manually
+dt_2019 = setDT(readxl::read_excel(glue("{data_path_wage}/state_M2019_dl.xlsx")))
+dt_2019 = dt_2019[occ_title == "Solar Photovoltaic Installers"]
+setnames(dt_2019, "area_title", "state_long")
+clean_column <- setdiff(colnames(dt_2019), c("area","occ_group", "annual", "hourly"))
+dt_2019 <- dt_2019[, .SD, .SDcols = clean_column]
+col_names <- tolower(colnames(dt_2019))
+setnames(dt_2019, colnames(dt_2019), col_names)
+dt_2019 = merge(dt_2019, state_abbrevs_df, by.x = "state_long", by.y = "state_full")
+setnames(dt_2019, c("state_long"), c("state"))
+year_extracted = 2019
+dt_2019[, year := year_extracted]
+dt_2019[, `:=` (h_mean = as.numeric(h_mean),
+                  a_mean = as.numeric(a_mean),
+                  h_median = as.numeric(h_median),
+                  a_median =as.numeric(a_median))]
+base_cpi <- deflated_cpi[year == year_extracted, deflated_cpi]
+dt_2019[, h_mean := h_mean / base_cpi]
+dt_2019[, a_mean := a_mean / base_cpi]
+dt_2019[, h_median := h_median / base_cpi]
+dt_2019[, a_median := a_median / base_cpi]
+data_to_export = rbind(data_to_export, dt_2019[, .(state_short,state, year, tot_emp, jobs_1000, h_mean, h_median, a_mean, a_median)])
 
 data_to_export[, state_short := tolower(state_short)]
 data_to_export[, state := tolower(state)]
 
 ggplot(data_to_export[state == "california", ], 
        aes(x = year, y = h_median, group = 1, color = state)) +
-  geom_line(size = 1, color = "blue") +
+  geom_line(linewidth = 1, color = "blue") +
   labs(x = "Year", y = "Hourly Wage ($)", color = "State") +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
@@ -171,4 +194,8 @@ ggplot(data_to_export[state == "california", ],
         legend.title = element_text(size = 16))
 
 data_to_export = unique(data_to_export)
+data_to_export[, state := NULL]
+setnames(data_to_export, c("state_short"), c("state"))
+setorder(data_to_export, year)
+
 fwrite(data_to_export, data_temp("wage_installer_PV.csv"))

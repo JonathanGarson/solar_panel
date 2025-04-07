@@ -7,11 +7,10 @@ library(fixest)
 library(modelsummary)
 library(stringr)
 library(glue)
-library(hhi)
 
 # Data --------------------------------------------------------------------
 
-tts = read_parquet(data_final("tts_final.parquet"))
+tts = setDT(read_parquet(data_final("tts_final.parquet")))
 market_assignments_ioc = fread(data_temp("market_assignments_ioc.csv"))
 
 # Table 1 - Effect of Quality 1 on Price ------------------------------------
@@ -19,7 +18,6 @@ market_assignments_ioc = fread(data_temp("market_assignments_ioc.csv"))
 ## Complete -----------------------------------------------------
 
 # Create the log price variable
-setDT(tts)
 tts[, ln_price_w := log(price_w)]
 
 # coef_map 
@@ -43,25 +41,28 @@ coef_map = c(
 )
 
 # --- Helper function (as given) ---
+set_control = c("median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2 + 
+                elec_price + h_median + rebate_w")
+
 run_wave_models <- function(data, quality_var) {
   list(
     "No FE"  = feols(
-      as.formula(paste0("price_w ~ ", quality_var)),
+      as.formula(glue("price_w ~  {quality_var} + {set_control}")),
       cluster = ~zip_code, data = data
     ),
     
     "FE: Year + State" = feols(
-      as.formula(paste0("price_w ~ ", quality_var, " + median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2| year + state")),
+      as.formula(glue("price_w ~  {quality_var} + {set_control}| year + state")),
       cluster = ~zip_code, data = data
     ),
     
     "FE: Year + State + Installer" = feols(
-      as.formula(paste0("price_w ~ ", quality_var, " + median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2| year + state + installer_name")),
+      as.formula(glue("price_w ~ {quality_var} + {set_control}| year + state + installer_name")),
       cluster = ~zip_code, data = data
     ),
     
     "FE: Year + State + Module Manufacturer + Installer" = feols(
-      as.formula(paste0("price_w ~ ", quality_var, " + median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2| year + state + installer_name +  module_manufacturer")),
+      as.formula(glue("price_w ~ {quality_var} + {set_control}| year + state + installer_name +  module_manufacturer")),
       cluster = ~zip_code, data = data
     )
   )
@@ -125,7 +126,7 @@ table_premium_overall <- modelsummary(
   gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
   add_rows = df_overall_add_rows,
   notes = "Notes: The dependent variable is a price in $ per W, so the estimate reports a dollar variation in price. Standard errors are clustered at the zip code level.",
-  # output = "latex"
+  output = "latex"
 )
 
 # --- Create a table for the three period panels ---

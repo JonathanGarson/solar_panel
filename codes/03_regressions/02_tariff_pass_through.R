@@ -13,15 +13,39 @@ tts= read_parquet(data_final("TTS_final.parquet"))
 
 tts[, post_incentive_price_w := 0.7*(price_w - rebate_w)]
 tts[, ln_rebate_w := log(rebate_w)]
+tts[, ln_price_w := log(price_w)]
+tts[, ln_tariff := log(tariff)]
 tts[, ln_post_incentive_price_w := log(post_incentive_price_w)]
 
-rebate_pt = feols(ln_post_incentive_price_w ~ rebate_w*premium_panel_overall + rebate_w*premium_installation + median_home_value + median_household_income + population_density
-                  | year + state + module_manufacturer + installer_name + utility_service_territory, cluster = ~zip_code, data = tts)
-fitstat(rebate_pt, type = c("f", "wald"))
+set_control = c("median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2 + 
+                elec_price + h_median + rebate_w")
+formula = as.formula(glue("{quality_var} + {set_control}"))
 
-pass_through_ad1 = feols(post_incentive_price_w ~ tariff_2012_treated*china + tariff_2012_treated*tariff_2012*premium_panel_overall + rebate_w + median_home_value + median_household_income + population_density
-                  | year + state + module_manufacturer + installer_name, cluster = ~zip_code, data = tts)
-fitstat(pass_through_ad1, type = c("f", "wald"))
+# WEIRD
+pass_through = feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_panel_overall+ {set_control}| year + state + installer_name")) , 
+                     cluster = ~zip_code , data = tts[year %in% 2010:2016])
+pass_through_2 = feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_panel_overall+ {set_control}| year + state + installer_name + module_manufacturer")) , 
+                     cluster = ~zip_code , data = tts)
+# CONSISTENT
+pass_through_ad_1 = feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_panel_ad1+ {set_control}| year + state + installer_name")) , 
+                     cluster = ~zip_code , data = tts[year %in% 2010:2013])
+pass_through_2_ad1 = feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_panel_ad1+ {set_control}| year + state + installer_name + module_manufacturer")) , 
+                     cluster = ~zip_code , data = tts[year %in% 2010:2013])
 
+pass_through_ad_2 = feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_panel_ad1+ {set_control}| year + state + installer_name")) , 
+                     cluster = ~zip_code , data = tts[year %in% 2013:2016])
+pass_through_2_ad2 = feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_panel_ad1+ {set_control}| year + state + installer_name + module_manufacturer")) , 
+                     cluster = ~zip_code , data = tts[year %in% 2013:2016])
+
+# Effect on quality change after implementation ---------------------------
+quality_ad_1 = feols(as.formula(glue("premium_panel_ad1 ~ ln_tariff + {set_control}| year + state + installer_name")) , 
+                     cluster = ~zip_code , data = tts[year %in% 2010:2013])
+quality_2_ad1 = feols(as.formula(glue("premium_panel_ad1 ~ ln_tariff + {set_control}| year + state + installer_name + module_manufacturer")) , 
+                           cluster = ~zip_code , data = tts[year %in% 2010:2013])
+
+quality_ad_2 = feols(as.formula(glue("premium_panel_ad2 ~ ln_tariff + {set_control}| year + state + installer_name")) , 
+                          cluster = ~zip_code , data = tts[year %in% 2013:2016])
+quality_2_ad2 = feols(as.formula(glue("premium_panel_ad2 ~ ln_tariff + {set_control}| year + state + installer_name + module_manufacturer")) , 
+                           cluster = ~zip_code , data = tts[year %in% 2013:2016])
 
 

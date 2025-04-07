@@ -240,31 +240,15 @@ tts[, demand_zip_code := (installation_zip_code/population)*1000]
 
 # We merge with electricity price and wages 
 tts = merge(tts, elec, by = c("state", "year_quarter"), all.x = TRUE)
-setnames(wages, c("state_short", "state"), c("state", "state_long"))
-tts[, year.y := NULL]
-setnames(tts, "year.x", "year")
-
 tts = merge(tts, wages, by = c("state", "year"), all.x = TRUE)
 
-ggplot(tts[state == "ca", ], 
-       aes(x = year, y = h_median, group = 1, color = state)) +
-  geom_line(size = 1, color = "blue") +
-  labs(x = "Year", y = "Hourly Wage ($)", color = "State") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.text = element_text(size = 14),
-        legend.title = element_text(size = 16))
-
 # Cleaning before export --------------------------------------------------
-tts[, year_quarter := NULL]
-tts[, year_quarter.y := NULL]
 tts[, list_country := NULL]
 tts[, installation_zip_code := NULL]
 tts[, sales_per_model := NULL]
 tts[, sales_per_brand := NULL]
 tts[, sales_overall := NULL]
 tts[, nb_manufacturer := NULL]
-# setnames(tts, "year_quarter.x", "year_quarter")
 
 # We only keep HO data
 tts = tts[ho == 1,]
