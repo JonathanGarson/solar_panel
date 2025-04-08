@@ -143,19 +143,14 @@ setDT(pct_eff_dt)
 tts[, premium_panel_overall := ifelse(efficiency_module >= 0.20, 1, 0) ]
 
 # AD 1 : 2010-2013
-for (y in c(2010:2013)) {
-  tts[year == `y`, premium_panel_ad1 := ifelse(efficiency_module > pct_eff_dt[year == 2012,]$p90, 1, 0) ]
-}
+tts[year %in% 2010:2013 , premium_panel_ad1 := ifelse(efficiency_module >= pct_eff_dt[year == 2012,]$p90, 1, 0) ]
 
-# AD 2 : 2013-2016
-for (y in c(2014:2016)) {
-  tts[year == `y`, premium_panel_ad2 := ifelse(efficiency_module > pct_eff_dt[year == 2014,]$p90, 1, 0) ]
-}
+# AD 2 : 2014-2016
+tts[year %in% 2014:2016, premium_panel_ad2 := ifelse(efficiency_module >= pct_eff_dt[year == 2014,]$p90, 1, 0) ]
 
 # Safeguard : 2017-2020
-for (y in c(2017:2020)) {
-  tts[year == `y`, premium_panel_st := ifelse(efficiency_module > pct_eff_dt[year == 2017,]$p90, 1, 0) ]
-}
+tts[year %in% 2017:2020, premium_panel_st := ifelse(efficiency_module >= pct_eff_dt[year == 2017,]$p90, 1, 0) ]
+
 
 list_firms = top_firms$module_manufacturer
 tts = tts[module_manufacturer %in% list_firms,]
@@ -200,10 +195,6 @@ tts = tts[module_manufacturer %in% list_firms,]
 # The presence of micro inverter improve the overall efficiency of the system and makes it more desirable
 
 tts[, premium_installation := ifelse(technology_module == "Mono-c-Si" & micro_inverter_1 == "Y", 1, 0)]
-# tts[, premium_installation := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
-# tts[year %in% 2010:2012, quality_2_ad1 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
-# tts[year %in% 2013:2015, quality_2_ad2 := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
-# tts[year %in% 2016:2020, quality_2_st := ifelse(technology_module == "Mono-c-Si" & (micro_inverter_1 == "Y"|built_in_meter_inverter_1 == "Y"), 1, 0)]
 
 # Grouping Small Observation ----------------------------------------------
 install = unique(tts[, .(installer_count = .N), by = installer_name])
@@ -228,10 +219,12 @@ tts[, year_quarter:= NULL]
 setnames(tts, "year_quarter.x", "year_quarter")
 
 # CHECK APPLICATION DATE
-tts[year_quarter >= "2012Q2" & year_quarter <= "2013Q4", tariff:= ad_rate_2012 + cvd_rate_2012]
+tts[year_quarter >= "2012Q2" & year_quarter <= "2014Q1", tariff:= ad_rate_2012 + cvd_rate_2012]
+tts[year_quarter >= "2012Q2" & year_quarter <= "2014Q1", tariff_temp:= ad_rate_2012 + cvd_rate_2012]
 tts[year_quarter >= "2014Q2" & year_quarter <= "2017Q4", tariff:= ad_rate_2015]
 tts[year_quarter >= "2014Q2" & year_quarter <= "2017Q4", tariff_temp := ad_rate_2015 + cvd_rate_2015] #Interesting to note here that there is a strong tariff discontinuity with CVD stopping
 tts[, tariff := ifelse(is.na(tariff), 0, tariff)]
+tts[, treatment := ifelse(tariff == 0, 0, 1)]
 
 # We keep zip code with population different from 0 since it would imply that zip code correspond to a commercial area
 tts = tts[population > 0,]
@@ -252,6 +245,18 @@ tts[, nb_manufacturer := NULL]
 
 # We only keep HO data
 tts = tts[ho == 1,]
+
+# We only keep 43 rows
+cols_to_keep <- c("state", "zip_code", "year", "year_quarter", "module_manufacturer", "installer_name",
+                  "PV_system_size_DC", "total_installed_price", "rebate_or_grant",
+                  "new_construction", "ground_mounted" , "module_quantity",
+                  "price_w", "rebate_w", "county", "population", "population_density", "land_area_in_sqmi",
+                  "median_home_value", "median_household_income", "market_share_period", "china", "korea",
+                  "usa", "norway", "germany", "japan", "premium_panel_overall", "premium_panel_ad1",
+                  "premium_panel_ad2", "premium_panel_st", "premium_installation", "tariff", "tariff_temp","elec_price",
+                  "mean_price_year", "tot_emp", "jobs_1000", "h_mean", "h_median", "a_mean", "a_median")
+
+tts = tts[, ..cols_to_keep]
 
 # Export Data -------------------------------------------------------------
 write_parquet(tts, data_final("tts_final.parquet"))
