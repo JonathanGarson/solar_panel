@@ -1,0 +1,35 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+note{ }={Notes: The dependent variable is a price in \$ per W, so the estimate reports a dollar variation in price. Standard errors are clustered at the zip code level.},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]},
+column{2,3,4,5}={}{halign=c,},
+column{1}={}{halign=l,},
+hline{10}={1,2,3,4,5}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& (1) & (2) & (3) & (4) \\ \midrule %% TinyTableHeader
+Premium Installation Overall & \num{0.126}** & \num{0.161}*** & \num{-0.048}+ & \num{-0.030} \\
+& (\num{0.041}) & (\num{0.039}) & (\num{0.025}) & (\num{0.026}) \\
+Premium Installation Overall x USA Brands & \num{-0.499}*** & \num{-0.205}*** & \num{0.115}** & \num{0.088}* \\
+& (\num{0.045}) & (\num{0.044}) & (\num{0.041}) & (\num{0.039}) \\
+Premium Installation Overall x Korea Brands & \num{-0.100}* & \num{-0.169}*** & \num{0.161}*** & \num{0.153}*** \\
+& (\num{0.045}) & (\num{0.043}) & (\num{0.040}) & (\num{0.035}) \\
+Premium Installation Overall x China Brands & \num{-0.201}* & \num{-0.236}* & \num{0.031} & \num{-0.138} \\
+& (\num{0.089}) & (\num{0.097}) & (\num{0.194}) & (\num{0.240}) \\
+Num.Obs. & \num{300844} & \num{300844} & \num{300844} & \num{300844} \\
+R2 & \num{0.111} & \num{0.147} & \num{0.329} & \num{0.332} \\
+FE: year &  & X & X & X \\
+FE: state &  & X & X & X \\
+FE: installer\_name &  &  & X & X \\
+FE: module\_manufacturer &  &  &  & X \\
+F-test p-value & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} \\
+Wald-test p-value & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} \\
+Dependent Variable Mean & \num{4.525} & \num{4.525} & \num{4.525} & \num{4.525} \\
+\bottomrule
+\end{talltblr}
+\end{table}

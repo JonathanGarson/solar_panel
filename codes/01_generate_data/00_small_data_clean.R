@@ -199,3 +199,13 @@ setnames(data_to_export, c("state_short"), c("state"))
 setorder(data_to_export, year)
 
 fwrite(data_to_export, data_temp("wage_installer_PV.csv"))
+
+# Share of Panel in Installation price ------------------------------------
+# This data has been transfered to Houde & al (2025), by the LBNL
+
+share_panel_install = data.table(
+  year = c(2012:2018),
+  share = c(17.91, 20.04, 18.92, 17.16, 13.33, 12.09, 15.48)
+)
+
+fwrite(share_panel_install, data_temp("share_panel_install_price.csv"))

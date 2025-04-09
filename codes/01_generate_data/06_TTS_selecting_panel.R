@@ -15,6 +15,7 @@ ad_2012 = fread(data_final("ad_2012_final.csv"))
 ad_2015 = fread(data_final("ad_2015_final.csv"))
 wages = fread(data_temp("wage_installer_PV.csv"))
 elec = fread(data_temp("elec_price.csv"))
+share_panel = fread(data_temp("share_panel_install_price.csv"))
 
 # Selecting firms ---------------------------------------------------------
 
@@ -219,12 +220,16 @@ tts[, year_quarter:= NULL]
 setnames(tts, "year_quarter.x", "year_quarter")
 
 # CHECK APPLICATION DATE
-tts[year_quarter >= "2012Q2" & year_quarter <= "2014Q1", tariff:= ad_rate_2012 + cvd_rate_2012]
-tts[year_quarter >= "2012Q2" & year_quarter <= "2014Q1", tariff_temp:= ad_rate_2012 + cvd_rate_2012]
-tts[year_quarter >= "2014Q2" & year_quarter <= "2017Q4", tariff:= ad_rate_2015]
-tts[year_quarter >= "2014Q2" & year_quarter <= "2017Q4", tariff_temp := ad_rate_2015 + cvd_rate_2015] #Interesting to note here that there is a strong tariff discontinuity with CVD stopping
-tts[, tariff := ifelse(is.na(tariff), 0, tariff)]
-tts[, treatment := ifelse(tariff == 0, 0, 1)]
+tts[year_quarter >= "2012Q2" & year_quarter <= "2014Q1", tariff:= 1 + (ad_rate_2012 + cvd_rate_2012)/100]
+tts[year_quarter >= "2012Q2" & year_quarter <= "2014Q1", tariff_temp:= 1+ (ad_rate_2012 + cvd_rate_2012)/100]
+tts[year_quarter >= "2014Q2" & year_quarter <= "2017Q4", tariff:= 1 + (ad_rate_2015)/100]
+tts[year_quarter >= "2014Q2" & year_quarter <= "2017Q4", tariff_temp:= 1 + (ad_rate_2015 + cvd_rate_2015)/100] 
+#Interesting to note here that there is a strong tariff discontinuity with CVD stopping
+tts[year_quarter >= "2018Q1" & year_quarter <= "2020Q4", tariff:= 1 + (ad_rate_2015 + 30)/100]
+tts[year_quarter >= "2018Q1" & year_quarter <= "2020Q4", tariff_temp:= 1 + (ad_rate_2015 + cvd_rate_2015 + 30)/100] 
+tts[, tariff := ifelse(is.na(tariff), 1, tariff)]
+tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", "yingli energy (china)") & year_quarter >= "2018Q1" & year_quarter <= "2020Q4", 
+    tariff := 1.30]
 
 # We keep zip code with population different from 0 since it would imply that zip code correspond to a commercial area
 tts = tts[population > 0,]
@@ -234,6 +239,23 @@ tts[, demand_zip_code := (installation_zip_code/population)*1000]
 # We merge with electricity price and wages 
 tts = merge(tts, elec, by = c("state", "year_quarter"), all.x = TRUE)
 tts = merge(tts, wages, by = c("state", "year"), all.x = TRUE)
+
+# We merge with share installed panel in installed price
+tts = merge(tts, share_panel, by = "year")
+tts[, proxy_panel_price := (share/100) * total_installed_price]
+tts[, proxy_panel_price_w := proxy_panel_price/(PV_system_size_DC*1000)]
+
+# Cleaning variables
+tts[, micro_inverter_1 := fcase(micro_inverter_1 == "Y", 1, 
+                                micro_inverter_1 == "N", 0,
+                                default = NA)]
+
+tts[, ground_mounted := fcase(ground_mounted == "1", 1, 
+                              ground_mounted == "0", 0,
+                              default = NA)]
+tts[, new_construction := fcase(new_construction == "1", 1,
+                                new_construction == "0", 0,
+                                default = NA)]
 
 # Cleaning before export --------------------------------------------------
 tts[, list_country := NULL]
@@ -250,7 +272,7 @@ tts = tts[ho == 1,]
 cols_to_keep <- c("state", "zip_code", "year", "year_quarter", "module_manufacturer", "installer_name",
                   "PV_system_size_DC", "total_installed_price", "rebate_or_grant",
                   "new_construction", "ground_mounted" , "module_quantity",
-                  "price_w", "rebate_w", "county", "population", "population_density", "land_area_in_sqmi",
+                  "price_w", "rebate_w", "proxy_panel_price", "proxy_panel_price_w", "county", "population", "population_density", "land_area_in_sqmi",
                   "median_home_value", "median_household_income", "market_share_period", "china", "korea",
                   "usa", "norway", "germany", "japan", "premium_panel_overall", "premium_panel_ad1",
                   "premium_panel_ad2", "premium_panel_st", "premium_installation", "tariff", "tariff_temp","elec_price",

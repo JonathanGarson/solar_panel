@@ -1,0 +1,60 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
+column{3,5,7}={}{halign=c,},
+column{1}={}{halign=l,},
+cell{2}{2}={}{halign=c,},
+cell{2}{4}={}{halign=c,},
+cell{2}{6}={}{halign=c,},
+cell{3}{2}={}{halign=c,},
+cell{3}{4}={}{halign=c,},
+cell{3}{6}={}{halign=c,},
+cell{4}{2}={}{halign=c,},
+cell{4}{4}={}{halign=c,},
+cell{4}{6}={}{halign=c,},
+cell{5}{2}={}{halign=c,},
+cell{5}{4}={}{halign=c,},
+cell{5}{6}={}{halign=c,},
+cell{6}{2}={}{halign=c,},
+cell{6}{4}={}{halign=c,},
+cell{6}{6}={}{halign=c,},
+cell{7}{2}={}{halign=c,},
+cell{7}{4}={}{halign=c,},
+cell{7}{6}={}{halign=c,},
+cell{8}{2}={}{halign=c,},
+cell{8}{4}={}{halign=c,},
+cell{8}{6}={}{halign=c,},
+cell{9}{2}={}{halign=c,},
+cell{9}{4}={}{halign=c,},
+cell{9}{6}={}{halign=c,},
+cell{10}{2}={}{halign=c,},
+cell{10}{4}={}{halign=c,},
+cell{10}{6}={}{halign=c,},
+cell{11}{2}={}{halign=c,},
+cell{11}{4}={}{halign=c,},
+cell{11}{6}={}{halign=c,},
+cell{1}{2}={c=2,}{halign=c, halign=c,},
+cell{1}{4}={c=2,}{halign=c, halign=c,},
+cell{1}{6}={c=2,}{halign=c, halign=c,},
+hline{5}={1,2,3,4,5,6,7}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& 2010-2013 &  & 2014-2016 &  & 2017-2020 &  \\ \cmidrule[lr]{2-3}\cmidrule[lr]{4-5}\cmidrule[lr]{6-7}
+& (1) & (2) & (3) & (4) & (5) & (6) \\ \midrule %% TinyTableHeader
+log Tariffs & \num{-0.534}*** & \num{-0.077} & \num{-0.620}*** & \num{-0.556}*** & \num{-0.182}*** & \num{0.451}*** \\
+& (\num{0.039}) & (\num{0.057}) & (\num{0.018}) & (\num{0.121}) & (\num{0.014}) & (\num{0.090}) \\
+Num.Obs. & \num{23108} & \num{23108} & \num{144903} & \num{144903} & \num{145915} & \num{145915} \\
+R2 & \num{0.467} & \num{0.509} & \num{0.427} & \num{0.468} & \num{0.555} & \num{0.609} \\
+FE: year & X & X & X & X & X & X \\
+FE: state & X & X & X & X & X & X \\
+FE: installer\_name & X & X & X & X & X & X \\
+FE: module\_manufacturer &  & X &  & X &  & X \\
+F-test p-value & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} \\
+\bottomrule
+\end{talltblr}
+\end{table}

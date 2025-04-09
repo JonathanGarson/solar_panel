@@ -84,14 +84,14 @@ models_1 <- list(
     run_wave_models(tts, "premium_panel_ad1*china + premium_panel_ad1*korea + premium_panel_ad1*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
   ),  
   
-  "Quality 1 : 2013 - 2015" = list(
+  "Quality 1 : 2014 - 2016" = list(
     run_wave_models(tts, "premium_panel_ad2*china + premium_panel_ad2*korea + premium_panel_ad2*usa")[["No FE"]],
     run_wave_models(tts, "premium_panel_ad2*china + premium_panel_ad2*korea + premium_panel_ad2*usa")[["FE: Year + State"]],
     run_wave_models(tts, "premium_panel_ad2*china + premium_panel_ad2*korea + premium_panel_ad2*usa")[["FE: Year + State + Installer"]],
     run_wave_models(tts, "premium_panel_ad2*china + premium_panel_ad2*korea + premium_panel_ad2*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
   ),
   
-  "Quality 1 : 2016 - 2020" = list(
+  "Quality 1 : 2017 - 2020" = list(
     run_wave_models(tts, "premium_panel_st*china + premium_panel_st*korea + premium_panel_st*usa")[["No FE"]],
     run_wave_models(tts, "premium_panel_st*china + premium_panel_st*korea + premium_panel_st*usa")[["FE: Year + State"]],
     run_wave_models(tts, "premium_panel_st*china + premium_panel_st*korea + premium_panel_st*usa")[["FE: Year + State + Installer"]],
@@ -132,8 +132,8 @@ table_premium_overall <- modelsummary(
 # --- Create a table for the three period panels ---
 models_quality1_periods <- list(
   "2010 - 2013" = models_1[["Quality 1 : 2010 - 2013"]],
-  "2013 - 2015" = models_1[["Quality 1 : 2013 - 2015"]],
-  "2016 - 2020" = models_1[["Quality 1 : 2016 - 2020"]]
+  "2014 - 2016" = models_1[["Quality 1 : 2014 - 2016"]],
+  "2017 - 2020" = models_1[["Quality 1 : 2017 - 2020"]]
 )
 
 # Compute add_rows for period models (nested naming for each panel)
@@ -155,7 +155,7 @@ df_period_add_rows <- data.frame(
   check.names = FALSE
 )
 
-table_premium_premium <- modelsummary(
+table_premium_relative <- modelsummary(
   models_quality1_periods,
   coef_map = coef_map,
   stars = TRUE,
@@ -287,24 +287,23 @@ models_2 = list(
     run_wave_models(tts[year %in% 2010:2013], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
   ),
 
-  "Quality 2 : 2013 - 2015" = list(
-    run_wave_models(tts[year %in% 2013:2015], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["No FE"]],
-    run_wave_models(tts[year %in% 2013:2015], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State"]],
-    run_wave_models(tts[year %in% 2013:2015], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Installer"]],
-    run_wave_models(tts[year %in% 2013:2015], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
+  "Quality 2 : 2014 - 2016" = list(
+    run_wave_models(tts[year %in% 2014:2016], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["No FE"]],
+    run_wave_models(tts[year %in% 2014:2016], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State"]],
+    run_wave_models(tts[year %in% 2014:2016], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Installer"]],
+    run_wave_models(tts[year %in% 2014:2016], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
   ),
 
-  "Quality 2 : 2016 - 2020" = list(
-    run_wave_models(tts[year %in% 2016:2020], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["No FE"]],
-    run_wave_models(tts[year %in% 2016:2020], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State"]],
-    run_wave_models(tts[year %in% 2016:2020], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Installer"]],
-    run_wave_models(tts[year %in% 2016:2020], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
+  "Quality 2 : 2017 - 2020" = list(
+    run_wave_models(tts[year %in% 2017:2020], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["No FE"]],
+    run_wave_models(tts[year %in% 2017:2020], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State"]],
+    run_wave_models(tts[year %in% 2017:2020], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Installer"]],
+    run_wave_models(tts[year %in% 2017:2020], "premium_installation*china + premium_installation*korea + premium_installation*usa")[["FE: Year + State + Module Manufacturer + Installer"]]
   )
 )
 
 # --- Create a table for "Quality 2 Overall" ---
 models_quality2_overall <- models_2[["Overall"]]
-# models_quality2_overall <- models_2
 
 # Compute add_rows for overall models
 results_list_overall <- list()
@@ -332,8 +331,11 @@ table_premium_install_overall <- modelsummary(
   gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
   add_rows = df_overall_add_rows,
   notes = "Notes: The dependent variable is a price in $ per W, so the estimate reports a dollar variation in price. Standard errors are clustered at the zip code level.",
-  # output = "latex"
+  output = "latex"
 )
+
+table_premium_install_overall_char <- as.character(table_premium_install_overall)
+writeLines(table_premium_install_overall_char, "output/regression/descriptive/table_premium_install_overall.tex")
 
 # Test --------------------------------------------------------------------
 tts[, micro_inverter_1 := fcase(micro_inverter_1 == "Y", 1, 
