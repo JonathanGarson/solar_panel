@@ -30,6 +30,7 @@ ad_2012[module_manufacturer_2012 == "Jinko Solar Import and Export Co. Ltd & Jin
 ad_2012[module_manufacturer_2012 == "Yingli Energy (China) Company Limited", module_manufacturer_2012 := "yingli energy (china)"]
 ad_2012[module_manufacturer_2012 == "Yingli Energy (China) Company Limited", module_manufacturer_2012 := "yingli energy (china)"]
 ad_2012[module_manufacturer_2012 == "Baoding Tianwei Yingli New Energy Resources Co. Ltd", module_manufacturer_2012 := "yingli energy (china)"]
+ad_2012[module_manufacturer_2012 == "Suntech Power Co. Ltd", module_manufacturer_2012 := "suntech power"]
 
 
 ad_2015[module_manufacturer_2015 == "Changzhou Trina Solar Energy Co. Ltd.", module_manufacturer_2015 := "trina solar"]
@@ -44,6 +45,8 @@ ad_2015[module_manufacturer_2015 == "Yingli Energy (China) Company Limited", mod
 ad_2015[module_manufacturer_2015 == "Yingli Energy (China) Company Limited", module_manufacturer_2015 := "yingli energy (china)"]
 ad_2015[module_manufacturer_2015 == "Baoding Tianwei Yingli New Energy Resources Co. Ltd", module_manufacturer_2015 := "yingli energy (china)"]
 ad_2015[module_manufacturer_2015 == "Baoding Tianwei Yingli New Energy Resources Co. , Ltd", module_manufacturer_2015 := "yingli energy (china)"]
+ad_2015[module_manufacturer_2015 == "Wuxi Suntech Power Co., Ltd", module_manufacturer_2015 := "suntech power"]
+
 # We manually add Renesolar
 ad_2015 <- rbind(ad_2015, data.table(
     module_manufacturer_2015 = "renesola", ad_rate_2015 = 78.42,cvd_rate_2015 = 38.43, ad_temp_measure_2015 = "31/07/2014", cvd_temp_measure_2015 = "10/06/2014", cvd_temp_end_2015 = "08/10/2014"))

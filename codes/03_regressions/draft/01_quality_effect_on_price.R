@@ -173,95 +173,6 @@ table_premium_relative_char <- as.character(table_premium_relative)
 writeLines(table_premium_overall_char, "output/regression/descriptive/table_premium_overall.tex")
 writeLines(table_premium_relative_char, "output/regression/descriptive/table_premium_relative.tex")
 
-## Short ---------------------------------------------------------
-
-for (q in c("quality_1", "quality_2")){
-  models_1 <- list(
-    "Quality 1 Overall" = list(
-      run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["No FE"]],
-      run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State"]],
-      run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State + Module Manufacturer"]],
-      run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State + Module Manufacturer + Installer"]]
-      ),
-    
-    "TPO" = list(
-      run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["No FE"]],
-      run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State"]],
-      run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State + Module Manufacturer"]],
-      run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State + Module Manufacturer + Installer"]]
-      )
-    )
-  
-  df_add_row <- data.frame(
-    term = c("F-test p-value", "Wald-test p-value"),
-    HO_model1 = c(
-      fitstat(models_1$HO[[1]], type = "f")$f$p,
-      fitstat(models_1$HO[[1]], type = "wald")$wald$p
-    ),
-    HO_model2 = c(
-      fitstat(models_1$HO[[2]], type = "f")$f$p,
-      fitstat(models_1$HO[[2]], type = "wald")$wald$p
-    ),
-    HO_model3 = c(
-      fitstat(models_1$HO[[3]], type = "f")$f$p,
-      fitstat(models_1$HO[[3]], type = "wald")$wald$p
-    ),
-    HO_model4 = c(
-      fitstat(models_1$HO[[4]], type = "f")$f$p,
-      fitstat(models_1$HO[[4]], type = "wald")$wald$p
-    ),
-    TPO_model1 = c(
-      fitstat(models_1$TPO[[1]], type = "f")$f$p,
-      fitstat(models_1$TPO[[1]], type = "wald")$wald$p
-    ),
-    TPO_model2 = c(
-      fitstat(models_1$TPO[[2]], type = "f")$f$p,
-      fitstat(models_1$TPO[[2]], type = "wald")$wald$p
-    ),
-    TPO_model3 = c(
-      fitstat(models_1$TPO[[3]], type = "f")$f$p,
-      fitstat(models_1$TPO[[3]], type = "wald")$wald$p
-    ),
-    TPO_model4 = c(
-      fitstat(models_1$TPO[[4]], type = "f")$f$p,
-      fitstat(models_1$TPO[[4]], type = "wald")$wald$p
-    )
-  )
-  
-  # Map raw coefficient names to prettier labels
-  coef_map <- c(
-    # "(Intercept)" = "Intercept",
-    "quality_1" = "Premium Panels",
-    "quality_2" = "Premium Installations",
-    "quality_1:china" = "Premium Panels × Chinese Brand",
-    "quality_1:korea" = "Premium Panels × Korean Brand",
-    "quality_1:usa" = "Premium Panels × USA Brand",
-    "quality_2:china" = "Premium Installations × Chinese Brand",
-    "quality_2:korea" = "Premium Installations × Korean Brand",
-    "quality_2:usa" = "Premium Installations × USA Brand"
-  )
-  
- 
-  # Create the side-by-side (cbind) table
-  table1_quality <- modelsummary(
-    models_1,
-    coef_map = coef_map,
-    stars = F,
-    shape = 'cbind',
-    escape = TRUE,
-    gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
-    add_rows = df_add_row,
-    notes = "Notes: The dependent variable is a log price per W, so the estimate reports percent variations in price.
-    HO and TPO correspond to 'Host Owned' and 'Third Party Owned' systems. The standard errors are clustered at the zip code level shown between parenthesis.",
-    # output = "latex"
-  )
-  
-  table1_quality_char = as.character(table1_quality)
-  table1_quality_char <- gsub("\\bX\\b", "Yes", table1_quality_char)
-  
-  # writeLines(table1_quality_char, glue("output/regression/descriptive/table1_{q}.tex"))
-}
-
 # Table 2 - Quality 2 -----------------------------------------------------
 
 coef_map = c(
@@ -331,63 +242,151 @@ table_premium_install_overall <- modelsummary(
   gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
   add_rows = df_overall_add_rows,
   notes = "Notes: The dependent variable is a price in $ per W, so the estimate reports a dollar variation in price. Standard errors are clustered at the zip code level.",
-  output = "latex"
+  # output = "latex"
 )
 
 table_premium_install_overall_char <- as.character(table_premium_install_overall)
 writeLines(table_premium_install_overall_char, "output/regression/descriptive/table_premium_install_overall.tex")
 
 # Test --------------------------------------------------------------------
-tts[, micro_inverter_1 := fcase(micro_inverter_1 == "Y", 1, 
-                                micro_inverter_1 == "N", 0,
-                                default = NA)]
-
-tts[, ground_mounted := fcase(ground_mounted == "1", 1, 
-                              ground_mounted == "0", 0,
-                              default = NA)]
-tts[, new_construction := fcase(new_construction == "1", 1,
-                                new_construction == "0", 0,
-                                default = NA)]
-tts[, premium := ifelse(efficiency_module > 0.20, 1, 0)]
-
-market_assignments_ioc[, zip_code := as.character(zip_code)]
-tts = merge(tts, market_assignments_ioc, by = "zip_code")
-
-# Building HHI zip_code level
-installer_counts <- tts[, .(installs_by_installer = .N), by = .(county, installer_name, year)]
-zip_totals <- tts[, .(total_installs_zip = .N), by = .(county, year)]
-market_share <- merge(installer_counts, zip_totals, by = c('county', 'year'))
-market_share[, market_share_installer := installs_by_installer / total_installs_zip]
-market_share[, hhi_index_c := sum(market_share_installer^2), by = .(county, year)]
-tts <- merge(tts, market_share[, .(county, installer_name, hhi_index_c, year)],
-             by = c("county", "installer_name", "year"), all.x = TRUE)
-tts[, market_size := .N, by = .(county, year)]
-tts[, hhi_index_c_sqr := hhi_index_c^2]
-
-# Building HHI market_id level
-installer_counts <- tts[, .(installs_by_installer = .N), by = .(market_id, installer_name, year)]
-zip_totals <- tts[, .(total_installs_zip = .N), by = .(market_id, year)]
-market_share <- merge(installer_counts, zip_totals, by = c('market_id', 'year'))
-market_share[, market_share_installer := installs_by_installer / total_installs_zip]
-market_share[, hhi_index_md := sum(market_share_installer^2), by = .(market_id, year)]
-tts <- merge(tts, market_share[, .(market_id, installer_name, hhi_index_md, year)],
-             by = c("market_id", "installer_name", "year"), all.x = TRUE)
-tts[, market_size := .N, by = .(market_id, year)]
-tts[, hhi_index_md_sqr := hhi_index_md^2]
-
-feols(price_w ~ PV_system_size_DC + PV_system_size_DC^2 + premium_panel_overall + micro_inverter_1 + DC_optimizer + ground_mounted 
-      | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[year == 2018])
-
-# VERY CLOSE TO SHAUGHNESSY BUT DO NOT HOLD FOR OTHER YEAR THAN 2017 AND 2018
-feols(price_w ~ premium_panel_ad1 +  premium_panel_ad2 + premium_panel_st+ median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2 +
-        micro_inverter_1 + DC_optimizer + ground_mounted+ hhi_index_md + hhi_index_md_sqr + market_size 
-      | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[state == "ca"])
-feols(price_w ~ premium_panel_overall + median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2 +
-        micro_inverter_1 + DC_optimizer + ground_mounted 
-      | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[year == 2018])
-
-
-rep = feols(price_w ~ PV_system_size_DC + PV_system_size_DC^2 + premium_1 + micro_inverter_1 + DC_optimizer + ground_mounted 
-            | state + year_quarter + installer_name + module_manufacturer_1, cluster = ~zip_code, data = tts_clean)
-
-
+# tts[, micro_inverter_1 := fcase(micro_inverter_1 == "Y", 1, 
+#                                 micro_inverter_1 == "N", 0,
+#                                 default = NA)]
+# 
+# tts[, ground_mounted := fcase(ground_mounted == "1", 1, 
+#                               ground_mounted == "0", 0,
+#                               default = NA)]
+# tts[, new_construction := fcase(new_construction == "1", 1,
+#                                 new_construction == "0", 0,
+#                                 default = NA)]
+# tts[, premium := ifelse(efficiency_module > 0.20, 1, 0)]
+# 
+# market_assignments_ioc[, zip_code := as.character(zip_code)]
+# tts = merge(tts, market_assignments_ioc, by = "zip_code")
+# 
+# # Building HHI zip_code level
+# installer_counts <- tts[, .(installs_by_installer = .N), by = .(county, installer_name, year)]
+# zip_totals <- tts[, .(total_installs_zip = .N), by = .(county, year)]
+# market_share <- merge(installer_counts, zip_totals, by = c('county', 'year'))
+# market_share[, market_share_installer := installs_by_installer / total_installs_zip]
+# market_share[, hhi_index_c := sum(market_share_installer^2), by = .(county, year)]
+# tts <- merge(tts, market_share[, .(county, installer_name, hhi_index_c, year)],
+#              by = c("county", "installer_name", "year"), all.x = TRUE)
+# tts[, market_size := .N, by = .(county, year)]
+# tts[, hhi_index_c_sqr := hhi_index_c^2]
+# 
+# # Building HHI market_id level
+# installer_counts <- tts[, .(installs_by_installer = .N), by = .(market_id, installer_name, year)]
+# zip_totals <- tts[, .(total_installs_zip = .N), by = .(market_id, year)]
+# market_share <- merge(installer_counts, zip_totals, by = c('market_id', 'year'))
+# market_share[, market_share_installer := installs_by_installer / total_installs_zip]
+# market_share[, hhi_index_md := sum(market_share_installer^2), by = .(market_id, year)]
+# tts <- merge(tts, market_share[, .(market_id, installer_name, hhi_index_md, year)],
+#              by = c("market_id", "installer_name", "year"), all.x = TRUE)
+# tts[, market_size := .N, by = .(market_id, year)]
+# tts[, hhi_index_md_sqr := hhi_index_md^2]
+# 
+# feols(price_w ~ PV_system_size_DC + PV_system_size_DC^2 + premium_panel_overall + micro_inverter_1 + DC_optimizer + ground_mounted 
+#       | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[year == 2018])
+# 
+# # VERY CLOSE TO SHAUGHNESSY BUT DO NOT HOLD FOR OTHER YEAR THAN 2017 AND 2018
+# feols(price_w ~ premium_panel_ad1 +  premium_panel_ad2 + premium_panel_st+ median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2 +
+#         micro_inverter_1 + DC_optimizer + ground_mounted+ hhi_index_md + hhi_index_md_sqr + market_size 
+#       | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[state == "ca"])
+# feols(price_w ~ premium_panel_overall + median_home_value + median_household_income + population_density + PV_system_size_DC + PV_system_size_DC^2 +
+#         micro_inverter_1 + DC_optimizer + ground_mounted 
+#       | state + year_quarter + installer_name + module_manufacturer , cluster = ~zip_code, data = tts[year == 2018])
+# 
+# 
+# rep = feols(price_w ~ PV_system_size_DC + PV_system_size_DC^2 + premium_1 + micro_inverter_1 + DC_optimizer + ground_mounted 
+#             | state + year_quarter + installer_name + module_manufacturer_1, cluster = ~zip_code, data = tts_clean)
+# 
+# 
+# ## Short ---------------------------------------------------------
+# 
+# for (q in c("quality_1", "quality_2")){
+#   models_1 <- list(
+#     "Quality 1 Overall" = list(
+#       run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["No FE"]],
+#       run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State"]],
+#       run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State + Module Manufacturer"]],
+#       run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State + Module Manufacturer + Installer"]]
+#     ),
+#     
+#     "TPO" = list(
+#       run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["No FE"]],
+#       run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State"]],
+#       run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State + Module Manufacturer"]],
+#       run_wave_models(tts, glue("{q}*china + {q}*korea + {q}*usa"))[["FE: Year + State + Module Manufacturer + Installer"]]
+#     )
+#   )
+#   
+#   df_add_row <- data.frame(
+#     term = c("F-test p-value", "Wald-test p-value"),
+#     HO_model1 = c(
+#       fitstat(models_1$HO[[1]], type = "f")$f$p,
+#       fitstat(models_1$HO[[1]], type = "wald")$wald$p
+#     ),
+#     HO_model2 = c(
+#       fitstat(models_1$HO[[2]], type = "f")$f$p,
+#       fitstat(models_1$HO[[2]], type = "wald")$wald$p
+#     ),
+#     HO_model3 = c(
+#       fitstat(models_1$HO[[3]], type = "f")$f$p,
+#       fitstat(models_1$HO[[3]], type = "wald")$wald$p
+#     ),
+#     HO_model4 = c(
+#       fitstat(models_1$HO[[4]], type = "f")$f$p,
+#       fitstat(models_1$HO[[4]], type = "wald")$wald$p
+#     ),
+#     TPO_model1 = c(
+#       fitstat(models_1$TPO[[1]], type = "f")$f$p,
+#       fitstat(models_1$TPO[[1]], type = "wald")$wald$p
+#     ),
+#     TPO_model2 = c(
+#       fitstat(models_1$TPO[[2]], type = "f")$f$p,
+#       fitstat(models_1$TPO[[2]], type = "wald")$wald$p
+#     ),
+#     TPO_model3 = c(
+#       fitstat(models_1$TPO[[3]], type = "f")$f$p,
+#       fitstat(models_1$TPO[[3]], type = "wald")$wald$p
+#     ),
+#     TPO_model4 = c(
+#       fitstat(models_1$TPO[[4]], type = "f")$f$p,
+#       fitstat(models_1$TPO[[4]], type = "wald")$wald$p
+#     )
+#   )
+#   
+#   # Map raw coefficient names to prettier labels
+#   coef_map <- c(
+#     # "(Intercept)" = "Intercept",
+#     "quality_1" = "Premium Panels",
+#     "quality_2" = "Premium Installations",
+#     "quality_1:china" = "Premium Panels × Chinese Brand",
+#     "quality_1:korea" = "Premium Panels × Korean Brand",
+#     "quality_1:usa" = "Premium Panels × USA Brand",
+#     "quality_2:china" = "Premium Installations × Chinese Brand",
+#     "quality_2:korea" = "Premium Installations × Korean Brand",
+#     "quality_2:usa" = "Premium Installations × USA Brand"
+#   )
+#   
+#   
+#   # Create the side-by-side (cbind) table
+#   table1_quality <- modelsummary(
+#     models_1,
+#     coef_map = coef_map,
+#     stars = F,
+#     shape = 'cbind',
+#     escape = TRUE,
+#     gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
+#     add_rows = df_add_row,
+#     notes = "Notes: The dependent variable is a log price per W, so the estimate reports percent variations in price.
+#     HO and TPO correspond to 'Host Owned' and 'Third Party Owned' systems. The standard errors are clustered at the zip code level shown between parenthesis.",
+#     # output = "latex"
+#   )
+#   
+#   table1_quality_char = as.character(table1_quality)
+#   table1_quality_char <- gsub("\\bX\\b", "Yes", table1_quality_char)
+#   
+#   # writeLines(table1_quality_char, glue("output/regression/descriptive/table1_{q}.tex"))
+# }

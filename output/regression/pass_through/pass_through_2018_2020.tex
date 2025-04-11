@@ -1,0 +1,76 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
+column{3,4,5,7,8,9,11,12,13,14,15}={}{halign=c,},
+column{1}={}{halign=l,},
+cell{2}{2}={}{halign=c,},
+cell{2}{6}={}{halign=c,},
+cell{2}{10}={}{halign=c,},
+cell{3}{2}={}{halign=c,},
+cell{3}{6}={}{halign=c,},
+cell{3}{10}={}{halign=c,},
+cell{4}{2}={}{halign=c,},
+cell{4}{6}={}{halign=c,},
+cell{4}{10}={}{halign=c,},
+cell{5}{2}={}{halign=c,},
+cell{5}{6}={}{halign=c,},
+cell{5}{10}={}{halign=c,},
+cell{6}{2}={}{halign=c,},
+cell{6}{6}={}{halign=c,},
+cell{6}{10}={}{halign=c,},
+cell{7}{2}={}{halign=c,},
+cell{7}{6}={}{halign=c,},
+cell{7}{10}={}{halign=c,},
+cell{8}{2}={}{halign=c,},
+cell{8}{6}={}{halign=c,},
+cell{8}{10}={}{halign=c,},
+cell{9}{2}={}{halign=c,},
+cell{9}{6}={}{halign=c,},
+cell{9}{10}={}{halign=c,},
+cell{10}{2}={}{halign=c,},
+cell{10}{6}={}{halign=c,},
+cell{10}{10}={}{halign=c,},
+cell{11}{2}={}{halign=c,},
+cell{11}{6}={}{halign=c,},
+cell{11}{10}={}{halign=c,},
+cell{12}{2}={}{halign=c,},
+cell{12}{6}={}{halign=c,},
+cell{12}{10}={}{halign=c,},
+cell{13}{2}={}{halign=c,},
+cell{13}{6}={}{halign=c,},
+cell{13}{10}={}{halign=c,},
+cell{14}{2}={}{halign=c,},
+cell{14}{6}={}{halign=c,},
+cell{14}{10}={}{halign=c,},
+cell{15}{2}={}{halign=c,},
+cell{15}{6}={}{halign=c,},
+cell{15}{10}={}{halign=c,},
+cell{1}{2}={c=4,}{halign=c, halign=c,},
+cell{1}{6}={c=4,}{halign=c, halign=c,},
+cell{1}{10}={c=6,}{halign=c, halign=c,},
+hline{9}={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& 2018 TW &  &  &  & 2017-2020 China &  &  &  & 2018-2020 Non-Chinese &  &  &  &  &  \\ \cmidrule[lr]{6-9}\cmidrule[lr]{2-5}\cmidrule[lr]{10-15}
+& (1) & (2) & (3) & (4) & (5) & (6) & (7) & (8) & (9) & (10) & (11) & (12) & (13) & (14) \\ \midrule %% TinyTableHeader
+log Tariffs & \num{0.024}* & \num{0.070} & \num{0.018} & \num{0.068} & \num{0.126}** & \num{0.174} & \num{0.095}* & \num{-0.000} & \num{0.036} & \num{0.036} & \num{-1.307} & \num{-0.433} & \num{-0.976} & \num{-0.679} \\
+& (\num{0.011}) & (\num{0.060}) & (\num{0.014}) & (\num{0.066}) & (\num{0.039}) & (\num{0.165}) & (\num{0.041}) & (\num{0.186}) & (\num{0.053}) & (\num{0.053}) & (\num{3894.626}) & (\num{1213.541}) & (\num{3865.832}) & (\num{1215.168}) \\
+log Tariffs \textbackslash{}times Premium Installation & \num{-0.043} & \num{0.024} &  &  & \num{-0.134}*** & \num{-0.128}*** &  &  & \num{0.718}*** & \num{0.718}*** & \num{0.279}*** & \num{0.259}*** &  &  \\
+& (\num{0.047}) & (\num{0.044}) &  &  & (\num{0.028}) & (\num{0.028}) &  &  & (\num{0.073}) & (\num{0.073}) & (\num{0.060}) & (\num{0.061}) &  &  \\
+log Tariffs \textbackslash{}times Premium Panel &  &  & \num{-0.000} & \num{0.010} &  &  & \num{0.019} & \num{-0.079} &  &  &  &  & \num{0.195}* & \num{0.187}* \\
+&  &  & (\num{0.020}) & (\num{0.022}) &  &  & (\num{0.070}) & (\num{0.082}) &  &  &  &  & (\num{0.077}) & (\num{0.078}) \\
+Num.Obs. & \num{72782} & \num{72782} & \num{72782} & \num{72782} & \num{34043} & \num{34043} & \num{34043} & \num{34043} & \num{204974} & \num{204974} & \num{204974} & \num{204974} & \num{204974} & \num{204974} \\
+R2 & \num{0.459} & \num{0.463} & \num{0.458} & \num{0.462} & \num{0.449} & \num{0.450} & \num{0.448} & \num{0.449} & \num{0.124} & \num{0.124} & \num{0.405} & \num{0.408} & \num{0.404} & \num{0.408} \\
+FE: installer\_name & X & X & X & X & X & X & X & X &  &  & X & X & X & X \\
+FE: year\_quarter & X & X & X & X & X & X & X & X &  &  & X & X & X & X \\
+FE: state & X & X & X & X & X & X & X & X &  &  & X & X & X & X \\
+FE: module\_manufacturer &  & X &  & X &  & X &  & X &  &  &  & X &  & X \\
+F-test p-value & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} & \num{0.000} \\
+\bottomrule
+\end{talltblr}
+\end{table}

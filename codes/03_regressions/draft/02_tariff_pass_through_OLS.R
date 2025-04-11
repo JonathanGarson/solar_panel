@@ -11,6 +11,7 @@ library(glue)
 tts= read_parquet(data_final("TTS_final.parquet"))
 
 # The effect of subsidy on price ------------------------------------------
+tts = tts[module_manufacturer != "longi green energy technology co., ltd.",]
 
 tts[, post_incentive_price_w := price_w - rebate_w]
 tts[, ln_post_incentive_price_w := log(post_incentive_price_w)]
@@ -100,40 +101,38 @@ writeLines(table_pt_1_char, "output/regression/pass_through/pass_through_quality
 
 model_pass_through_2 = list(
   "Overall" = list(
-    feols(as.formula(glue("ln_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}")) , 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}")) , 
           cluster = ~zip_code , data = tts[year %in% 2010:2020]),
-    feols(as.formula(glue("ln_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name")) , 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name")) , 
           cluster = ~zip_code , data = tts[year %in% 2010:2020]),
-    feols(as.formula(glue("ln_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name + module_manufacturer")) , 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name + module_manufacturer")) , 
           cluster = ~zip_code , data = tts[year %in% 2010:2020])),
   
   "2010-2013" = list(
-    feols(as.formula(glue("ln_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}")) , 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}")) , 
           cluster = ~zip_code , data = tts[year %in% 2010:2013]),
-    feols(as.formula(glue("ln_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name")) , 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name")) , 
           cluster = ~zip_code , data = tts[year %in% 2010:2013]),
-    feols(as.formula(glue("ln_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name + module_manufacturer")), 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name + module_manufacturer")), 
           cluster = ~zip_code , data = tts[year %in% 2010:2013])),
   
   "2014-2016" = list(
-    feols(as.formula(glue("ln_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}")) , 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}")) , 
           cluster = ~zip_code , data = tts[year %in% 2014:2016]),
-    feols(as.formula(glue("ln_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name")) , 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name")) , 
           cluster = ~zip_code , data = tts[year %in% 2014:2016]),
-    feols(as.formula(glue("ln_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name + module_manufacturer")) , 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name + module_manufacturer")) , 
           cluster = ~zip_code , data = tts[year %in% 2014:2016])),
   
   "2017-2020" = list(
-    feols(as.formula(glue("ln_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}")) , 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}")) , 
           cluster = ~zip_code , data = tts[year %in% 2017:2020]),
-    feols(as.formula(glue("ln_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name")) , 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name")) , 
           cluster = ~zip_code , data = tts[year %in% 2017:2020]),
-    feols(as.formula(glue("ln_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name + module_manufacturer")) , 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation+ {set_control}| year_quarter + state + installer_name + module_manufacturer")) , 
           cluster = ~zip_code , data = tts[year %in% 2017:2020]))
 )
 
-# model_pass_through_o = model_pass_through[["Overall"]]
-# model_pass_through_2 <- list()
 for(panel in names(model_pass_through_2)) {
   models_panel <- model_pass_through_2[[panel]]
   for(i in seq_along(models_panel)) {
@@ -167,6 +166,83 @@ table_pt_2 = modelsummary(
 
 table_pt_2_char = as.character(table_pt_2)
 writeLines(table_pt_2_char, "output/regression/pass_through/pass_through_quality2.tex")
+
+
+# 2018 - 2020 focus -------------------------------------------------------
+
+# We take advantage of the cross sectional aspect of our data and we control for price variation trends between increasing and decresing tariff
+model_2018 = list(
+  "2018 TW" = list(feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation + {set_control}| year_quarter + state + installer_name")) , 
+                    cluster = ~zip_code, data = tts[year == 2018]),
+                   feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation + {set_control}| year_quarter + state + installer_name + module_manufacturer")) , 
+                         cluster = ~zip_code, data = tts[year == 2018]),
+                   feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_panel_st + {set_control}| year_quarter + state + installer_name")) , 
+                    cluster = ~zip_code, data = tts[year == 2018]),
+                   feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_panel_st + {set_control}| year_quarter + state + installer_name + module_manufacturer")) , 
+                         cluster = ~zip_code, data = tts[year == 2018])
+                   ),
+  
+  "2017-2020 China" = list(feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation + {set_control}| year_quarter + state + installer_name")) , 
+                                 cluster = ~zip_code, data = tts[china == 1 & year %in% 2017:2020]),
+                           feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation + {set_control}| year_quarter + state + installer_name + module_manufacturer")) , 
+                                 cluster = ~zip_code, data = tts[china == 1 & year %in% 2017:2020]),
+                           feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_panel_st + {set_control}| year_quarter + state + installer_name")) , 
+                                 cluster = ~zip_code, data = tts[china == 1 & year %in% 2017:2020]),
+                           feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_panel_st + {set_control}| year_quarter + state + installer_name + module_manufacturer")) , 
+                                 cluster = ~zip_code, data = tts[china == 1 & year %in% 2017:2020])
+                           ),
+  
+  "2018-2020 Non-Chinese" = list(
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation + {set_control}")) , 
+                                 cluster = ~zip_code, data = tts[china != 1 & year %in% 2018:2020]), 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation + {set_control}")) , 
+                                 cluster = ~zip_code, data = tts[china != 1 & year %in% 2018:2020]), 
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation + {set_control}| year_quarter + state + installer_name")) , 
+                                 cluster = ~zip_code, data = tts[china != 1 & year %in% 2018:2020]),
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_installation + {set_control}| year_quarter + state + installer_name + module_manufacturer")) , 
+                                 cluster = ~zip_code, data = tts[china != 1 & year %in% 2018:2020]),
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_panel_st + {set_control}| year_quarter + state + installer_name")) , 
+                                 cluster = ~zip_code, data = tts[china != 1 & year %in% 2018:2020]),
+    feols(as.formula(glue("ln_post_incentive_price_w ~ ln_tariff + ln_tariff*premium_panel_st + {set_control}| year_quarter + state + installer_name + module_manufacturer")) , 
+                                 cluster = ~zip_code, data = tts[china != 1 & year %in% 2018:2020])
+                           )
+)
+
+result_trade_war = list()
+for(panel in names(model_2018)) {
+  models_panel <- model_2018[[panel]]
+  for(i in seq_along(models_panel)) {
+    m <- models_panel[[i]]
+    f_p    <- fitstat(m, type = "f")$f$p
+    # wald_p <- fitstat(m, type = "wald")$wald$p
+    # my = fitstat(m, type = "my")$my
+    col_name <- paste0(gsub("[[:space:][:punct:]]+", "_", panel), "_model", i)
+    result_trade_war[[col_name]] <- c(f_p)
+  }
+}
+df_overall_add_rows <- data.frame(
+  term = c("F-test p-value"),
+  result_trade_war,
+  check.names = FALSE
+)
+
+rename_coef = c("ln_tariff" = "log Tariffs",
+                "ln_tariff:premium_installation" = "log Tariffs \\times Premium Installation",
+                "ln_tariff:premium_panel_st" = "log Tariffs \\times Premium Panel"
+)
+
+table_model_2018 = modelsummary(
+  models = model_2018,
+  stars = TRUE, 
+  shape = "cbind",
+  gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
+  add_rows = df_overall_add_rows,
+  coef_map = rename_coef,
+  output = "latex"
+)
+
+model_2018_char = as.character(table_model_2018)
+writeLines(model_2018_char, "output/regression/pass_through/pass_through_2018_2020.tex")
 
 # Effect on quality change after implementation ---------------------------
 qualit1_shift = list(
@@ -271,13 +347,3 @@ table_quality2_shift = modelsummary(
 
 table_quality2_shift_char = as.character(table_quality2_shift)
 writeLines(table_quality2_shift_char, "output/regression/quality_shift/table_quality2_shift.tex")
-
-# # Test --------------------------------------------------------------------
-# panel_firm_qtr <- tts[
-#   , .(avg_ln_price = mean(ln_price_w, na.rm = TRUE),
-#       ln_tariff = ln_tariff),
-#   by = .(module_manufacturer, year_quarter)
-# ]
-# chinese = c("canadian solar", "jinko solar", "trina solar", "yingli energy (china)")
-# feols(avg_ln_price ~ ln_tariff | module_manufacturer + year_quarter, data = panel_firm_qtr[module_manufacturer %in% chinese & year_quarter < "2017Q4"])
-# 

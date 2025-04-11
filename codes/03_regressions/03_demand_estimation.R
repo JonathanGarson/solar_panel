@@ -1,1 +1,0 @@
-# This code estimate the curvature of demand to recover the primitives and test if the convexity of demand is compatible with incomplete pass-through

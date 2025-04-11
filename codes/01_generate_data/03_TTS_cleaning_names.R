@@ -13,7 +13,6 @@ library(zoo)
 # Load Data ---------------------------------------------------------------
 
 ts = read_parquet(data_raw("TTS.parquet"))
-# zip_county = read_parquet(data_temp("zip_county_clean.parquet"))
 cpi = fread(data_raw("us_cpi.csv"))
 
 # Data Cleaning -----------------------------------------------------------
@@ -338,10 +337,7 @@ ts[, rebate_w := rebate_or_grant/(PV_system_size_DC * 1000)] #express in W inste
 ts[, potential_prod := (PV_system_size_DC*1000) * efficiency_module_1] #express in W instead of kW
 ts[, price_w_potential_prod := total_installed_price/potential_prod] #$/W
 
-
 # Reorganizing Tables -----------------------------------------------------
-# ts = merge(ts, zip_county, by.x = "zip_code", by.y = "zip", all.x = TRUE)
-
 cols = c("year","year_quarter", "zip", "city.x", "county", "state.x", "system_ID_1", "system_ID_2", "installation_date",
          "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "potential_prod_1", "cost_potential_prod_1",
          "customer_segment", "expansion_system", "third_party_owned", "installer_name", 
@@ -362,8 +358,6 @@ cols = c("year","year_quarter", "zip", "city.x", "county", "state.x", "system_ID
          "battery_price","technology_type")
 
 ts = ts[year %in% 2010:2023, .SDcols = cols]
-ts[, `:=` (city.y = NULL, state.y = NULL)]
-# setnames(ts, c("city.x", "state.x"), c("city", "state"))
 
 ts = ts[third_party_owned != -1] #we take only the data which mentions the property type status
 ts[, ho := ifelse(third_party_owned == 0, 1, 0)]
@@ -371,5 +365,3 @@ ts[, tpo := ifelse(third_party_owned == 1, 1, 0)]
 ts[, third_party_owned := NULL]
 
 write_parquet(ts,data_temp("TTS_clean_names.parquet"))
-# write_parquet(ts_HO,data_temp("TTS_HO.parquet"))
-# write_parquet(ts_TPO,data_temp("TTS_TPO.parquet"))
