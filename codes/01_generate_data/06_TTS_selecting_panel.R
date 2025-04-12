@@ -65,7 +65,7 @@ market_share = unique(tts[, .(module_manufacturer, market_share_period)])
 setorder(market_share, -market_share_period)
 market_share[, cum_sum_share := cumsum(market_share_period)]
 export_dt = market_share[cum_sum_share <= 0.9, .(module_manufacturer, market_share_period)]
-list_country = c("USA", "South Korea", "South Korea", "Germany", "China", "China", "Norway", "China", "Japan", "South Korea", "China", "China", "USA", "Japan", "China", "USA")
+list_country = c("USA", "South Korea", "South Korea", "Germany", "China", "Norway", "China", "China", "China", "South Korea", "Japan", "China", "USA", "Japan", "China", "USA", "Japan")
 export_dt = cbind(export_dt, list_country)
 
 table_final_brands = gt(export_dt) %>% 
@@ -80,6 +80,8 @@ writeLines(table_final_brands,"output/tables/firms_list/top_firms_us_market.tex"
 
 top_firms = export_dt[, .(module_manufacturer, list_country)]
 tts = merge(tts, top_firms, by = "module_manufacturer")
+# We get rid of Longi given its unclear position with respect to tariff and only represent 2% sales
+tts = tts[module_manufacturer != "longi green energy technology co., ltd."]
 # Note that the merge above does not have the all.x = TRUE argument which implies that non-matched observations are dropped. 
 
 tts[, china := ifelse(list_country == "China", 1, 0)]
@@ -106,13 +108,13 @@ for (y in c(2010, 2012, 2014, 2017, 2019)) {
                       probs = c(0.5, 0.75, 0.9, 0.95), 
                       na.rm = TRUE)
   
-  # Append the calculated values to the data frame
-  pct_eff_dt <- rbind(pct_eff_dt,
-                      data.frame(year = y,
-                                 p50 = round(as.numeric(pct_eff[1]), 2),
-                                 p75 = round(as.numeric(pct_eff[2]), 2),
-                                 p90 = round(as.numeric(pct_eff[3]), 2),
-                                 p95 = round(as.numeric(pct_eff[4]), 2)))
+  # # Append the calculated values to the data frame
+  # pct_eff_dt <- rbind(pct_eff_dt,
+  #                     data.frame(year = y,
+  #                                p50 = round(as.numeric(pct_eff[1]), 2),
+  #                                p75 = round(as.numeric(pct_eff[2]), 2),
+  #                                p90 = round(as.numeric(pct_eff[3]), 2),
+  #                                p95 = round(as.numeric(pct_eff[4]), 2)))
   
   # Prepare label for the plot annotation
   pct_eff_labs <- paste0(
@@ -140,20 +142,25 @@ for (y in c(2010, 2012, 2014, 2017, 2019)) {
 ## Effiency Premium ---------------------------------------------------------
 setDT(pct_eff_dt)
 
-# AD 1 : 2010-2013
-tts[year %in% 2010:2013 , premium_panel_ad1 := ifelse(efficiency_module >= pct_eff_dt[year == 2012,]$p90, 1, 0) ]
+efficiency_year = tts[, .(efficiency_module), by = year]
+top_efficiency = unique(efficiency_year[, .(top_efficiency = unique(quantile(efficiency_module, probs =c(0.85)))), by = year])
+tts = merge(tts, top_efficiency, by = "year")
+tts[, premium_panel_overall := ifelse(efficiency_module > top_efficiency, 1, 0)]
 
-# AD 2 : 2014-2016
-tts[year %in% 2014:2016, premium_panel_ad2 := ifelse(efficiency_module >= pct_eff_dt[year == 2014,]$p90, 1, 0) ]
-
-# Safeguard : 2017-2020
-tts[year %in% 2017:2020, premium_panel_st := ifelse(efficiency_module >= pct_eff_dt[year == 2017,]$p90, 1, 0) ]
-
-# Overall
-tts[, premium_panel_overall := fcase(premium_panel_ad1 ==1, 1,
-                             premium_panel_ad2 ==1, 1,
-                             premium_panel_st ==1,  1,
-                             default = 0)]
+# # AD 1 : 2010-2013
+# tts[year %in% 2010:2013 , premium_panel_ad1 := ifelse(efficiency_module >= pct_eff_dt[year == 2012,]$p90, 1, 0) ]
+# 
+# # AD 2 : 2014-2016
+# tts[year %in% 2014:2016, premium_panel_ad2 := ifelse(efficiency_module >= pct_eff_dt[year == 2014,]$p90, 1, 0) ]
+# 
+# # Safeguard : 2017-2020
+# tts[year %in% 2017:2020, premium_panel_st := ifelse(efficiency_module >= pct_eff_dt[year == 2017,]$p90, 1, 0) ]
+# 
+# # Overall
+# tts[, premium_panel_overall := fcase(premium_panel_ad1 ==1, 1,
+#                              premium_panel_ad2 ==1, 1,
+#                              premium_panel_st ==1,  1,
+#                              default = 0)]
 
 list_firms = top_firms$module_manufacturer
 tts = tts[module_manufacturer %in% list_firms,]
@@ -202,11 +209,11 @@ tts[year_quarter %in% c("2018Q1","2018Q2"), tariff_temp:= 1 + (ad_rate_2015 + cv
 tts[year_quarter > "2018Q2", tariff:= 1 + (ad_rate_2015 + 55)/100]
 tts[year_quarter > "2018Q2", tariff_temp:= 1 + (ad_rate_2015 + cvd_rate_2015 + 55)/100]
 tts[year %in% 2010:2017, tariff := ifelse(is.na(tariff), 1, tariff)]
-tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", "yingli energy (china)") & year_quarter >= "2018Q1" & year_quarter <= "2018Q4", 
+tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", "yingli energy (china)", "suntech power") & year_quarter >= "2018Q1" & year_quarter <= "2018Q4", 
     tariff := 1.30]
-tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", "yingli energy (china)") & year_quarter >= "2019Q1" & year_quarter <= "2019Q4", 
+tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", "yingli energy (china)", "suntech power") & year_quarter >= "2019Q1" & year_quarter <= "2019Q4", 
     tariff := 1.25]
-tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", "yingli energy (china)") & year_quarter >= "2020Q1" & year_quarter <= "2020Q4", 
+tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", "yingli energy (china)", "suntech power") & year_quarter >= "2020Q1" & year_quarter <= "2020Q4", 
     tariff := 1.20]
 
 # We keep zip code with population different from 0 since it would imply that zip code correspond to a commercial area
@@ -236,7 +243,7 @@ tts[, new_construction := fcase(new_construction == "1", 1,
                                 default = NA)]
 
 # Cleaning before export --------------------------------------------------
-tts[, list_country := tolower(list_country)]
+tts[, origin := tolower(list_country)]
 tts[, installation_zip_code := NULL]
 tts[, sales_per_model := NULL]
 tts[, sales_per_brand := NULL]
@@ -249,14 +256,14 @@ tts = tts[ho == 1,]
 tts = tts[state == "ca"]
 
 # We only keep 43 rows
-cols_to_keep <- c("county", "zip_code", "year", "year_quarter", "module_manufacturer", "installer_name", "list_country",
-                  "PV_system_size_DC", "total_installed_price", "rebate_or_grant",
+cols_to_keep <- c("county", "zip_code", "year", "year_quarter", "module_manufacturer", "installer_name", "origin",
+                  "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "efficiency_module",
                   "new_construction", "ground_mounted" , "module_quantity",
                   "price_w", "rebate_w", "proxy_panel_price", "proxy_panel_price_w", "ow_occupied_housing",
                   "population", "population_density", "land_area_in_sqmi", "tract", "geoid", "pct_bachelor_estimate",
                   "median_home_value", "median_household_income", "market_share_period", "china", "korea",
-                  "usa", "norway", "germany", "japan", "premium_panel_overall", "premium_panel_ad1",
-                  "premium_panel_ad2", "premium_panel_st", "premium_installation", "tariff", "tariff_temp","elec_price",
+                  "usa", "norway", "germany", "japan", "premium_panel_overall", 
+                  "premium_installation", "tariff", "tariff_temp","elec_price",
                   "mean_price_year", "tot_emp", "jobs_1000", "h_mean", "h_median", "a_mean", "a_median", "demand_zip_code")
 
 tts = tts[, ..cols_to_keep]

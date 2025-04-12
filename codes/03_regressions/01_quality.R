@@ -17,4 +17,5 @@ tts[, ln_tariff := log(tariff)]
 
 # Regression --------------------------------------------------------------
 
-feols(price_w ~ premium_panel_overall*china + premium_panel_overall*usa + premium_panel_overall*korea, fixef = c("year_quarter", "county"), cluster = ~zip_code, data = tts)
+qual = feols(price_w ~ premium_panel_overall, fixef = c("year_quarter", "county"), cluster = ~zip_code, data = tts)
+fitstat(qual, type = "my")

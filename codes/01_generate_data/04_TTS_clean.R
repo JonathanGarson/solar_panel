@@ -12,7 +12,8 @@ tts = read_parquet(data_temp("TTS_clean_names.parquet"))
 # Low income household are hard to identify maybe for the amount of subsidy
 
 # Get rid of likely misspecification like solar panel being more than 100 subsidied
-tts = tts[total_installed_price > rebate_or_grant, ]
+# A lot of this value are misreported rebated before 2015 in California, I wondered if it is not the result of misreported overlap between program
+# tts = tts[total_installed_price > rebate_or_grant, ]
 
 # Customer segment we are interested in
 tts = tts[customer_segment %in% c("RES"),]
