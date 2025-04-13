@@ -47,7 +47,7 @@ tts[, .N, by = system_manufacturing_situation]
 tts = tts[additional_modules != 1,]
 
 # Clean out of battery pack up (pollute price evaluation and chosen independently of solar panels brand)
-tts = tts[technology_type == "pv-only",]
+# tts = tts[technology_type == "pv-only",]
 
 # Reduce to our period 2010-2020
 tts = tts[year %in% c(2010:2020)]

@@ -116,7 +116,8 @@ gt_table <- wide_summary |>
     columns = everything(),
     rows = !variable %in% c("Median Household Income", "Median Home Value"),
     decimals = 2
-  )
+  ) %>% 
+  gtsave("output/tables/statdesc/sample_description.tex")
 
 # OFFER SIDE DESCRIPTIVE --------------------------------------------------
 # IN THIS SECTION WE SHOW THE NUMBER OF FIRMS OPERATING, HOW MANY BRANDS AN INSTALLER INSTALL ON AVERAGE, 
@@ -145,7 +146,6 @@ installer_summary = installer[,
 setnames(installer_summary, colnames(installer_summary), c("# Brands", "Max. Brand Share", "HHI"))
 installer_gt = gt(installer_summary) %>% 
   gtsave(filename = "output/tables/installer/installer_stat.tex")
-
 
 # TARIFF EXPOSITION -------------------------------------------------------
 
@@ -229,7 +229,7 @@ ggplot(price_evol, aes(x = year_quarter_date, y = mean_price_w)) +
   
   # Labels and theme
   labs(
-    title = "Average Price per Watt Over Time (with SD Band)",
+    # title = "Average Price per Watt Over Time (with SD Band)",
     x = "Quarter",
     y = "Price ($/W)"
   ) +
@@ -251,8 +251,8 @@ premium_wide[, sum := Standard+ Premium]
 setnames(premium_wide, c("share", "sum"), c("Share", "Sum"))
 premium_wide = premium_wide[, .(Year, Standard, Premium, Sum, Share)]
 
-premium_chinese = tts[china == 1, .N, by = .(premium_panel_overall, year)]
-premium_installation = tts[china == 1, .N, by = .(premium_installation, year)]
+# premium_chinese = tts[china == 1, .N, by = .(premium_panel_overall, year)]
+# premium_installation = tts[china == 1, .N, by = .(premium_installation, year)]
 
 
 premium_table_gt <- gt(premium_wide) |>
@@ -260,7 +260,8 @@ premium_table_gt <- gt(premium_wide) |>
     columns = Share,
     decimals = 2,
     scale_values = FALSE  # Share is already in 0–100 range
-  )
+  ) %>% 
+  gtsave("output/tables/panel_premium_overall.tex")
 
 # All combinations: panel vs china
 panel_counts <- tts[, .N, by = .(china, premium_panel_overall, year)]
@@ -310,7 +311,8 @@ gt_share_table <- gt(summary_gt) |>
     scale_values = FALSE
   ) |>
   tab_header(title = "Share of Premium Panels and Installation by Origin") |>
-  cols_label(year = "Year")
+  cols_label(year = "Year") %>% 
+  gtsave("output/tables/statdesc/premium_panel_install_share_origin.tex")
 
 # INSTALLATION ------------------------------------------------------------
 tts[, sum_installation := .N, by = year_quarter]
