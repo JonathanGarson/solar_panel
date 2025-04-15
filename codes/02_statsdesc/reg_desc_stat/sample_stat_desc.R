@@ -122,6 +122,8 @@ gt_table <- wide_summary |>
 # OFFER SIDE DESCRIPTIVE --------------------------------------------------
 # IN THIS SECTION WE SHOW THE NUMBER OF FIRMS OPERATING, HOW MANY BRANDS AN INSTALLER INSTALL ON AVERAGE, 
 
+# ADD NUMBER OF INSTALLER
+
 # Step 1: Count installs by installer and brand
 installer <- tts[, .(sum_install_brand = .N), by = .(installer_name, module_manufacturer)]
 
@@ -140,7 +142,7 @@ installer <- installer[, .(
 
 # Step 5 compute on average
 installer_summary = installer[,
-                              .(n_brands = round(mean(n_brands), 3),
+                              .(n_brands = round(median(n_brands), 3),
                               max_brand_share = mean(max_brand_share),
                               hhi = mean(hhi))]
 setnames(installer_summary, colnames(installer_summary), c("# Brands", "Max. Brand Share", "HHI"))
