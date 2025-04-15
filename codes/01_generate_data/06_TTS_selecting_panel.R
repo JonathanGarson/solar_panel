@@ -13,7 +13,8 @@ library(gt)
 tts = setDT(read_parquet(data_temp("TTS_merged.parquet")))
 ad_2012 = fread(data_final("ad_2012_final.csv"))
 ad_2015 = fread(data_final("ad_2015_final.csv"))
-wages = fread(data_temp("wage_installer_PV.csv"))
+# wages = fread(data_temp("wage_installer_PV.csv"))
+wages = fread(data_temp("elec_contractor_wage_emp.csv"))
 elec = fread(data_temp("elec_price.csv"))
 share_panel = fread(data_temp("share_panel_install_price.csv"))
 
@@ -223,7 +224,7 @@ tts[, demand_zip_code := (installation_zip_code/population)*1000]
 
 # We merge with electricity price and wages 
 tts = merge(tts, elec, by = c("state", "year_quarter"), all.x = TRUE)
-tts = merge(tts, wages, by = c("state", "year"), all.x = TRUE)
+tts = merge(tts, wages, by = c("county", "year"), all.x = TRUE)
 
 # We merge with share installed panel in installed price
 tts = merge(tts, share_panel, by = "year", all.x = TRUE)
@@ -264,7 +265,7 @@ cols_to_keep <- c("county", "zip_code", "year", "year_quarter", "module_manufact
                   "median_home_value", "median_household_income", "market_share_period", "china", "korea",
                   "usa", "norway", "germany", "japan", "premium_panel_overall", 
                   "premium_installation", "tariff", "tariff_temp","elec_price",
-                  "mean_price_year", "tot_emp", "jobs_1000", "h_mean", "h_median", "a_mean", "a_median", "demand_zip_code")
+                  "mean_price_year", "mean_month_emp", "mean_week_wage", "demand_zip_code")
 
 tts = tts[, ..cols_to_keep]
 
