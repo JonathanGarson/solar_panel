@@ -5,67 +5,203 @@ library(data.table)
 library(fixest)
 library(modelsummary)
 library(ggplot2)
+library(car)
 
 # Data --------------------------------------------------------------------
 
-tts = setDT(read_parquet(data_final("tts_final.parquet")))
+demand = fread(data_final("demand_final.csv"))
 
 # OLS - Demand Analysis ---------------------------------------------------
-tts[,net_price := 0.7(price_w-rebate_w)]
-tts[,net_price_sq := net_price^2]
-tts[,price_w_sq := price_w^2]
-tts[,tariff_sq := tariff^2]
-tts = tts[!is.na(price_w) & !is.na(h_median)]
-tts = tts[price_w > 1 & price_w < 10,]
-tts = tts[rebate_w < price_w]
+demand[, net_price := price_w-rebate_w]
+demand[, net_price_sq := net_price^2]
+demand[, price_w_sq := price_w^2]
+# demand[, tariff_sq := tariff^2]
+# demand = demand[!is.na(price_w) & !is.na(h_median)]
+demand = demand[price_w > 1 & price_w < 10,]
+demand = demand[rebate_w < price_w]
 
-demand_ols = feols(demand_zip_code ~ net_price + net_price^2 + PV_system_size_DC + PV_system_size_DC^2 + elec_price | year + county + installer_name + origin, cluster = ~zip_code, data = tts)
-demand_pois = fepois(demand_zip_code ~ price_w + price_w^2 + PV_system_size_DC + PV_system_size_DC^2 + elec_price | year + county + installer_name + origin, cluster = ~zip_code, data = tts)
-# demand_iv = feols(demand_zip_code ~ PV_system_size_DC + PV_system_size_DC^2 + elec_price | year + county + installer_name + origin | price_w + price_w_sq ~ tariff, cluster = ~zip_code, 
-#                   data = tts[year %in% 2012:2018] )
-# 
-# 
-# # First-stage: price_w ~ tariff
-# fs1 <- feols(price_w ~ tariff + tariff_sq | year + county + installer_name + origin, 
-#              cluster = ~zip_code, data = tts)
-# summary(fs1)
-# 
-# # First-stage: price_w_sq ~ tariff
-# fs2 <- feols(price_w_sq ~ tariff + tariff_sq | year + county + installer_name + origin, 
-#              cluster = ~zip_code, data = tts)
-# summary(fs2)
+nrow(demand[population < 10,])
+# demand = demand[population > 10,]
 
-iv_model <- feols(
-  demand_zip_code ~ PV_system_size_DC + I(PV_system_size_DC^2) | 
-    year + county + installer_name + origin | 
-    net_price + net_price_sq ~ rebate_w + rebate_w^2, 
-  cluster = ~zip_code, 
-  data = tts[year %in% 2010:2018],
-  data.save = TRUE
+# OLS ---------------------------------------------------------------------
+demand_ols_net = feols(demand_extensive ~ net_price + net_price^2 + PV_system_size_DC + PV_system_size_DC^2 + elec_price + rebate_w + mean_week_wage + educ +
+                     population_density + median_home_value
+                   | year + county, cluster = ~zip_code, data = demand)
+
+demand_ols = feols(demand_extensive ~ price_w + price_w^2 + PV_system_size_DC + PV_system_size_DC^2 + elec_price + rebate_w + mean_week_wage + educ +
+                     population_density + median_home_value
+                   | year + county, cluster = ~zip_code, data = demand)
+
+# IV ----------------------------------------------------------------------
+# THINK ABOUT THE SENSE OF INCLUDING ELEC PRICE
+demand_iv = feols(demand_extensive ~ PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + educ + elec_price |
+                        year + county | price_w ~ mean_week_wage + rebate_w , 
+                      cluster = ~zip_code,  data = demand)
+
+demand_iv_net = feols(demand_extensive ~ PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + educ + elec_price |
+                    year + county | net_price ~ mean_week_wage + rebate_w , 
+                  cluster = ~zip_code,  data = demand)
+
+# POISSON -----------------------------------------------------------------
+# Question the presence of elec_price
+demand_pois = fepois(demand_extensive ~ price_w + price_w^2 + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price 
+                     | year + county, cluster = ~zip_code, data = demand)
+
+demand_pois_net = fepois(demand_extensive ~ net_price + net_price^2 + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price 
+                     | year + county, cluster = ~zip_code, data = demand)
+
+# demand_pois = fepois(demand_extensive ~ price_w  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price
+#                      | year + county, cluster = ~zip_code, data = demand)
+# 
+# ## Close to what Gillingham & Tsevatanov (2019) have estimated
+# demand_pois_net = fepois(demand_extensive ~ net_price  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price
+#                      | year + county, cluster = ~zip_code, data = demand)
+
+# POISSON CF --------------------------------------------------------------
+linear_ols = feols(price_w ~ rebate_w + mean_week_wage + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price
+                   | year + county, cluster = ~zip_code, data = demand)
+demand[, res := linear_ols$residuals]
+
+demand_pois_cf = fepois(demand_extensive ~ price_w + price_w^2 + res + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value 
+                     | year + county, cluster = ~zip_code, data = demand)
+
+linear_ols_net = feols(net_price ~ rebate_w + mean_week_wage + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price
+                   | year + county, cluster = ~zip_code, data = demand)
+demand[, res_net := linear_ols_net$residuals]
+
+demand_pois_cf_net = fepois(demand_extensive ~ net_price + net_price^2 + res_net + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value 
+                     | year + county, cluster = ~zip_code, data = demand)
+
+# ELASTICITY & ELASTICITY --------------------------------------------------------------
+elasticity_p_value = function(data,regression_object, coef_name, net_price = FALSE,linear_estimator = TRUE){
+  mean_install = mean(data$demand_extensive)
+  if (net_price == FALSE){mean_price = mean(data$price_w)}else{mean_price = mean(data$net_price)}
+  
+  if (linear_estimator == TRUE){
+  elas_pv = deltaMethod(object = regression_object$coefficients,
+                        g = as.character((regression_object$coefficients[[coef_name]] * mean_price) / mean_install),
+                        vcov = vcov(regression_object))
+  }
+  else {
+    elas_pv = deltaMethod(object = regression_object$coefficients,
+                          g = as.character(regression_object$coefficients[[coef_name]] * mean_price),
+                          vcov = vcov(regression_object))
+  }
+  
+  return(elas_pv)
+}
+
+
+# Linear
+elas_ols = elasticity_p_value(demand, demand_ols, coef_name = "price_w")
+elas_ols_net = elasticity_p_value(demand, demand_ols_net, coef_name = "net_price", net_price = TRUE)
+
+elas_iv = elasticity_p_value(demand, demand_iv, coef_name = "fit_price_w")
+elas_iv_net = elasticity_p_value(demand, demand_iv_net, coef_name = "fit_net_price", net_price = TRUE)
+
+# Non Linear
+elas_poisson = elasticity_p_value(demand, demand_pois, coef_name = "price_w", linear_estimator = FALSE)
+elas_poisson_net = elasticity_p_value(demand, demand_pois_net, coef_name = "net_price", net_price = TRUE, linear_estimator = FALSE)
+
+elas_poisson_cf = elasticity_p_value(demand, demand_pois_cf, coef_name = "price_w", linear_estimator = FALSE)
+elas_poisson_cf_net = elasticity_p_value(demand, demand_pois_cf_net, coef_name = "net_price", net_price = TRUE, linear_estimator = FALSE)
+
+models <- c("OLS", "OLS_net", 
+            "IV", "IV_net", 
+            "Poisson", "Poisson_net", 
+            "Poisson_CF", "Poisson_CF_net")
+
+elasticities <- list(elas_ols, elas_ols_net,
+                     elas_iv, elas_iv_net,
+                     elas_poisson, elas_poisson_net,
+                     elas_poisson_cf, elas_poisson_cf_net)
+
+# build data frame
+elasticities_df <- data.frame(
+  model    = models,
+  Estimate = sapply(elasticities, function(x) x$Estimate),
+  SE       = sapply(elasticities, function(x) x$SE),
+  row.names = NULL,
+  stringsAsFactors = FALSE
 )
 
-iv_data = setDT(iv_model$data)
+# elas_ols = demand_ols$coefficients[["price_w"]] * mean_price/ mean_install
+# elas_ols_net = demand_ols_net$coefficients[["net_price"]] * mean_net_price/ mean_install
+# elas_iv = demand_iv$coefficients[["fit_price_w"]] * mean_price/ mean_install
+# elas_iv_net = demand_iv_net$coefficients[["fit_net_price"]] * mean_net_price/ mean_install
 
-# Add fitted values to the dataset
-iv_data[, predicted_demand := predict(iv_model)]
+# elas_poisson = demand_pois$coefficients[["price_w"]] *  mean_price # consistent results for demand only if used with gross price
+# elas_poisson_net = demand_pois_net$coefficients[["net_price"]] *  mean_net_price # consistent results for demand only if used with gross price
+# elas_poisson_cf = demand_pois_cf$coefficients[["price_w"]] *  mean_price # consistent results for demand only if used with gross price
+# elas_poisson_cf_net = demand_pois_cf_net$coefficients[["net_price"]] *  mean_net_price # consistent results for demand only if used with gross price
 
-# Plot predicted demand vs price_w
-# ggplot(iv_data, aes(x = price_w, y = predicted_demand)) +
-#   geom_point(size = 0.2) +
-#   geom_smooth(method = "loess", se = FALSE, color = "black", size = 1.2) +
-#   labs(title = "Predicted Demand vs. Price (Binned Density)",
-#        x = "Price (price_w)",
-#        y = "Predicted Demand") +
-#   theme_minimal()
 
-set.seed(123)  # for reproducibility
-iv_sample <- iv_data[sample(.N, 10000)]
+# P-VALUE ELASTICITY ------------------------------------------------------
+
+test_elas = elasticity_p_value(demand_iv, coef_name = "fit_price_w", mean_install = mean_install, mean_price = mean_price)
+
+
+# GRAPH -------------------------------------------------------------------
+
+demand_shape = demand[, `:=` (predicted_demand_ols = predict(demand_ols),
+                              predicted_demand_pois = predict(demand_pois),
+                              predicted_demand_iv = predict(demand_iv))]
+
+demand_shape[, `:=` (p5 = quantile(net_price, prob = c(0.05)),
+                              p95 = quantile(net_price, prob = c(0.95)))]
 
 ggplot() +
-  geom_point(data = iv_sample, aes(x = price_w, y = predicted_demand), alpha = 0.2) +
-  geom_smooth(data = iv_data, aes(x = price_w, y = predicted_demand),
-              method = "gam", se = TRUE, size = 1.2) +
-  labs(title = "Predicted Demand vs. Price (Sampled Points)",
-       x = "Price (price_w)",
-       y = "Predicted Demand") +
+  geom_ribbon(data = demand_shape,
+    aes(x = predicted_demand_ols, ymin = p5, ymax = p95), fill = "lightgrey", alpha = 0.3) +
+  geom_point(data = demand_shape, 
+    aes(x = predicted_demand_ols, y = net_price), alpha = 0.2) +
+  geom_smooth(data = demand_shape, 
+    aes(x = predicted_demand_ols, y = net_price),method = "gam", se = TRUE, size = 1.2) +
+  scale_x_continuous(limits = c(0, NA)) +
+  labs(
+    x = "Installation Rate (system per 1000 inhabitants)",
+    y = "Price ($/W)"
+  ) +
   theme_classic()
+
+ggplot() +
+  geom_ribbon(data = demand_shape,
+    aes(x = predicted_demand_pois, ymin = p5, ymax = p95), fill = "lightgrey", alpha = 0.3) +
+  geom_point(data = demand_shape, 
+    aes(x = predicted_demand_pois, y = net_price), alpha = 0.2) +
+  geom_smooth(data = demand_shape, 
+    aes(x = predicted_demand_pois, y = net_price),method = "gam", se = TRUE, size = 1.2) +
+  scale_x_continuous(limits = c(0, NA)) +
+  labs(
+    x = "Installation Rate (system per 1000 inhabitants)",
+    y = "Price ($/W)"
+  ) +
+  theme_classic()
+
+ggplot() +
+  geom_ribbon(data = demand_shape,
+    aes(x = predicted_demand_iv, ymin = p5, ymax = p95), fill = "lightgrey", alpha = 0.3) +
+  geom_point(data = demand_shape, 
+    aes(x = predicted_demand_iv, y = net_price), alpha = 0.2) +
+  geom_smooth(data = demand_shape, 
+    aes(x = predicted_demand_iv, y = net_price),method = "gam", se = TRUE, size = 1.2) +
+  scale_x_continuous(limits = c(0, NA)) +
+  labs(
+    x = "Installation Rate (system per 1000 inhabitants)",
+    y = "Price ($/W)"
+  ) +
+  theme_classic()
+
+# ggplot() +
+#   # geom_ribbon(data = demand_shape,
+#   #   aes(x = net_price, ymin = p5, ymax = p95), fill = "lightgrey", alpha = 0.3) +
+#   geom_point(data = demand_shape, 
+#     aes(x = net_price, y = predicted_demand_pois), alpha = 0.2) +
+#   geom_smooth(data = demand_shape, 
+#     aes(x = net_price, y = predicted_demand_pois),method = "gam", se = TRUE, size = 1.2) +
+#   scale_x_continuous(limits = c(min(demand_shape$net_price), NA)) +
+#   labs(
+#     y = "Installation Rate (system per 1000 inhabitants)",
+#     x = "Price ($/W)"
+#   ) +
+#   theme_classic()

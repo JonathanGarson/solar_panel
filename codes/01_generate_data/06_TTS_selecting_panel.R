@@ -66,7 +66,7 @@ market_share = unique(tts[, .(module_manufacturer, market_share_period)])
 setorder(market_share, -market_share_period)
 market_share[, cum_sum_share := cumsum(market_share_period)]
 export_dt = market_share[cum_sum_share <= 0.9, .(module_manufacturer, market_share_period)]
-list_country = c("USA", "South Korea", "South Korea", "Germany", "China", "Norway", "China", "China", "China", "South Korea", "Japan", "China", "USA", "Japan", "China", "USA", "Japan")
+list_country = c("USA", "South Korea", "South Korea", "Germany", "China", "Norway", "China", "China", "Japan", "South Korea", "China", "China", "USA","USA", "Japan", "China")
 export_dt = cbind(export_dt, list_country)
 
 table_final_brands = gt(export_dt) %>% 

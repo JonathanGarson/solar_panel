@@ -7,25 +7,13 @@ library(modelsummary)
 
 # Data --------------------------------------------------------------------
 
-tts = read_parquet(data_final("tts_final.parquet"))
+tts = setDT(read_parquet(data_final("tts_final.parquet")))
 
-# Analysis ----------------------------------------------------------------
+# Pass-Through Estimation ----------------------------------------------------------------
+tts[, net_price := price_w - rebate_w]
 
-system_control = ~ PV_system_size_DC + PV_system_size_DC^2 + new_construction + ground_mounted
-dem_control = ~ population_density + pct_bachelor_estimate + median_home_value + median_household_income
-
-ad_1 = feols(c(price_w, log(price_w)) ~ log(tariff)*premium_panel_overall | year_quarter^origin + county + installer_name, cluster = ~zip_code, data = tts[year %in% 2010:2013])
-ad_2 = feols(c(price_w, log(price_w)) ~ log(tariff)*premium_panel_overall | year_quarter^origin + county + installer_name, cluster = ~zip_code, data = tts[year %in% 2013:2016])
-st = feols(c(price_w, log(price_w)) ~ log(tariff)*premium_panel_overall | year_quarter + county + installer_name, cluster = ~zip_code, data = tts[year %in% 2017:2018])
-
-# Phase of Tariff ---------------------------------------------------------
-
-post_st = feols(c(price_w, log(price_w)) ~ log(tariff)*premium_panel_overall | year_quarter^origin + county + installer_name, cluster = ~zip_code, data = tts[year %in% 2019:2020])
-
-
-# test --------------------------------------------------------------------
 tts = tts[rebate_w < price_w]
-system_vars <- c("PV_system_size_DC", "I(PV_system_size_DC^2)", "elec_price", "h_median")
+system_vars <- c("PV_system_size_DC", "I(PV_system_size_DC^2)", "elec_price", "mean_week_wage")
 dem_vars <- c("population_density", "pct_bachelor_estimate", "median_home_value", "median_household_income")
 
 # Main interaction term
@@ -34,7 +22,8 @@ base_rhs <- "ln_tariff*premium_panel_overall + ln_tariff*premium_installation"
 
 # Combine everything
 rhs <- paste(c(base_rhs, system_vars, dem_vars), collapse = " + ")
-full_formula_str <- paste("log(price_w) ~", rhs)
+full_formula_str <- paste("log(price_w) ~", rhs) # Changing for net price to gross price influence the results for AD2010-2013
+full_formula_str <- paste("log(net_price) ~", rhs)
 
 # Convert to formula
 full_formula <- as.formula(full_formula_str)
@@ -75,3 +64,15 @@ modelsummary(
   coef_map = coef_name,
   gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std."
   )
+
+# Phase off Tariff ---------------------------------------------------------
+
+post_st = feols(full_formula, fixef = c("year_quarter", "origin", "county"), cluster = ~zip_code, data = tts[year %in% 2019:2020])
+
+
+# test --------------------------------------------------------------------
+
+# ad_1 = feols(c(price_w, log(price_w)) ~ log(tariff)*premium_panel_overall | year_quarter + origin + county + installer_name, cluster = ~zip_code, data = tts[year %in% 2010:2013])
+# ad_2 = feols(c(price_w, log(price_w)) ~ log(tariff)*premium_panel_overall | year_quarter + origin + county + installer_name, cluster = ~zip_code, data = tts[year %in% 2013:2016])
+# st = feols(c(price_w, log(price_w)) ~ log(tariff)*premium_panel_overall | year_quarter + county + installer_name, cluster = ~zip_code, data = tts[year %in% 2017:2018])
+
