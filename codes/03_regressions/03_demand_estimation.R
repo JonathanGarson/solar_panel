@@ -1,11 +1,12 @@
 # We estimate the demand
 
 library(arrow)
+library(car)
 library(data.table)
 library(fixest)
-library(modelsummary)
 library(ggplot2)
-library(car)
+library(modelsummary)
+library(performance)
 
 # Data --------------------------------------------------------------------
 
@@ -34,12 +35,12 @@ demand_ols = feols(demand_extensive ~ price_w + price_w^2 + PV_system_size_DC + 
 
 # IV ----------------------------------------------------------------------
 # THINK ABOUT THE SENSE OF INCLUDING ELEC PRICE
-demand_iv = feols(demand_extensive ~ PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + educ + elec_price |
-                        year + county | price_w ~ mean_week_wage + rebate_w , 
+demand_iv = feols(demand_extensive ~ PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + educ |
+                        year + county | price_w ~ mean_week_wage + rebate_w + elec_price , 
                       cluster = ~zip_code,  data = demand)
 
-demand_iv_net = feols(demand_extensive ~ PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + educ + elec_price |
-                    year + county | net_price ~ mean_week_wage + rebate_w , 
+demand_iv_net = feols(demand_extensive ~ PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + educ  |
+                    year + county | net_price ~ mean_week_wage + rebate_w + elec_price , 
                   cluster = ~zip_code,  data = demand)
 
 # POISSON -----------------------------------------------------------------
@@ -47,8 +48,14 @@ demand_iv_net = feols(demand_extensive ~ PV_system_size_DC + PV_system_size_DC^2
 demand_pois = fepois(demand_extensive ~ price_w + price_w^2 + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price 
                      | year + county, cluster = ~zip_code, data = demand)
 
+# More robust
+# demand_pois = MASS::glm.nb(demand_extensive ~ price_w + price_w^2 + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price +
+#                       factor(year) + factor(county), data = demand)
+# check_overdispersion(demand_pois)
+
 demand_pois_net = fepois(demand_extensive ~ net_price + net_price^2 + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price 
                      | year + county, cluster = ~zip_code, data = demand)
+
 
 # demand_pois = fepois(demand_extensive ~ price_w  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price
 #                      | year + county, cluster = ~zip_code, data = demand)
@@ -69,7 +76,7 @@ linear_ols_net = feols(net_price ~ rebate_w + mean_week_wage + PV_system_size_DC
                    | year + county, cluster = ~zip_code, data = demand)
 demand[, res_net := linear_ols_net$residuals]
 
-demand_pois_cf_net = fepois(demand_extensive ~ net_price + net_price^2 + res_net + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value 
+demand_pois_cf_net = fepois(demand_extensive ~ net_price + net_price^2 + res_net + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
                      | year + county, cluster = ~zip_code, data = demand)
 
 # ELASTICITY & ELASTICITY --------------------------------------------------------------

@@ -52,7 +52,7 @@ by = .(zip_code, year)])
 zip_code = unique(demand_tts$zip_code)
 full_date_range <- seq(min(demand_tts$year), max(demand_tts$year))
 complete_panel = CJ(zip_code = zip_code, year = full_date_range)
-county = unique(demand_tts[, .(zip_code, county)])
+county = unique(demand_tts[, .(zip_code, county, tract)])
 complete_panel = merge(complete_panel, county, by = "zip_code", all.x = TRUE)
 
 demand =  merge(complete_panel, demand_agg, by = c("zip_code", "year"), all.x = TRUE)
@@ -69,12 +69,23 @@ cols_to_interpolate <- c("price_w", "elec_price",
                          "population_density", "median_home_value", "PV_system_size_DC")
 
 # For each zip_code group, apply linear interpolation (na.approx) over 'year'
-demand[, (cols_to_interpolate) := lapply(.SD, function(x) 
-  zoo::na.approx(x, x = year, na.rm = FALSE, rule = 2)
-  ),
-  by = zip_code,
+interp_fun <- function(col, yrs) {
+  ok <- which(!is.na(col))
+  # need at least two non‑NA *and* two distinct years
+  if (length(ok) < 2 || length(unique(yrs[ok])) < 2) {
+    return(col)
+  }
+  zoo::na.approx(col, x = yrs, na.rm = FALSE, rule = 2)
+}
+
+# apply by tract
+demand[ , (cols_to_interpolate) := lapply(.SD, function(col)
+  interp_fun(col, year)
+),
+by      = zip_code,
 .SDcols = cols_to_interpolate
 ]
+# We adapt the logic of the interpolation but for that we do it by adopting the nearest neighbor approach
 
 demand = na.omit(demand)
 
@@ -82,3 +93,18 @@ demand = na.omit(demand)
 # nrow(demand[demand_extensive == 0])/nrow(demand)
 
 fwrite(demand, data_final("demand_final.csv"))
+
+# Test --------------------------------------------------------------------
+
+# library(panelr)
+# library(plm)
+# test = panel_data(demand_tts, id = "tract", wave = "year")
+# pdf <- pdata.frame(test, index = c("tract", "year"))
+# pd <- pdim(pdf)
+# pd
+# # $nT      # number of observations per individual (min, max, avg)
+# # $Tn      # number of observations per time period (min, max, avg)
+# # $balanced # TRUE/FALSE
+# 
+# # 1c) Just test balancedness
+# is.pbalanced(pdf)  # TRUE if every id has every year

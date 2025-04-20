@@ -17,6 +17,7 @@ ad_2015 = fread(data_final("ad_2015_final.csv"))
 wages = fread(data_temp("elec_contractor_wage_emp.csv"))
 elec = fread(data_temp("elec_price.csv"))
 share_panel = fread(data_temp("share_panel_install_price.csv"))
+utility = fread(data_temp("utility_mapping_california.csv"))
 
 # Selecting firms ---------------------------------------------------------
 
@@ -166,7 +167,6 @@ tts[, premium_panel_overall := ifelse(efficiency_module > top_efficiency, 1, 0)]
 list_firms = top_firms$module_manufacturer
 tts = tts[module_manufacturer %in% list_firms,]
 
-
 ## Combo inverter + high efficiency ----------------------------------------
 # Mono cristalyne are categorized as top quality solar panel, more innovative and more efficient
 # The presence of micro inverter improve the overall efficiency of the system and makes it more desirable
@@ -231,6 +231,10 @@ tts = merge(tts, share_panel, by = "year", all.x = TRUE)
 tts[, proxy_panel_price := (share/100) * total_installed_price]
 tts[, proxy_panel_price_w := proxy_panel_price/(PV_system_size_DC*1000)]
 
+# We merge with utility by zip_code
+utility[, zip_code := as.character(zip_code)]
+tts = merge(tts, utility, by = c("zip_code", "year"))
+
 # Cleaning variables
 tts[, micro_inverter_1 := fcase(micro_inverter_1 == "Y", 1, 
                                 micro_inverter_1 == "N", 0,
@@ -257,7 +261,7 @@ tts = tts[ho == 1,]
 tts = tts[state == "ca"]
 
 # We only keep 43 rows
-cols_to_keep <- c("county", "zip_code", "year", "year_quarter", "module_manufacturer", "installer_name", "origin",
+cols_to_keep <- c("county", "zip_code", "tract", "year", "year_quarter", "utility", "module_manufacturer", "installer_name", "origin",
                   "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "efficiency_module",
                   "new_construction", "ground_mounted" , "module_quantity",
                   "price_w", "rebate_w", "proxy_panel_price", "proxy_panel_price_w", "ow_occupied_housing",

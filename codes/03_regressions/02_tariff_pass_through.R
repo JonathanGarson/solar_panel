@@ -46,7 +46,7 @@ tariff_pt =  list(
     ),
   
   "Trade War 2018" = list(
-    feols(full_formula, fixef = c("year_quarter", "origin", "county"), cluster = ~ zip_code, data = tts[year %in% 2017:2018]),
+    feols(full_formula, fixef = c("year_quarter", "origin", "county", "utility"), cluster = ~ zip_code, data = tts[year %in% 2017:2018]),
     feols(full_formula, fixef = c("year_quarter", "origin", "county","installer_name"), cluster = ~ zip_code, data = tts[year %in% 2017:2018])
     )
 )
