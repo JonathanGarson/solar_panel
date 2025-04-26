@@ -17,7 +17,7 @@ japan_mnf = top_manufacturer[Country == "Japan",]$Manufacturer
 
 # Overall Price evolution ---------------------------------------------------------------
 ts_price[, price_installed := total_installed_price - rebate_or_grant]
-ts_price_quarter = ts_price[year %in% 2010:2023, .(mean_install_gross_price_quarter = mean(total_installed_price, na.rm = T),
+ts_price_quarter = ts_price[year %in% 2010:2020, .(mean_install_gross_price_quarter = mean(total_installed_price, na.rm = T),
                                                    mean_install_net_price_quarter = mean(price_installed, na.rm = T)), by = year_quarter]
 ts_price_quarter[, `:=`(log_mean_install_gross_price_quarter = log(mean_install_gross_price_quarter),
                         log_mean_install_net_price_quarter = log(mean_install_net_price_quarter))]
@@ -38,7 +38,7 @@ ggplot(ts_price_quarter, aes(x = year_quarter)) +
   labs(
     x = "Year",
     y = "Total Price ($)",
-    title = "Quarterly Evolution of Total Installation Prices in log $",
+    # title = "Quarterly Evolution of Total Installation Prices in log $",
     color = "Legend"
   ) +
   # Format x-axis to show only yearly labels while keeping quarterly data
@@ -47,11 +47,11 @@ ggplot(ts_price_quarter, aes(x = year_quarter)) +
                                to = max(ts_price_quarter$year_quarter), by = 1)) +
   # Use the same y-axis for both lines
   scale_y_continuous() +
-  theme_minimal() +
+  theme_classic() +
   theme(
     legend.position = "bottom"
   )
-ggsave("output/figures/statdesc/installation_price_evolution.pdf")
+ggsave("output/figures/statdesc/installation_price_evolution.pdf", height = 8, width = 10)
 
 # Log
 ggplot(ts_price_quarter, aes(x = year_quarter)) +

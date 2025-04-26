@@ -1,0 +1,58 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]},
+column{3,5}={}{halign=c,},
+column{1}={}{halign=l,},
+cell{2}{2}={}{halign=c,},
+cell{2}{4}={}{halign=c,},
+cell{3}{2}={}{halign=c,},
+cell{3}{4}={}{halign=c,},
+cell{4}{2}={}{halign=c,},
+cell{4}{4}={}{halign=c,},
+cell{5}{2}={}{halign=c,},
+cell{5}{4}={}{halign=c,},
+cell{6}{2}={}{halign=c,},
+cell{6}{4}={}{halign=c,},
+cell{7}{2}={}{halign=c,},
+cell{7}{4}={}{halign=c,},
+cell{8}{2}={}{halign=c,},
+cell{8}{4}={}{halign=c,},
+cell{9}{2}={}{halign=c,},
+cell{9}{4}={}{halign=c,},
+cell{10}{2}={}{halign=c,},
+cell{10}{4}={}{halign=c,},
+cell{11}{2}={}{halign=c,},
+cell{11}{4}={}{halign=c,},
+cell{12}{2}={}{halign=c,},
+cell{12}{4}={}{halign=c,},
+cell{13}{2}={}{halign=c,},
+cell{13}{4}={}{halign=c,},
+cell{14}{2}={}{halign=c,},
+cell{14}{4}={}{halign=c,},
+cell{1}{2}={c=2,}{halign=c, halign=c,},
+cell{1}{4}={c=2,}{halign=c, halign=c,},
+hline{7}={1,2,3,4,5}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& Ln Price &  & Ln Net Price &  \\ \cmidrule[lr]{4-5}\cmidrule[lr]{2-3}
+& (1) & (2) & (3) & (4) \\ \midrule %% TinyTableHeader
+Premium Panel & \num{0.057}*** & \num{0.051}*** & \num{0.057}*** & \num{0.052}*** \\
+& (\num{0.003}) & (\num{0.003}) & (\num{0.003}) & (\num{0.003}) \\
+Premium Installation & \num{0.030}*** & \num{0.029}*** & \num{0.051}*** & \num{0.040}*** \\
+& (\num{0.003}) & (\num{0.003}) & (\num{0.003}) & (\num{0.003}) \\
+Num.Obs & \num{407984} & \num{407984} & \num{407984} & \num{407984} \\
+R2 & \num{0.491} & \num{0.495} & \num{0.438} & \num{0.446} \\
+R2-Adj. & \num{0.490} & \num{0.494} & \num{0.437} & \num{0.445} \\
+FE: County & X & X & X & X \\
+FE: Installer & X & X & X & X \\
+FE: Year & X &  & X &  \\
+FE: Origin & X &  & X &  \\
+FE: Year × Origin &  & X &  & X \\
+\bottomrule
+\end{talltblr}
+\end{table}

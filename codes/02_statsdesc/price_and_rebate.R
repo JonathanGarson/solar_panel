@@ -19,7 +19,7 @@ tts <- read_parquet(data_final("tts_final.parquet"))
 price_evol <- tts[, .(
   mean_price_w = mean(price_w, na.rm = TRUE),
   mean_rebate_w = mean(rebate_w, na.rm = TRUE)
-), by = .(year_quarter, ho)]
+), by = .(year_quarter)]
 
 # Extract year and quarter, convert to date format
 price_evol[, c("year", "quarter") := tstrsplit(year_quarter, "Q")]
@@ -36,7 +36,7 @@ price_evol[, ratio_sub_price := mean_rebate_w/mean_price_w]
 # Long format for price and rebate
 price_evol_long <- melt(
   price_evol,
-  id.vars = c("quarter_date", "ho"),
+  id.vars = c("quarter_date"),
   measure.vars = c("mean_price_w", "mean_rebate_w"),
   variable.name = "type",
   value.name = "value"
@@ -62,7 +62,7 @@ ggplot(price_evol_long, aes(
   scale_linetype_manual(
     name = "System",
     values = c("0" = "dotted", "1" = "solid"),
-    labels = c("0" = "TPO", "1" = "HO")
+    # labels = c("0" = "TPO", "1" = "HO")
   ) +
   scale_y_continuous(
     name = "$/W",
