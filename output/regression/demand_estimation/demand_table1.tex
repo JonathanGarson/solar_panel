@@ -1,0 +1,33 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]},
+column{2,3,4,5,6}={}{halign=c,},
+column{1}={}{halign=l,},
+hline{10}={1,2,3,4,5,6}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& OLS & IV & Poisson & Negative Binomial & Poisson CF \\ \midrule %% TinyTableHeader
+Net Price & \num{-6.134}* & \num{-13.911}*** & \num{-0.140}*** & \num{-0.433}*** & \num{-0.771}*** \\
+& (\num{2.881}) & (\num{1.790}) & (\num{0.003}) & (\num{0.046}) & (\num{0.009}) \\
+(Net Price)\textasciicircum{}2 & \num{0.268} &  &  &  &  \\
+& (\num{0.258}) &  &  &  &  \\
+Rebate (\$/W) & \num{15.004}*** &  & \num{1.012}*** &  &  \\
+& (\num{2.275}) &  & (\num{0.009}) &  &  \\
+Elec. Price (\$) & \num{7.913}*** &  & \num{-0.411}*** & \num{21.340}*** &  \\
+& (\num{1.682}) &  & (\num{0.012}) & (\num{0.880}) &  \\
+Num.Obs & \num{13691} & \num{13691} & \num{13691} & \num{2510} & \num{13691} \\
+R2 & \num{0.277} & \num{0.257} &  &  &  \\
+R2-Adj. & \num{0.273} & \num{0.254} &  &  &  \\
+FE: County & X & X &  &  &  \\
+FE: Year & X & X &  &  &  \\
+Elasticity & \num{-0.886} & \num{-2.093} & \num{-0.601} & \num{-0.665} & \num{-3.316} \\
+Cragg-Donald &  & \num{961.320} &  &  &  \\
+Dispersion ratio &  &  & \num{42.730} & \num{0.480} & \num{44.940} \\
+\bottomrule
+\end{talltblr}
+\end{table}

@@ -1,0 +1,53 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]},
+cell{2}{1}={c=2}{},cell{11}{1}={c=2}{},
+column{2}={}{halign=c,},
+cell{1}{1}={}{halign=l,},
+cell{2}{1}={}{halign=l,},
+cell{11}{1}={}{halign=l,},
+cell{3}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{4}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{5}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{6}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{7}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{8}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{9}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{10}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{12}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{13}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{14}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{15}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{16}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{17}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{18}{1}={}{halign=l, preto={\hspace{1em}},},
+cell{19}{1}={}{halign=l, preto={\hspace{1em}},},
+}                     %% tabularray inner close
+\toprule
+& (1) \\ \midrule %% TinyTableHeader
+First Stage & \\
+Pre-Tariff Market Share & 0.519*** \\
+& (0.021) \\
+Num.Obs & 3771 \\
+R2 & 0.994 \\
+R2-Adj. & 0.994 \\
+FE: County & X \\
+FE: Quarter & X \\
+FE: Installer & X \\
+Second Stage & \\
+Fitted Resid. Ln Tariff & 0.478 \\
+& (0.646) \\
+Num.Obs & 3771 \\
+R2 & 0.619 \\
+R2-Adj. & 0.590 \\
+FE: County & X \\
+FE: Quarter & X \\
+FE: Installer & X \\
+\bottomrule
+\end{talltblr}
+\end{table}

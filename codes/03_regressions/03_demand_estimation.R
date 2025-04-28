@@ -7,79 +7,59 @@ library(fixest)
 library(ggplot2)
 library(modelsummary)
 library(performance)
+library(tibble)
+library(pscl)
 
 # Data --------------------------------------------------------------------
 
 demand = fread(data_final("demand_final.csv"))
 
-# OLS - Demand Analysis ---------------------------------------------------
+# Demand Analysis ---------------------------------------------------
 demand[, net_price := price_w-rebate_w]
 demand[, net_price_sq := net_price^2]
 demand[, price_w_sq := price_w^2]
-# demand[, tariff_sq := tariff^2]
-# demand = demand[!is.na(price_w) & !is.na(h_median)]
 demand = demand[price_w > 1 & price_w < 10,]
 demand = demand[rebate_w < price_w]
 
 nrow(demand[population < 10,])
 # demand = demand[population > 10,]
 
+# We use the net price for this part of the analysis since it allow us to use the rebate as instrument and is the price faced by consumer
 # OLS ---------------------------------------------------------------------
 demand_ols_net = feols(demand_extensive ~ net_price + net_price^2 + PV_system_size_DC + PV_system_size_DC^2 + elec_price + rebate_w + mean_week_wage + educ +
                      population_density + median_home_value
-                   | year + county, cluster = ~zip_code, data = demand)
-
-demand_ols = feols(demand_extensive ~ price_w + price_w^2 + PV_system_size_DC + PV_system_size_DC^2 + elec_price + rebate_w + mean_week_wage + educ +
-                     population_density + median_home_value
-                   | year + county, cluster = ~zip_code, data = demand)
+                   | year+county, cluster = ~zip_code, data = demand)
 
 # IV ----------------------------------------------------------------------
-# THINK ABOUT THE SENSE OF INCLUDING ELEC PRICE
 demand_iv = feols(demand_extensive ~ PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + educ |
-                        year + county | price_w ~ mean_week_wage + rebate_w + elec_price , 
+                        year+county | net_price ~ rebate_w + elec_price, 
                       cluster = ~zip_code,  data = demand)
-
-demand_iv_net = feols(demand_extensive ~ PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + educ  |
-                    year + county | net_price ~ mean_week_wage + rebate_w + elec_price , 
-                  cluster = ~zip_code,  data = demand)
 
 # POISSON -----------------------------------------------------------------
 # Question the presence of elec_price
-demand_pois = fepois(demand_extensive ~ price_w + price_w^2 + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price 
-                     | year + county, cluster = ~zip_code, data = demand)
+demand_pois_net = glm(demand_extensive ~ net_price + net_price^2 + elec_price + rebate_w + PV_system_size_DC + PV_system_size_DC^2 
+                      + population_density + median_home_value
+                     + factor(year) + factor(county),
+                     family = "poisson",data = demand)
+demand_pois_net_check = check_overdispersion(demand_pois_net)
 
-# More robust
-# demand_pois = MASS::glm.nb(demand_extensive ~ price_w + price_w^2 + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price +
-#                       factor(year) + factor(county), data = demand)
-# check_overdispersion(demand_pois)
+demand_nbpois_net = MASS::glm.nb(demand_extensive ~ net_price + net_price^2 + elec_price + PV_system_size_DC + PV_system_size_DC^2 + population_density
+                        + median_home_value + factor(year) + factor(county),data = demand)
+check_overdispersion(demand_nbpois_net)
 
-demand_pois_net = fepois(demand_extensive ~ net_price + net_price^2 + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price 
-                     | year + county, cluster = ~zip_code, data = demand)
+# modelsummary(models = list(demand_pois_cf_net))
 
-
-# demand_pois = fepois(demand_extensive ~ price_w  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price
-#                      | year + county, cluster = ~zip_code, data = demand)
-# 
-# ## Close to what Gillingham & Tsevatanov (2019) have estimated
-# demand_pois_net = fepois(demand_extensive ~ net_price  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price
-#                      | year + county, cluster = ~zip_code, data = demand)
-
-# POISSON CF --------------------------------------------------------------
-linear_ols = feols(price_w ~ rebate_w + mean_week_wage + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price
-                   | year + county, cluster = ~zip_code, data = demand)
-demand[, res := linear_ols$residuals]
-
-demand_pois_cf = fepois(demand_extensive ~ price_w + price_w^2 + res + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value 
-                     | year + county, cluster = ~zip_code, data = demand)
-
-linear_ols_net = feols(net_price ~ rebate_w + mean_week_wage + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price
+# POISSON CF --------demand_qpois_net_alt# POISSON CF --------------------------------------------------------------
+linear_ols_net = feols(net_price ~ rebate_w + elec_price + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
                    | year + county, cluster = ~zip_code, data = demand)
 demand[, res_net := linear_ols_net$residuals]
 
-demand_pois_cf_net = fepois(demand_extensive ~ net_price + net_price^2 + res_net + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
-                     | year + county, cluster = ~zip_code, data = demand)
+demand_pois_cf_net = glm(demand_extensive ~ net_price + net_price^2 + res_net + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
+           + factor(year) + factor(county),
+           family = "poisson", data = demand)
+demand_pois_cf_net_check = check_overdispersion(demand_pois_cf_net)
 
-# ELASTICITY & ELASTICITY --------------------------------------------------------------
+# Elasticity & Delta Method --------------------------------------------------------------
 elasticity_p_value = function(data,regression_object, coef_name, net_price = FALSE,linear_estimator = TRUE){
   mean_install = mean(data$demand_extensive)
   if (net_price == FALSE){mean_price = mean(data$price_w)}else{mean_price = mean(data$net_price)}
@@ -98,32 +78,23 @@ elasticity_p_value = function(data,regression_object, coef_name, net_price = FAL
   return(elas_pv)
 }
 
-
 # Linear
-elas_ols = elasticity_p_value(demand, demand_ols, coef_name = "price_w")
 elas_ols_net = elasticity_p_value(demand, demand_ols_net, coef_name = "net_price", net_price = TRUE)
-
-elas_iv = elasticity_p_value(demand, demand_iv, coef_name = "fit_price_w")
-elas_iv_net = elasticity_p_value(demand, demand_iv_net, coef_name = "fit_net_price", net_price = TRUE)
+elas_iv = elasticity_p_value(demand, demand_iv, coef_name = "fit_net_price")
 
 # Non Linear
-elas_poisson = elasticity_p_value(demand, demand_pois, coef_name = "price_w", linear_estimator = FALSE)
 elas_poisson_net = elasticity_p_value(demand, demand_pois_net, coef_name = "net_price", net_price = TRUE, linear_estimator = FALSE)
-
-elas_poisson_cf = elasticity_p_value(demand, demand_pois_cf, coef_name = "price_w", linear_estimator = FALSE)
+elas_nbpoisson_net = elasticity_p_value(demand, demand_nbpois_net, coef_name = "net_price", net_price = TRUE, linear_estimator = FALSE)
 elas_poisson_cf_net = elasticity_p_value(demand, demand_pois_cf_net, coef_name = "net_price", net_price = TRUE, linear_estimator = FALSE)
 
-models <- c("OLS", "OLS_net", 
-            "IV", "IV_net", 
-            "Poisson", "Poisson_net", 
-            "Poisson_CF", "Poisson_CF_net")
+models <- c("OLS_net", "IV_net", 
+            "Poisson_net", "NB_Poisson_net", "Poisson_CF_net")
 
-elasticities <- list(elas_ols, elas_ols_net,
-                     elas_iv, elas_iv_net,
-                     elas_poisson, elas_poisson_net,
-                     elas_poisson_cf, elas_poisson_cf_net)
+elasticities <- list(elas_ols_net, elas_iv,
+                     elas_poisson_net, elas_nbpoisson_net, elas_poisson_cf_net
+                     )
 
-# build data frame
+# build data frame for elasticities
 elasticities_df <- data.frame(
   model    = models,
   Estimate = sapply(elasticities, function(x) x$Estimate),
@@ -132,26 +103,103 @@ elasticities_df <- data.frame(
   stringsAsFactors = FALSE
 )
 
-# elas_ols = demand_ols$coefficients[["price_w"]] * mean_price/ mean_install
-# elas_ols_net = demand_ols_net$coefficients[["net_price"]] * mean_net_price/ mean_install
-# elas_iv = demand_iv$coefficients[["fit_price_w"]] * mean_price/ mean_install
-# elas_iv_net = demand_iv_net$coefficients[["fit_net_price"]] * mean_net_price/ mean_install
+# IV model: only Cragg-Donald
+iv_stats <- fitstat(demand_iv, type = "cd")
 
-# elas_poisson = demand_pois$coefficients[["price_w"]] *  mean_price # consistent results for demand only if used with gross price
-# elas_poisson_net = demand_pois_net$coefficients[["net_price"]] *  mean_net_price # consistent results for demand only if used with gross price
-# elas_poisson_cf = demand_pois_cf$coefficients[["price_w"]] *  mean_price # consistent results for demand only if used with gross price
-# elas_poisson_cf_net = demand_pois_cf_net$coefficients[["net_price"]] *  mean_net_price # consistent results for demand only if used with gross price
+# Poisson models
+overdispersion_pois_net <- check_overdispersion(demand_pois_net)
+overdispersion_nbpois = check_overdispersion(demand_nbpois_net)
+overdispersion_pois_cf_net <- check_overdispersion(demand_pois_cf_net)
 
+# 2. Build a clean summary data frame
+elasticities_wide <- data.frame(
+  Term = "Elasticity",
+  OLS_Net = round(elasticities_df$Estimate[elasticities_df$model == "OLS_net"], 3),
+  IV_Net = round(elasticities_df$Estimate[elasticities_df$model == "IV_net"], 3),
+  Poisson_Net = round(elasticities_df$Estimate[elasticities_df$model == "Poisson_net"], 3),
+  NB_Poisson_Net = round(elasticities_df$Estimate[elasticities_df$model == "NB_Poisson_net"], 3),
+  Poisson_CF_Net = round(elasticities_df$Estimate[elasticities_df$model == "Poisson_CF_net"], 3)
+)
 
-# P-VALUE ELASTICITY ------------------------------------------------------
+fit_tests_wide <- data.frame(
+  Term = c("Cragg-Donald", "Dispersion ratio"),
+  OLS_Net = c(NA, NA),
+  IV_Net = c(round(iv_stats$cd, 2), NA),
+  Poisson_Net = c(NA, round(overdispersion_pois_net$dispersion_ratio, 2)),
+  NB_Poisson_Net = c(NA, round(overdispersion_nbpois$dispersion_ratio, 2)),
+  Poisson_CF_Net = c(NA, round(overdispersion_pois_cf_net$dispersion_ratio, 2))
+)
+added_row = rbind(elasticities_wide, fit_tests_wide)
 
-test_elas = elasticity_p_value(demand_iv, coef_name = "fit_price_w", mean_install = mean_install, mean_price = mean_price)
+# List of all your models
+demand_models <- list(
+  "OLS" = demand_ols_net,
+  "IV" = demand_iv,
+  "Poisson" = demand_pois_net,
+  "Negative Binomial" = demand_qpois_net,
+  "Poisson CF" = demand_pois_cf_net
+)
+
+coef_name = c(
+  "net_price" = "Net Price",
+  "fit_net_price" = "Net Price",
+  "I(net_price^2)" = "(Net Price)^2",
+  "rebate_w" = "Rebate ($/W)",
+  "elec_price" = "Elec. Price ($)"
+)
+
+gof_list <- tribble(
+  ~raw,                  ~clean,           ~fmt,
+  "nobs",                "Num.Obs",        "%.0f",
+  "r.squared",           "R2",             "%.3f",
+  "adj.r.squared",       "R2-Adj.",        "%.3f",
+  "FE: county",          "FE: County",     "%.0f",
+  "FE: year",            "FE: Year",       "%.0f",
+)
+
+demand_table = modelsummary(
+  models = demand_models,
+  star = TRUE,
+  coef_map = coef_name,
+  gof_map = gof_list,
+  add_rows = added_row,
+  output = "latex"
+)
+writeLines(as.character(demand_table), "output/regression/demand_estimation/demand_table1.tex")
+
+# Neg Bin Period ------------------------------------------------------
+
+full_formula = as.formula(demand_extensive ~ net_price + rebate_w + elec_price + PV_system_size_DC + PV_system_size_DC^2 + population_density)
+
+# Estimation of Negative Binomial models with feglm
+neg_bin_demand = list(
+  "Overall" = list(
+    fenegbin(full_formula, fixef = c("year", "county"), cluster = ~ zip_code, data = demand[!year %in% 2010:2013])
+  ),
+  
+  # "Anti-Dumping : 2010 - 2013" = list(
+  #   fenegbin(full_formula, fixef = c("year", "county"), cluster = ~ zip_code, data = demand[year %in% 2010:2013]),
+  #   fenegbin(full_formula, fixef = c("year", "county"), cluster = ~ zip_code, data = demand[year %in% 2010:2013])
+  # ),
+  
+  "Anti-Dumping : 2014 - 2016" = list(
+    fenegbin(full_formula, fixef = c("year", "county"), cluster = ~ zip_code, data = demand[year %in% 2013:2016])
+  ),
+  
+  "Trade War 2018" = list(
+    fenegbin(full_formula, fixef = c("year", "county"), cluster = ~ zip_code, data = demand[year %in% 2017:2018])
+  )
+)
+
+elas_neg_overall = mean(demand[!year %in% 2010:2013]$demand_extensive)*neg_bin_demand$Overall[[1]]$coefficients[["net_price"]]
+elas_neg_ad2 = mean(demand[!year %in% 2014:2016]$demand_extensive)*neg_bin_demand$`Anti-Dumping : 2014 - 2016`[[1]]$coefficients[["net_price"]]
+elas_neg_st = mean(demand[!year %in% 2017:2018]$demand_extensive)*neg_bin_demand$`Trade War 2018`[[1]]$coefficients[["net_price"]]
 
 
 # GRAPH -------------------------------------------------------------------
 
-demand_shape = demand[, `:=` (predicted_demand_ols = predict(demand_ols),
-                              predicted_demand_pois = predict(demand_pois),
+demand_shape = demand[, `:=` (predicted_demand_ols = predict(demand_ols_net),
+                              predicted_demand_pois = predict(demand_pois_net),
                               predicted_demand_iv = predict(demand_iv))]
 
 demand_shape[, `:=` (p5 = quantile(net_price, prob = c(0.05)),
@@ -198,6 +246,64 @@ ggplot() +
     y = "Price ($/W)"
   ) +
   theme_classic()
+
+# Hurdle ------------------------------------------------------------------
+demand_hurdle = hurdle(demand_extensive ~ net_price + net_price^2 + res_net + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
+                       + factor(year) + factor(county)   
+                       | net_price + net_price^2 + rebate_w + mean_week_wage + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price, 
+                       data = demand)
+summary(demand_hurdle)
+pR2(demand_hurdle)
+compare_performance(
+  demand_pois_net,
+  demand_pois_cf_net, 
+  demand_hurdle,
+  metrics = "common"
+)
+# Confusion Matrix
+prob_positive <- predict(demand_hurdle, type = "zero")
+pred_positive <- predict(demand_hurdle, type = "zero")
+threshold = 0.5
+predicted_adoption <- ifelse(pred_positive > threshold, 1, 0)
+actual_adoption <- ifelse(demand$demand_extensive > 0, 1, 0)
+confusion_matrix = table(predicted_adoption, actual_adoption)
+recall_pos = confusion_matrix[2,2]/(confusion_matrix[2,2]+confusion_matrix[1,2])
+recall_neg = confusion_matrix[1,1]/(confusion_matrix[2,1] + confusion_matrix[1,1])
+
+# Elasticity Hurdle
+# Predicted probability of positive adoption (first hurdle)
+prob_positive <- predict(demand_hurdle, type = "zero")
+# Predicted expected count, conditional on adoption (second part)
+expected_count <- predict(demand_hurdle, type = "count")
+# Full expected value: probability * expected count
+predicted_total <- prob_positive * expected_count
+# Mean predicted demand
+mean_predicted_demand <- mean(predicted_total)
+
+# Coefficients for the first stage (zero part)
+coef_zero <- coef(summary(demand_hurdle))$zero
+# Coefficients for the second stage (positive counts)
+coef_count <- coef(summary(demand_hurdle))$count
+
+mean_net_price <- mean(demand$net_price, na.rm = TRUE)
+mean_prob_positive <- mean(prob_positive)
+
+# 1. Zero part (adoption probability effect)
+beta_zero_net_price <- coef_zero["net_price", "Estimate"]
+
+# Marginal effect on adoption probability
+marginal_effect_zero <- beta_zero_net_price * mean_prob_positive * (1 - mean_prob_positive)
+
+# 2. Count part (intensity effect)
+beta_count_net_price <- coef_count["net_price", "Estimate"]
+
+# 3. Combine both parts
+# Full marginal effect = effect on adoption + effect on conditional positive outcomes
+total_marginal_effect = (marginal_effect_zero * mean(expected_count)) + (mean_prob_positive * beta_count_net_price * mean(expected_count))
+
+# 4. Elasticity formula
+elasticity_net_price = total_marginal_effect * (mean_net_price / mean_predicted_demand)
+
 
 # ggplot() +
 #   # geom_ribbon(data = demand_shape,

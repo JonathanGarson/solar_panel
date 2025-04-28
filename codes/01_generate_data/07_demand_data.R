@@ -28,8 +28,8 @@ matching_code = merge(matching_code, data, by = c("year", "county"))
 setnames(matching_code, "mean_price_year", "elec_price_year")
 
 demand_agg = unique(matching_code[, .(
-  demand_extensive = (.N/population)*1000,
-  demand_intensive = (sum(module_quantity, na.rm = TRUE)/population)*1000,
+  demand_extensive = .N,
+  demand_intensive = sum(module_quantity, na.rm = TRUE),
   price_w = mean(price_w, na.rm = TRUE),
   elec_price = mean(elec_price_year, na.rm = TRUE),
   rebate_w = mean(rebate_w, na.rm = TRUE),
