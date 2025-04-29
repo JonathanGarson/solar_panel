@@ -1,10 +1,10 @@
-# EU-US-China: trade dispute, a resiliency approach. The solar panel case
+# Heterogeneous Quality and Tariff-Pass Through: The Solar Panel Case
 
 ## Introduction
 
-This repository contains all the necessary files to ensure the replication of my master thesis "EU-US-China: trade dispute, a resiliency approach. The solar panel case". 
+This repository contains all the necessary files to ensure the replication of my master thesis "Heterogeneous Quality and Tariff-Pass Through: The Solar Panel Case". 
 
-This project analysis the trade dependency between the U.S./EU and China regarding photovoltaic panels (PVP) and questions the effiency of targeted tariffs to reduce dependency to Chinese import for solar panel, being through national production or diversification of imports. To answer these questions we analyze the evolution of trade flows following the implementation of tariffs on Chinese SP in 2012 and 2013, and the global trade reallocation that followed. The objective is to assess if these reallocations were due to a Chinese manouveur to circumvent tariffs or the emergence of competitors to the Chinese production. For that we can use the dual case of the U.S. and the E.U which imposed at the same time targeted tariffs, with the difference that in 2014 the U.S. noticed what they deemed to be circounventing practices from the Chinese SP producers and then rose tariffs to a new set of East-Asian countries, when the E.U. did not. All in all, this conflict around a crucial good for the future of decarbonized energy offer us an element of answer of the resiliency policies that can be adopted by major economies to increase resiliency in a world of rising commercial, environmental, and political tensions.
+This project recovers the pass-through of anti-dumping and safeguards of solar panels depending on the observed good quality. We observe a full pass-through of tariff, with higher quality goods being less subject to tariff transmission than standard quality goods. We explain this phenomenon by the fact that solar panels are investment goods, very sensible to price variations, and then homogeneous despite some horizontal differentiation.
 
 ## Project Structure
 
