@@ -263,7 +263,7 @@ tts = tts[state == "ca"]
 # We only keep 43 rows
 cols_to_keep <- c("county", "zip_code", "tract", "year", "year_quarter", "utility", "module_manufacturer", "installer_name", "origin",
                   "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "efficiency_module",
-                  "new_construction", "ground_mounted" , "module_quantity",
+                  "new_construction", "ground_mounted" , "module_quantity", "module_model",
                   "price_w", "rebate_w", "proxy_panel_price", "proxy_panel_price_w", "ow_occupied_housing",
                   "population", "population_density", "land_area_in_sqmi", "tract", "geoid", "pct_bachelor_estimate",
                   "median_home_value", "median_household_income", "market_share_period", "china", "korea",
