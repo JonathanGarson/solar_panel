@@ -76,5 +76,9 @@ tts = tts[installer_name != "SolarCity"]
 # Conserving smaller than 10kW size system, as bigger model can be of double use
 tts = tts[PV_system_size_DC <= 20,]
 
+# We get rid of implausibly large price (above 15$/W) and too small
+tts = tts[price_w <=15] 
+tts = tts[price_w >=1] 
+
 # Exporting
 write_parquet(tts, data_temp("TTS_clean.parquet"))

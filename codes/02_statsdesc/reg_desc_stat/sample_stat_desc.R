@@ -58,6 +58,30 @@ summary_dt <- tts[, .(
   
 ), by = .(china)]
 
+# Adding observation share
+obs_share <- tts[, .N, by = china][order(china)]
+total_obs <- sum(obs_share$N)
+obs_share[, share := N / total_obs]
+obs_row <- data.table(
+  variable = "Share of Observations",
+  mean_0 = round(obs_share[china == 0, share], 3),
+  mean_1 = round(obs_share[china == 1, share], 3),
+  se_0 = NA_real_,
+  se_1 = NA_real_,
+  group = "Sample Composition"
+)
+
+# Adding sum observation
+sum_obs <- tts[, .N, by = china][order(china)]
+sum_row <- data.table(
+  variable = "Num. Observations",
+  mean_0 = sum_obs[china == 0, N],
+  mean_1 = sum_obs[china == 1, N],
+  se_0 = NA_real_,
+  se_1 = NA_real_,
+  group = "Sample Composition"
+)
+
 long_summary <- melt(summary_dt, id.vars = "china", variable.name = "stat", value.name = "value")
 
 long_summary[, type := fifelse(grepl("_mean$", stat), "mean", 
@@ -66,6 +90,32 @@ long_summary[, type := fifelse(grepl("_mean$", stat), "mean",
 long_summary[, variable := gsub("_(mean|se)$", "", stat)]
 
 wide_summary <- dcast(long_summary, variable ~ type + china, value.var = "value")
+
+rank_order <- data.table(
+  variable = names(nice_labels),
+  rank_order = c(
+    # System-related variables
+    price_w = 1,
+    rebate_w = 2,
+    premium_panel = 3,
+    premium_installation = 4,
+    efficiency = 5,
+    price_panelpre = 6,
+    price_inspre = 7,
+    PV_system_size_DC = 8,
+    
+    # Socio-demographic variables
+    population_density = 9,
+    median_household_income = 10,
+    median_home_value = 11,
+    pct_bachelor_estimate = 12
+  )
+)
+
+# Reorder lines
+wide_summary = merge(wide_summary, rank_order, by = "variable")
+setorder(wide_summary, rank_order)
+wide_summary[, rank_order := NULL]
 
 nice_labels <- c(
   price_w = "Price ($/W)",
@@ -82,17 +132,31 @@ nice_labels <- c(
   pct_bachelor_estimate = "Share with BA Degree (%)"
 )
 
+
 # Apply relabeling
 wide_summary[, variable := nice_labels[variable]]
+wide_summary[, group := fifelse(
+  variable %in% c(
+    "Price ($/W)",
+    "Rebate ($/W)",
+    "Premium Panel",
+    "Premium Installation",
+    "Efficiency",
+    "Premium Panel Price",
+    "Premium Installation Price",
+    "System Size (kW DC)"
+  ),
+  "Panel Characteristics",
+  "Socio-demographics"
+)]
+wide_summary = rbind(wide_summary, obs_row, fill = TRUE)
+wide_summary = rbind(wide_summary, sum_row, fill = TRUE)
 
 # ADD SUM OBSERVATION/SHARE OF SAMPLE FOR BOTH
-# VERIFY SE PREMIUM INSTALLATION
-# CHECK PRICE DIFFERENCE
-
 gt_table <- wide_summary |>
-  gt(rowname_col = "variable") |>
+  gt(rowname_col = "variable", groupname_col = "group") |>
   
-  # Grouping columns
+  # Column groups
   tab_spanner(label = "Mean", columns = c("mean_0", "mean_1")) |>
   tab_spanner(label = "Standard Error", columns = c("se_0", "se_1")) |>
   
@@ -104,20 +168,19 @@ gt_table <- wide_summary |>
     se_1 = "Chinese"
   ) |>
   
-  # Format selected rows as dollars
+  # Format income and home value as currency
   fmt_currency(
     columns = c("mean_0", "mean_1"),
     rows = variable %in% c("Median Household Income", "Median Home Value"),
     currency = "USD"
   ) |>
   
-  # Optionally format the rest with 2 decimals
+  # Format all other rows as 2-digit numeric
   fmt_number(
     columns = everything(),
     rows = !variable %in% c("Median Household Income", "Median Home Value"),
     decimals = 2
-  ) %>% 
-  gtsave("output/tables/statdesc/sample_description.tex")
+  ) %>% gtsave("output/tables/statdesc/sample_description.tex")
 
 # OFFER SIDE DESCRIPTIVE --------------------------------------------------
 # IN THIS SECTION WE SHOW THE NUMBER OF FIRMS OPERATING, HOW MANY BRANDS AN INSTALLER INSTALL ON AVERAGE, 
@@ -207,21 +270,17 @@ ggsave("output/figures/tariff/nominal_tariff_brand_china.pdf", width = 10, heigh
 
 price_evol <- tts[, .(
   mean_price_w = mean(price_w, na.rm = TRUE),
-  se_price_w = sd(price_w, na.rm = TRUE)
+  mean_rebate_w = mean(rebate_w, na.rm = TRUE)
 ), by = year_quarter]
-
 
 price_evol[, year_quarter_date := as.Date(paste0(substr(year_quarter, 1, 4), "-", 
                                                  as.integer(substr(year_quarter, 6, 6)) * 3 - 2, "-01"))]
-ggplot(price_evol, aes(x = year_quarter_date, y = mean_price_w)) +
-  # Shaded SD area
-  geom_ribbon(aes(ymin = mean_price_w - se_price_w,
-                  ymax = mean_price_w + se_price_w),
-              fill = "grey80", alpha = 0.5) +
-  
+
+ggplot(price_evol, aes(x = year_quarter_date)) +
   # Main price trend line
-  geom_line(color = "steelblue", size = 1) +
-  geom_point(color = "steelblue", size = 1.5) +
+  geom_line(aes(y = mean_price_w), color = "steelblue", size = 1) +
+  geom_line(aes(y = mean_rebate_w), color = "red", size = 1, linetype = "dashed") +
+  # geom_point(color = "steelblue", size = 1.5) +
   
   # Quarter labels: only Q1
   scale_x_date(
@@ -235,7 +294,7 @@ ggplot(price_evol, aes(x = year_quarter_date, y = mean_price_w)) +
     x = "Quarter",
     y = "Price ($/W)"
   ) +
-  theme_classic() +
+  theme_light() +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
     legend.position = "none",
@@ -317,7 +376,6 @@ gt_share_table <- gt(summary_gt) |>
   gtsave("output/tables/statdesc/premium_panel_install_share_origin.tex")
 
 # INSTALLATION ------------------------------------------------------------
-tts[, sum_installation := .N, by = year_quarter]
 tts_full = tts_full[ho == 1, ]
 
 # Full sample (all installs)
@@ -325,11 +383,11 @@ install_summary_full <- tts_full[, .(sum_installation = .N), by = year_quarter]
 install_summary_full[, source := "Full sample"]
 
 # Subsample (ho == 1)
-install_summary_ho <- tts[, .(sum_installation = .N), by = year_quarter]
-install_summary_ho[, source := "California"]
+install_summary_ca <- tts[, .(sum_installation = .N), by = year_quarter]
+install_summary_ca[, source := "California"]
 
 # Combine for plotting
-install_plot_data <- rbindlist(list(install_summary_full, install_summary_ho))
+install_plot_data <- rbindlist(list(install_summary_full, install_summary_ca))
 
 # Convert to date (optional for x-axis control)
 install_plot_data[, year_quarter_date := as.Date(paste0(substr(year_quarter, 1, 4), "-", 
@@ -348,4 +406,24 @@ ggplot(install_plot_data, aes(x = year_quarter_date, y = sum_installation, fill 
   ) + 
   theme(legend.position = "bottom")
 ggsave("output/figures/statdesc/sample_installation.pdf", width = 10, height = 8)
-  
+
+
+# Draft -------------------------------------------------------------------
+
+# Compute market shares
+market_share <- tts[, .(install_china = sum(module_quantity)), by = .(china, year)][order(year)]
+market_share[, share := install_china[china == 1]/install_china[china == 0], by = year]
+
+# Optional: relabel for display
+market_share[, group := fifelse(china == 1, "Chinese", "Non-Chinese")]
+
+ggplot(market_share, aes(x = year, y = share, fill = group)) +
+  geom_line() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Market Share by Group",
+    x = "",
+    y = "Share of Observations"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")  

@@ -111,12 +111,12 @@ for (y in c(2010, 2012, 2014, 2017, 2019)) {
                       na.rm = TRUE)
   
   # # Append the calculated values to the data frame
-  # pct_eff_dt <- rbind(pct_eff_dt,
-  #                     data.frame(year = y,
-  #                                p50 = round(as.numeric(pct_eff[1]), 2),
-  #                                p75 = round(as.numeric(pct_eff[2]), 2),
-  #                                p90 = round(as.numeric(pct_eff[3]), 2),
-  #                                p95 = round(as.numeric(pct_eff[4]), 2)))
+  pct_eff_dt <- rbind(pct_eff_dt,
+                      data.frame(year = y,
+                                 p50 = round(as.numeric(pct_eff[1]), 2),
+                                 p75 = round(as.numeric(pct_eff[2]), 2),
+                                 p90 = round(as.numeric(pct_eff[3]), 2),
+                                 p95 = round(as.numeric(pct_eff[4]), 2)))
   
   # Prepare label for the plot annotation
   pct_eff_labs <- paste0(
@@ -149,20 +149,20 @@ top_efficiency = unique(efficiency_year[, .(top_efficiency = unique(quantile(eff
 tts = merge(tts, top_efficiency, by = "year")
 tts[, premium_panel_overall := ifelse(efficiency_module > top_efficiency, 1, 0)]
 
-# # AD 1 : 2010-2013
-# tts[year %in% 2010:2013 , premium_panel_ad1 := ifelse(efficiency_module >= pct_eff_dt[year == 2012,]$p90, 1, 0) ]
-# 
-# # AD 2 : 2014-2016
-# tts[year %in% 2014:2016, premium_panel_ad2 := ifelse(efficiency_module >= pct_eff_dt[year == 2014,]$p90, 1, 0) ]
-# 
-# # Safeguard : 2017-2020
-# tts[year %in% 2017:2020, premium_panel_st := ifelse(efficiency_module >= pct_eff_dt[year == 2017,]$p90, 1, 0) ]
-# 
-# # Overall
-# tts[, premium_panel_overall := fcase(premium_panel_ad1 ==1, 1,
-#                              premium_panel_ad2 ==1, 1,
-#                              premium_panel_st ==1,  1,
-#                              default = 0)]
+# AD 1 : 2010-2013
+tts[year %in% 2010:2013 , premium_panel_ad1 := ifelse(efficiency_module >= pct_eff_dt[year == 2012,]$p90, 1, 0)]
+
+# AD 2 : 2014-2016
+tts[year %in% 2014:2016, premium_panel_ad2 := ifelse(efficiency_module >= pct_eff_dt[year == 2014,]$p90, 1, 0)]
+
+# Safeguard : 2017-2020
+tts[year %in% 2017:2020, premium_panel_st := ifelse(efficiency_module >= pct_eff_dt[year == 2017,]$p90, 1, 0)]
+
+# Overall
+tts[, premium_panel_overall_sec := fcase(premium_panel_ad1 ==1, 1,
+                             premium_panel_ad2 ==1, 1,
+                             premium_panel_st ==1,  1,
+                             default = 0)]
 
 list_firms = top_firms$module_manufacturer
 tts = tts[module_manufacturer %in% list_firms,]
@@ -195,21 +195,25 @@ tts[, year_quarter.y := NULL]
 tts[, year_quarter:= NULL]
 setnames(tts, "year_quarter.x", "year_quarter")
 
-# CHECK APPLICATION DATE
+# AD1
 tts[year_quarter >= "2012Q2" & year_quarter <= "2014Q1", tariff:= 1 + (ad_rate_2012 + cvd_rate_2012)/100]
 tts[year_quarter >= "2012Q2" & year_quarter <= "2014Q1", tariff_temp:= 1+ (ad_rate_2012 + cvd_rate_2012)/100]
+tts[year_quarter >= "2010Q1" & year_quarter <= "2014Q1", treated:= ifelse(tariff > 1 & year_quarter >= "2012Q2" & year_quarter <= "2014Q1", 1, 0)]
+
+# AD2
 tts[year_quarter >= "2014Q2" & year_quarter <= "2017Q4", tariff:= 1 + (ad_rate_2015)/100]
 tts[year_quarter >= "2014Q2" & year_quarter <= "2017Q4", tariff_temp:= 1 + (ad_rate_2015 + cvd_rate_2015)/100] 
-# #Interesting to note here that there is a strong tariff discontinuity with CVD stopping
-# tts[year_quarter >= "2018Q1", tariff:= 1 + (ad_rate_2015 + 30)/100]
-# tts[year_quarter >= "2018Q1", tariff_temp:= 1 + (ad_rate_2015 + cvd_rate_2015 + 30)/100]
+tts[year_quarter >= "2014Q1" & year_quarter <= "2016Q4", treated:= ifelse(tariff > 1 & year_quarter >= "2014Q2" & year_quarter <= "2014Q4", 1, 0)]
 
+# ST
 tts[year_quarter %in% c("2018Q1","2018Q2"), tariff:= 1 + (ad_rate_2015 + 30)/100]
 tts[year_quarter %in% c("2018Q1","2018Q2"), tariff_temp:= 1 + (ad_rate_2015 + cvd_rate_2015 + 30)/100]
+tts[year_quarter >= "2017Q1" & year_quarter <= "2020Q4", treated:= ifelse(year_quarter >= "2018Q1" & year_quarter <= "2020Q4", 1, 0)]
+
 # Top up tariff of July 2018
 tts[year_quarter > "2018Q2", tariff:= 1 + (ad_rate_2015 + 55)/100]
 tts[year_quarter > "2018Q2", tariff_temp:= 1 + (ad_rate_2015 + cvd_rate_2015 + 55)/100]
-tts[year %in% 2010:2017, tariff := ifelse(is.na(tariff), 1, tariff)]
+tts[year %in% 2010:2018, tariff := ifelse(is.na(tariff), 1, tariff)]
 tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", "yingli energy (china)", "suntech power") & year_quarter >= "2018Q1" & year_quarter <= "2018Q4", 
     tariff := 1.30]
 tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", "yingli energy (china)", "suntech power") & year_quarter >= "2019Q1" & year_quarter <= "2019Q4", 
@@ -217,8 +221,8 @@ tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", 
 tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", "yingli energy (china)", "suntech power") & year_quarter >= "2020Q1" & year_quarter <= "2020Q4", 
     tariff := 1.20]
 
+
 # We keep zip code with population different from 0 since it would imply that zip code correspond to a commercial area
-tts = tts[population > 0,]
 tts[, installation_zip_code := .N, by = .(zip_code, year)]
 tts[, demand_zip_code := (installation_zip_code/population)*1000]
 
@@ -233,7 +237,7 @@ tts[, proxy_panel_price_w := proxy_panel_price/(PV_system_size_DC*1000)]
 
 # We merge with utility by zip_code
 utility[, zip_code := as.character(zip_code)]
-tts = merge(tts, utility, by = c("zip_code", "year"))
+tts = merge(tts, utility, by = c("zip_code", "year"), all.x = TRUE)
 
 # Cleaning variables
 tts[, micro_inverter_1 := fcase(micro_inverter_1 == "Y", 1, 
@@ -257,23 +261,28 @@ tts[, nb_manufacturer := NULL]
 
 # We only keep HO data
 tts = tts[ho == 1,]
-# We only keep California to preserve stability in our data
-tts = tts[state == "ca"]
 
 # We only keep 43 rows
 cols_to_keep <- c("county", "zip_code", "tract", "year", "year_quarter", "utility", "module_manufacturer", "installer_name", "origin",
-                  "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "efficiency_module",
-                  "new_construction", "ground_mounted" , "module_quantity", "module_model",
-                  "price_w", "rebate_w", "proxy_panel_price", "proxy_panel_price_w", "ow_occupied_housing",
+                  "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "efficiency_module", "treated",
+                  "new_construction", "ground_mounted" , "module_quantity", "module_model", "premium_panel_ad1", "premium_panel_ad2", "premium_panel_st",
+                  "price_w", "rebate_w", "proxy_panel_price", "proxy_panel_price_w", "ow_occupied_housing", "self_installed",
                   "population", "population_density", "land_area_in_sqmi", "tract", "geoid", "pct_bachelor_estimate",
                   "median_home_value", "median_household_income", "market_share_period", "china", "korea",
                   "usa", "norway", "germany", "japan", "premium_panel_overall", 
                   "premium_installation", "tariff", "tariff_temp","elec_price",
-                  "mean_price_year", "mean_month_emp", "mean_week_wage", "demand_zip_code")
+                  "mean_price_year", "mean_month_emp", "mean_week_wage", "demand_zip_code", "state")
 
 tts = tts[, ..cols_to_keep]
+tts_ny = tts[state == "ny",]
+
+# We only keep California to preserve stability in our data
+tts = tts[state == "ca"]
+tts = tts[population > 0,]
 
 # Export Data -------------------------------------------------------------
+# Export NY State as a Placebo
+write_parquet(tts_ny, data_final("tts_ny.parquet"))
 write_parquet(tts, data_final("tts_final.parquet"))
 
 # Draft -------------------------------------------------------------------

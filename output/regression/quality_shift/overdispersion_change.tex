@@ -1,0 +1,25 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]},
+column{2,3,4,5}={}{halign=c,},
+column{1}={}{halign=l,},
+hline{4}={1,2,3,4,5}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& Overall & Anti-Dumping Tariff : 2010-2013 & Anti-Dumping Tariff : 2014-2016 & Trade War 2018 \\ \midrule %% TinyTableHeader
+Tariff & \num{-0.0013}*** & \num{-0.0051}*** & \num{-0.0015}+ & \num{-0.0011}** \\
+& (\num{3.32e-04}) & (\num{4.182e-04}) & (\num{7.34e-04}) & (\num{3.31e-04}) \\
+Num.Obs. & \num{43} & \num{10} & \num{14} & \num{11} \\
+R2 & \num{0.589} & \num{0.962} & \num{0.385} & \num{0.609} \\
+R2 Adj. & \num{0.443} & \num{0.932} & \num{0.201} & \num{0.511} \\
+FE: year & X & X & X & X \\
+F-test & \num{4.0360} & \num{31.9778} & \num{2.0905} & \num{6.2250} \\
+Mean Dep. Var. & \num{0.0007} & \num{0.0011} & \num{0.0006} & \num{0.0006} \\
+\bottomrule
+\end{talltblr}
+\end{table}

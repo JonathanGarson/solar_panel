@@ -11,8 +11,8 @@ library(tibble)
 library(pscl)
 
 # Data --------------------------------------------------------------------
-
-demand = fread(data_final("demand_final.csv"))
+# demand = fread(data_final("demand_final.csv"))
+demand = fread(data_final("demand_final_alt.csv"))
 
 # Demand Analysis ---------------------------------------------------
 demand[, net_price := price_w-rebate_w]
@@ -21,47 +21,35 @@ demand[, price_w_sq := price_w^2]
 demand = demand[price_w > 1 & price_w < 10,]
 demand = demand[rebate_w < price_w]
 
+demand[, treated := ifelse(tariff > 0, 1, 0)]
 nrow(demand[population < 10,])
-# demand = demand[population > 10,]
+demand[, demand := (demand/population)*1000]
+# nrow(demand[demand_extensive == 0,])
 
 # We use the net price for this part of the analysis since it allow us to use the rebate as instrument and is the price faced by consumer
-# OLS ---------------------------------------------------------------------
-demand_ols_net = feols(demand_extensive ~ net_price + net_price^2 + PV_system_size_DC + PV_system_size_DC^2 + elec_price + rebate_w + mean_week_wage + educ +
-                     population_density + median_home_value
-                   | year+county, cluster = ~zip_code, data = demand)
-
 # IV ----------------------------------------------------------------------
-demand_iv = feols(demand_extensive ~ PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + educ |
-                        year+county | net_price ~ rebate_w + elec_price, 
-                      cluster = ~zip_code,  data = demand)
+demand_iv = feols(demand ~ rebate_w + elec_price + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + educ
+                  | year + county + origin
+                  | net_price ~ log(tariff), cluster = ~zip_code,  data = demand)
 
-# POISSON -----------------------------------------------------------------
-# Question the presence of elec_price
-demand_pois_net = glm(demand_extensive ~ net_price + net_price^2 + elec_price + rebate_w + PV_system_size_DC + PV_system_size_DC^2 
-                      + population_density + median_home_value
-                     + factor(year) + factor(county),
-                     family = "poisson",data = demand)
-demand_pois_net_check = check_overdispersion(demand_pois_net)
+# POISSON CF --------
+linear_ols_net = feols(net_price ~ tariff + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + rebate_w 
+                       | year + county + origin, cluster = ~zip_code, data = demand, data.save = T)
+demand_used = setDT(linear_ols_net$data)
+demand_used = demand_used[!is.na(median_home_value)]
+demand_used[, res_net := linear_ols_net$residuals]
 
-demand_nbpois_net = MASS::glm.nb(demand_extensive ~ net_price + net_price^2 + elec_price + PV_system_size_DC + PV_system_size_DC^2 + population_density
-                        + median_home_value + factor(year) + factor(county),data = demand)
-check_overdispersion(demand_nbpois_net)
-
-# modelsummary(models = list(demand_pois_cf_net))
-
-# POISSON CF --------demand_qpois_net_alt# POISSON CF --------------------------------------------------------------
-linear_ols_net = feols(net_price ~ rebate_w + elec_price + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
-                   | year + county, cluster = ~zip_code, data = demand)
-demand[, res_net := linear_ols_net$residuals]
-
-demand_pois_cf_net = glm(demand_extensive ~ net_price + net_price^2 + res_net + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
-           + factor(year) + factor(county),
-           family = "poisson", data = demand)
-demand_pois_cf_net_check = check_overdispersion(demand_pois_cf_net)
+demand_pois_cf_net = fepois(demand ~ net_price + res_net + rebate_w  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
+                            | year + county + origin, cluster = ~ zip_code, data = demand_used)
+demand_nb_cf_net = fenegbin(demand ~ net_price + res_net + rebate_w  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
+                            | year + county + origin, data = demand_used)
+fitstat(demand_nb_cf_net, type = "theta")
+demand_pois_cf_net_check = check_overdispersion(demand_nb_cf_net)
+# log_var_pois = exp(demand_pois_cf_net$coefficients[["net_price"]])-1
 
 # Elasticity & Delta Method --------------------------------------------------------------
-elasticity_p_value = function(data,regression_object, coef_name, net_price = FALSE,linear_estimator = TRUE){
-  mean_install = mean(data$demand_extensive)
+elasticity_p_value = function(data,regression_object, coef_name, net_price = TRUE,linear_estimator = TRUE){
+  mean_install = mean(data$demand)
   if (net_price == FALSE){mean_price = mean(data$price_w)}else{mean_price = mean(data$net_price)}
   
   if (linear_estimator == TRUE){
@@ -79,13 +67,11 @@ elasticity_p_value = function(data,regression_object, coef_name, net_price = FAL
 }
 
 # Linear
-elas_ols_net = elasticity_p_value(demand, demand_ols_net, coef_name = "net_price", net_price = TRUE)
 elas_iv = elasticity_p_value(demand, demand_iv, coef_name = "fit_net_price")
 
 # Non Linear
-elas_poisson_net = elasticity_p_value(demand, demand_pois_net, coef_name = "net_price", net_price = TRUE, linear_estimator = FALSE)
-elas_nbpoisson_net = elasticity_p_value(demand, demand_nbpois_net, coef_name = "net_price", net_price = TRUE, linear_estimator = FALSE)
-elas_poisson_cf_net = elasticity_p_value(demand, demand_pois_cf_net, coef_name = "net_price", net_price = TRUE, linear_estimator = FALSE)
+elas_poisson_cf_net = elasticity_p_value(demand, demand_pois_cf_net, coef_name = "net_price", linear_estimator = FALSE)
+elas_nb_cf_net = elasticity_p_value(demand, demand_nb_cf_net, coef_name = "net_price", linear_estimator = FALSE)
 
 models <- c("OLS_net", "IV_net", 
             "Poisson_net", "NB_Poisson_net", "Poisson_CF_net")
@@ -248,10 +234,17 @@ ggplot() +
   theme_classic()
 
 # Hurdle ------------------------------------------------------------------
-demand_hurdle = hurdle(demand_extensive ~ net_price + net_price^2 + res_net + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
-                       + factor(year) + factor(county)   
-                       | net_price + net_price^2 + rebate_w + mean_week_wage + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price, 
-                       data = demand)
+dt_hurdle = copy(demand)
+dt_hurdle = dt_hurdle[!is.na(median_home_value)]
+resid = feols(net_price ~ tariff + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + rebate_w 
+                       | year + county + origin, cluster = ~zip_code, data = dt_hurdle,)
+
+dt_hurdle[, res := resid$residuals]
+
+demand_hurdle = hurdle(demand ~ net_price + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
+                       + factor(year) + factor(county) + factor(origin)
+                       | net_price + res +  rebate_w + mean_week_wage + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + elec_price, 
+                       data = dt_hurdle)
 summary(demand_hurdle)
 pR2(demand_hurdle)
 compare_performance(
@@ -318,3 +311,45 @@ elasticity_net_price = total_marginal_effect * (mean_net_price / mean_predicted_
 #     x = "Price ($/W)"
 #   ) +
 #   theme_classic()
+
+
+# Hurdle 2: ---------------------------------------------------------------
+dt_hurdle = copy(demand)
+dt_hurdle = dt_hurdle[!is.na(median_home_value)]
+dt_hurdle[, adoption := ifelse(demand > 0, 1, 0)]
+feglm(adoption ~ net_price*tariff + rebate_w + mean_week_wage + PV_system_size_DC + PV_system_size_DC^2 
+      + population_density + median_home_value + elec_price
+      |year + county + origin ,
+      family = "logit", data = dt_hurdle)
+
+hurdle_fe = femlm(
+  # 1) COUNT part: covariates + FEs
+  demand ~ 
+    net_price 
+  + PV_system_size_DC 
+  + I(PV_system_size_DC^2)
+  + population_density 
+  + median_home_value
+  | year + county + origin
+  
+  # 2) ZERO part: same as your hurdle(...), with CF residual
+  | net_price 
+  + res 
+  + rebate_w 
+  + mean_week_wage 
+  + PV_system_size_DC 
+  + I(PV_system_size_DC^2)
+  + population_density 
+  + median_home_value 
+  + elec_price 
+  ~ 0
+  
+  # 3) Choose distribution & link for the zero‐part
+  , family  = "logit"  
+  
+  # 4) Data and clustering
+  , data     = dt_hurdle
+  , cluster  = ~ tract
+)
+
+summary(hurdle_fe)

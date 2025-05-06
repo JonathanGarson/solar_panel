@@ -64,6 +64,14 @@ cell{15}{2}={}{halign=c,},
 cell{15}{4}={}{halign=c,},
 cell{15}{6}={}{halign=c,},
 cell{15}{8}={}{halign=c,},
+cell{16}{2}={}{halign=c,},
+cell{16}{4}={}{halign=c,},
+cell{16}{6}={}{halign=c,},
+cell{16}{8}={}{halign=c,},
+cell{17}{2}={}{halign=c,},
+cell{17}{4}={}{halign=c,},
+cell{17}{6}={}{halign=c,},
+cell{17}{8}={}{halign=c,},
 cell{1}{2}={c=2,}{halign=c, halign=c,},
 cell{1}{4}={c=2,}{halign=c, halign=c,},
 cell{1}{6}={c=2,}{halign=c, halign=c,},
@@ -73,19 +81,21 @@ hline{9}={1,2,3,4,5,6,7,8,9}{solid, black, 0.05em},
 \toprule
 & Overall &  & Anti-Dumping : 2010 - 2013 &  & Anti-Dumping : 2014 - 2016 &  & Trade War 2018 &  \\ \cmidrule[lr]{4-5}\cmidrule[lr]{6-7}\cmidrule[lr]{2-3}\cmidrule[lr]{8-9}
 & (1) & (2) & (3) & (4) & (5) & (6) & (7) & (8) \\ \midrule %% TinyTableHeader
-ln Placebo Tariff & \num{0.006} & \num{0.010} & \num{0.012} & \num{0.004} & \num{0.012} & \num{0.003} & \num{0.020}* & \num{0.027}* \\
-& (\num{0.005}) & (\num{0.006}) & (\num{0.012}) & (\num{0.011}) & (\num{0.010}) & (\num{0.009}) & (\num{0.008}) & (\num{0.011}) \\
-ln Placebo Tariff x Premium Panel & \num{-0.016} & \num{-0.020}* & \num{-0.045} & \num{-0.035} & \num{-0.022} & \num{-0.017} & \num{-0.013} & \num{-0.015} \\
-& (\num{0.010}) & (\num{0.010}) & (\num{0.031}) & (\num{0.030}) & (\num{0.015}) & (\num{0.015}) & (\num{0.018}) & (\num{0.017}) \\
-ln Placebo Tariff x Premium Installation & \num{-0.005} & \num{-0.005} & \num{0.007} & \num{0.005} & \num{-0.007} & \num{0.005} & \num{-0.014} & \num{-0.018} \\
-& (\num{0.008}) & (\num{0.009}) & (\num{0.020}) & (\num{0.020}) & (\num{0.015}) & (\num{0.015}) & (\num{0.013}) & (\num{0.014}) \\
-Num.Obs & \num{407984} & \num{407984} & \num{29650} & \num{29650} & \num{114117} & \num{114117} & \num{127281} & \num{127281} \\
-R2 & \num{0.493} & \num{0.500} & \num{0.686} & \num{0.689} & \num{0.489} & \num{0.496} & \num{0.438} & \num{0.445} \\
+ln Tariff & \num{0.421}*** & \num{0.031} & \num{1.089}** & \num{0.959} & \num{1.085}*** & \num{0.914}*** & \num{0.543}*** & \num{0.316}** \\
+& (\num{0.055}) & (\num{0.099}) & (\num{0.376}) & (\num{0.630}) & (\num{0.222}) & (\num{0.263}) & (\num{0.080}) & (\num{0.107}) \\
+ln Tariff x Efficiency & \num{-1.963}*** & \num{0.224} & \num{-7.034}** & \num{-4.878} & \num{-5.167}*** & \num{-4.733}** & \num{-2.148}*** & \num{-0.653} \\
+& (\num{0.280}) & (\num{0.539}) & (\num{2.527}) & (\num{3.433}) & (\num{1.226}) & (\num{1.468}) & (\num{0.404}) & (\num{0.534}) \\
+ln Tariff x Premium Installation & \num{-0.068}*** & \num{-0.009} & \num{0.053} & \num{0.072}+ & \num{0.002} & \num{0.020} & \num{-0.079}*** & \num{-0.024} \\
+& (\num{0.009}) & (\num{0.012}) & (\num{0.033}) & (\num{0.037}) & (\num{0.019}) & (\num{0.019}) & (\num{0.012}) & (\num{0.015}) \\
+Num.Obs & \num{414762} & \num{414762} & \num{34545} & \num{34545} & \num{115726} & \num{115726} & \num{128111} & \num{128111} \\
+R2 & \num{0.533} & \num{0.620} & \num{0.707} & \num{0.757} & \num{0.503} & \num{0.570} & \num{0.445} & \num{0.518} \\
 FE: County & X & X & X & X & X & X & X & X \\
-FE: Quarter & X &  & X &  & X &  & X &  \\
-FE: Installer & X & X & X & X & X & X & X & X \\
+FE: Year-Quarter & X &  & X &  & X &  & X &  \\
+FE: Installer & X &  & X &  & X &  & X &  \\
 FE: Origin & X &  & X &  & X &  & X &  \\
-FE: Quarter × Origin &  & X &  & X &  & X &  & X \\
+FE: Year-Quarter × Origin &  & X &  & X &  & X &  & X \\
+FE: Year-Quarter × Installer &  & X &  & X &  & X &  & X \\
+Min-Max Efficiency & 0.09–0.23 & 0.09–0.23 & 0.09–0.21 & 0.09–0.21 & 0.10–0.22 & 0.10–0.22 & 0.09–0.23 & 0.09–0.23 \\
 \bottomrule
 \end{talltblr}
 \end{table}

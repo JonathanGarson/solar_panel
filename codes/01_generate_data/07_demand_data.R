@@ -21,9 +21,9 @@ wages[, state := "ca"]
 
 # merging 
 data = merge(wages, elec, by = c("state", "year"))
-matching_code = demand_tts[, .(zip_code, year, county, price_w, rebate_w, module_quantity, population, 
+matching_code = demand_tts[, .(zip_code, year, county, price_w, tariff, rebate_w, module_quantity, population, 
                                population_density,median_home_value, median_household_income, pct_bachelor_estimate,
-                               PV_system_size_DC, china, usa, korea, japan, germany, norway)]
+                               PV_system_size_DC, origin, china, usa, korea, japan, germany, norway)]
 matching_code = merge(matching_code, data, by = c("year", "county"))
 setnames(matching_code, "mean_price_year", "elec_price_year")
 
@@ -33,6 +33,7 @@ demand_agg = unique(matching_code[, .(
   price_w = mean(price_w, na.rm = TRUE),
   elec_price = mean(elec_price_year, na.rm = TRUE),
   rebate_w = mean(rebate_w, na.rm = TRUE),
+  tariff = mean(tariff, na.rm = TRUE),
   mean_week_wage = mean(mean_week_wage, na.rm = TRUE),
   educ = mean(pct_bachelor_estimate, na.rm = TRUE),
   population = mean(population_density, na.rm = TRUE),
@@ -46,25 +47,27 @@ demand_agg = unique(matching_code[, .(
   germany = mean(germany),
   norway = mean(norway)
 ),
-by = .(zip_code, year)])
+by = .(zip_code, year, origin)])
 
 # We start by creating a cartesian join of all zip code and data
 zip_code = unique(demand_tts$zip_code)
 full_date_range <- seq(min(demand_tts$year), max(demand_tts$year))
-complete_panel = CJ(zip_code = zip_code, year = full_date_range)
+origin = unique(demand_tts$origin)
+complete_panel = CJ(zip_code = zip_code, year = full_date_range, origin = origin)
 county = unique(demand_tts[, .(zip_code, county, tract)])
 complete_panel = merge(complete_panel, county, by = "zip_code", all.x = TRUE)
 
-demand =  merge(complete_panel, demand_agg, by = c("zip_code", "year"), all.x = TRUE)
+demand =  merge(complete_panel, demand_agg, by = c("zip_code", "year", "origin"), all.x = TRUE)
 demand[is.na(demand_extensive) | is.na(demand_intensive),
        `:=`(demand_extensive = 0, demand_intensive = 0)]
+demand[origin != "china" & year < 2018, tariff := 1]
+demand[origin == "china" & year < 2012, tariff := 1]
 
 # Interpolation
-setorder(demand, zip_code, year)
+setorder(demand, zip_code, origin, year)
 
 # Specify the names of the numeric columns you want to interpolate.
-cols_to_interpolate <- c("price_w", "elec_price", 
-                         "rebate_w", "mean_week_wage", "educ", "population",
+cols_to_interpolate <- c("price_w", "rebate_w", "elec_price", "mean_week_wage", "educ", "population",
                          "china","usa","korea","japan","germany","norway", 
                          "population_density", "median_home_value", "PV_system_size_DC")
 
@@ -81,8 +84,8 @@ interp_fun <- function(col, yrs) {
 # apply by tract
 demand[ , (cols_to_interpolate) := lapply(.SD, function(col)
   interp_fun(col, year)
-),
-by      = zip_code,
+  ),
+  by      = .(zip_code, origin),
 .SDcols = cols_to_interpolate
 ]
 # We adapt the logic of the interpolation but for that we do it by adopting the nearest neighbor approach

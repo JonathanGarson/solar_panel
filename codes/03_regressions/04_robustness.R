@@ -123,22 +123,22 @@ for (p in c("log(price_w) ~","log(net_price) ~")){
       
       "Overall" = list(
         feols(full_formula, fixef = c("year_quarter","county", "installer_name", "origin"), cluster = ~ zip_code, data = rob),
-        feols(full_formula, fixef = c("year_quarter","county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob)
+        feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob)
       ),
       
       "Anti-Dumping : 2010 - 2013" = list(
         feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013]),
-        feols(full_formula, fixef = c("year_quarter", "county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013])
+        feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013])
       ),
       
       "Anti-Dumping : 2014 - 2016" = list(
         feols(full_formula, fixef =   c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016]),
-        feols(full_formula, fixef =   c("year_quarter", "county","installer_name", "quarter_origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016])
+        feols(full_formula, fixef =   c("county","installer_name", "quarter_origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016])
       ),
       
       "Trade War 2018" = list(
         feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018]),
-        feols(full_formula, fixef = c("year_quarter", "county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018])
+        feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018])
       )
     )
   
@@ -154,12 +154,12 @@ for (p in c("log(price_w) ~","log(net_price) ~")){
     "r.squared",           "R2",             "%.3f",
     "adj.r.squared",       "R2-Adj.",        "%.3f",
     "FE: county",          "FE: County",         "%.0f",
-    "FE: year_quarter",    "FE: Quarter",        "%.0f",
+    "FE: year_quarter",    "FE: Year-Quarter",        "%.0f",
     "FE: installer_name",  "FE: Installer",      "%.0f",
     "FE: origin",          "FE: Origin",         "%.0f",
     "FE: year",            "FE: Year",           "%.0f",
     "FE: year_origin",     "FE: Year × Origin",  "%.0f",
-    "FE: quarter_origin",  "FE: Quarter × Origin",  "%.0f"
+    "FE: quarter_origin",  "FE: Year-Quarter × Origin",  "%.0f"
   )
   
   placebo_pass_through = modelsummary(
@@ -206,12 +206,12 @@ for (p in c("log(price_w) ~","log(net_price) ~")){
 #   "r.squared",           "R2",             "%.3f",
 #   "adj.r.squared",       "R2-Adj.",        "%.3f",
 #   "FE: county",          "FE: County",         "%.0f",
-#   "FE: year_quarter",    "FE: Quarter",        "%.0f",
+#   "FE: year_quarter",    "FE: Year-Quarter",        "%.0f",
 #   "FE: installer_name",  "FE: Installer",      "%.0f",
 #   "FE: origin",          "FE: Origin",         "%.0f",
 #   "FE: year",            "FE: Year",           "%.0f",
 #   "FE: year_origin",     "FE: Year × Origin",  "%.0f",
-#   "FE: quarter_origin",  "FE: Quarter × Origin",  "%.0f"
+#   "FE: quarter_origin",  "FE: Year-Quarter × Origin",  "%.0f"
 # )
 # 
 # iv_clean_2 = list(
