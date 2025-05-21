@@ -1,0 +1,22 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]},
+column{2,3,4,5}={}{halign=c,},
+column{1}={}{halign=l,},
+hline{4}={1,2,3,4,5}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& Overall & AD 2010–2013 & AD 2014–2016 & Trade War 2017–2018 \\ \midrule %% TinyTableHeader
+ln Tariff & \num{-0.000} & \num{-0.000} & \num{-0.000} & \num{-0.000} \\
+& (\num{0.004}) & (\num{0.018}) & (\num{0.008}) & (\num{0.005}) \\
+Num.Obs. & \num{414762} & \num{34545} & \num{106413} & \num{128111} \\
+R2 & \num{-0.000} & \num{0.000} & \num{-0.000} & \num{-0.000} \\
+Std.Errors & by: zip\_code & by: zip\_code & by: zip\_code & by: zip\_code \\
+\bottomrule
+\end{talltblr}
+\end{table}

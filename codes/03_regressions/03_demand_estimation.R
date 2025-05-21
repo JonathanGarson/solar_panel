@@ -14,38 +14,32 @@ library(pscl)
 # demand = fread(data_final("demand_final.csv"))
 demand = fread(data_final("demand_final_alt.csv"))
 
-# Demand Analysis ---------------------------------------------------
-demand[, net_price := price_w-rebate_w]
-demand[, net_price_sq := net_price^2]
-demand[, price_w_sq := price_w^2]
-demand = demand[price_w > 1 & price_w < 10,]
-demand = demand[rebate_w < price_w]
+# Cleaning ----------------------------------------------------------------
 
-demand[, treated := ifelse(tariff > 0, 1, 0)]
-nrow(demand[population < 10,])
-demand[, demand := (demand/population)*1000]
-# nrow(demand[demand_extensive == 0,])
+demand[, se_zip_county := paste0(county, zip_code)]
 
-# We use the net price for this part of the analysis since it allow us to use the rebate as instrument and is the price faced by consumer
 # IV ----------------------------------------------------------------------
-demand_iv = feols(demand ~ rebate_w + elec_price + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + educ
-                  | year + county + origin
-                  | net_price ~ log(tariff), cluster = ~zip_code,  data = demand)
-
 # POISSON CF --------
-linear_ols_net = feols(net_price ~ tariff + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + rebate_w 
-                       | year + county + origin, cluster = ~zip_code, data = demand, data.save = T)
+linear_ols_net = feols(log(price_w) ~ rebate_w + elec_price + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + rebate_w 
+                       | year + county + origin , cluster = ~zip_code, data = demand[year %in% 2010:2018], data.save = T)
 demand_used = setDT(linear_ols_net$data)
 demand_used = demand_used[!is.na(median_home_value)]
 demand_used[, res_net := linear_ols_net$residuals]
 
-demand_pois_cf_net = fepois(demand ~ net_price + res_net + rebate_w  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
-                            | year + county + origin, cluster = ~ zip_code, data = demand_used)
-demand_nb_cf_net = fenegbin(demand ~ net_price + res_net + rebate_w  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
-                            | year + county + origin, data = demand_used)
-fitstat(demand_nb_cf_net, type = "theta")
-demand_pois_cf_net_check = check_overdispersion(demand_nb_cf_net)
-# log_var_pois = exp(demand_pois_cf_net$coefficients[["net_price"]])-1
+demand_pois_cf_net = fepois(demand ~ log(price_w) + res_net + rebate_w  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value 
+                            | year + county + origin, cluster = ~ zip_code, data = demand_used[year %in% 2010:2018])
+
+demand_pois_cf_net_ng = fenegbin(demand ~ log(price_w) + res_net + rebate_w  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + rebate_w
+                            | year + county + origin, 
+                        cluster = "se_zip_county", data = demand_used[year %in% 2010:2018])
+
+# Log ---------------------------------------------------------------------
+
+log_demand = feglm(nonz ~ net_price + res_net + rebate_w  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value
+                   | year + county + origin, 
+                   family = binomial(link = "logit"),cluster = ~ zip_code, data = demand_used)
+
+elas = log_demand$coefficients[["net_price"]]*mean(demand_used$net_price)*(1 - mean(demand_used$demand))
 
 # Elasticity & Delta Method --------------------------------------------------------------
 elasticity_p_value = function(data,regression_object, coef_name, net_price = TRUE,linear_estimator = TRUE){
@@ -71,14 +65,10 @@ elas_iv = elasticity_p_value(demand, demand_iv, coef_name = "fit_net_price")
 
 # Non Linear
 elas_poisson_cf_net = elasticity_p_value(demand, demand_pois_cf_net, coef_name = "net_price", linear_estimator = FALSE)
-elas_nb_cf_net = elasticity_p_value(demand, demand_nb_cf_net, coef_name = "net_price", linear_estimator = FALSE)
 
-models <- c("OLS_net", "IV_net", 
-            "Poisson_net", "NB_Poisson_net", "Poisson_CF_net")
+models <- c("IV_net", "Poisson_CF_net")
 
-elasticities <- list(elas_ols_net, elas_iv,
-                     elas_poisson_net, elas_nbpoisson_net, elas_poisson_cf_net
-                     )
+elasticities <- list(elas_iv,elas_poisson_cf_net)
 
 # build data frame for elasticities
 elasticities_df <- data.frame(
@@ -93,45 +83,43 @@ elasticities_df <- data.frame(
 iv_stats <- fitstat(demand_iv, type = "cd")
 
 # Poisson models
-overdispersion_pois_net <- check_overdispersion(demand_pois_net)
-overdispersion_nbpois = check_overdispersion(demand_nbpois_net)
 overdispersion_pois_cf_net <- check_overdispersion(demand_pois_cf_net)
 
 # 2. Build a clean summary data frame
 elasticities_wide <- data.frame(
   Term = "Elasticity",
-  OLS_Net = round(elasticities_df$Estimate[elasticities_df$model == "OLS_net"], 3),
+  # OLS_Net = round(elasticities_df$Estimate[elasticities_df$model == "OLS_net"], 3),
   IV_Net = round(elasticities_df$Estimate[elasticities_df$model == "IV_net"], 3),
-  Poisson_Net = round(elasticities_df$Estimate[elasticities_df$model == "Poisson_net"], 3),
-  NB_Poisson_Net = round(elasticities_df$Estimate[elasticities_df$model == "NB_Poisson_net"], 3),
+  # Poisson_Net = round(elasticities_df$Estimate[elasticities_df$model == "Poisson_net"], 3),
+  # NB_Poisson_Net = round(elasticities_df$Estimate[elasticities_df$model == "NB_Poisson_net"], 3),
   Poisson_CF_Net = round(elasticities_df$Estimate[elasticities_df$model == "Poisson_CF_net"], 3)
 )
 
 fit_tests_wide <- data.frame(
   Term = c("Cragg-Donald", "Dispersion ratio"),
-  OLS_Net = c(NA, NA),
+  # OLS_Net = c(NA, NA),
   IV_Net = c(round(iv_stats$cd, 2), NA),
-  Poisson_Net = c(NA, round(overdispersion_pois_net$dispersion_ratio, 2)),
-  NB_Poisson_Net = c(NA, round(overdispersion_nbpois$dispersion_ratio, 2)),
+  # Poisson_Net = c(NA, round(overdispersion_pois_net$dispersion_ratio, 2)),
+  # NB_Poisson_Net = c(NA, round(overdispersion_nbpois$dispersion_ratio, 2)),
   Poisson_CF_Net = c(NA, round(overdispersion_pois_cf_net$dispersion_ratio, 2))
 )
 added_row = rbind(elasticities_wide, fit_tests_wide)
 
 # List of all your models
 demand_models <- list(
-  "OLS" = demand_ols_net,
+  # "OLS" = demand_ols_net,
   "IV" = demand_iv,
-  "Poisson" = demand_pois_net,
-  "Negative Binomial" = demand_qpois_net,
+  # "Poisson" = demand_pois_net,
+  # "Negative Binomial" = demand_qpois_net,
   "Poisson CF" = demand_pois_cf_net
 )
 
 coef_name = c(
   "net_price" = "Net Price",
   "fit_net_price" = "Net Price",
-  "I(net_price^2)" = "(Net Price)^2",
-  "rebate_w" = "Rebate ($/W)",
-  "elec_price" = "Elec. Price ($)"
+  "I(net_price^2)" = "(Net Price)^2"
+  # "rebate_w" = "Rebate ($/W)",
+  # "elec_price" = "Elec. Price ($)"
 )
 
 gof_list <- tribble(
@@ -151,7 +139,32 @@ demand_table = modelsummary(
   add_rows = added_row,
   output = "latex"
 )
-writeLines(as.character(demand_table), "output/regression/demand_estimation/demand_table1.tex")
+writeLines(as.character(demand_table), "output/regression/demand_estimation/demand_second_stage.tex")
+
+demand_models_first_stage <- list(
+  "IV First Stage" = summary(demand_iv, stage = 1),
+  "OLS for CF" = summary(linear_ols_net)
+)
+
+coef_name = c(
+  "net_price" = "Net Price",
+  "log(tariff)" = "ln Tariff",
+  "tariff" = "Tariff",
+  "fit_net_price" = "Net Price",
+  "I(net_price^2)" = "(Net Price)^2",
+  "rebate_w" = "Rebate ($/W)",
+  "elec_price" = "Elec. Price ($)"
+)
+
+first_stage = modelsummary(
+  models = demand_models_first_stage,
+  star = TRUE,
+  coef_map = coef_name,
+  gof_map = gof_list,
+  output = "latex"
+)
+writeLines(as.character(first_stage), "output/regression/demand_estimation/demand_second_stage.tex")
+
 
 # Neg Bin Period ------------------------------------------------------
 
@@ -353,3 +366,110 @@ hurdle_fe = femlm(
 )
 
 summary(hurdle_fe)
+
+
+
+# Draft -------------------------------------------------------------------
+
+# Define your subperiods
+demand[, period := fcase(year <= 2013, "ad1",
+                         year >= 2014 & year <= 2016, "ad2",
+                         year >= 2017 & year <= 2018, "st",
+                         default = "post_st")]
+
+# Loop over periods
+results_list = list()
+
+for (p in unique(demand$period)) {
+  
+  cat("\n\n--- Estimating for period:", p, "---\n")
+  
+  # Filter subperiod data
+  data_p = demand[period == p & !is.na(median_home_value)]
+  
+  # First stage: Instrument net_price
+  linear_ols_net = feols(
+    net_price ~ log(tariff) + PV_system_size_DC + I(PV_system_size_DC^2) +
+      population_density + median_home_value + rebate_w |
+      year + zip_code + origin + installer_name,
+    cluster = ~zip_code,
+    data = data_p,
+    data.save = TRUE
+  )
+  
+  # Extract data and residuals
+  demand_used = setDT(linear_ols_net$data)
+  demand_used[, res_net := linear_ols_net$residuals]
+  
+  # Second stage: Poisson regression with interaction
+  demand_pois_cf_net = fepois(
+    demand_zip_code ~ net_price * qual_qt + res_net + rebate_w + PV_system_size_DC +
+      I(PV_system_size_DC^2) + population_density + median_home_value |
+      year + county + origin,
+    cluster = ~zip_code,
+    data = demand_used
+  )
+  
+  # Store result
+  results_list[[p]] <- demand_pois_cf_net
+}
+
+# Convexity Calculus ------------------------------------------------------
+# ---- Step 1: Estimated coefficients ----
+a <- 0.0001     # Coefficient on p^2
+b <- -0.2       # Coefficient on p
+p_calib <- 6.5  # Calibration price (you choose based on sample)
+q_calib <- a * p_calib^2 + b * p_calib  # estimated q at p_calib
+
+# ---- Step 2: Calibrate the constant term c ----
+# Assume q = ap^2 + bp + c → c = q - ap^2 - bp
+c <- q_calib - a * p_calib^2 - b * p_calib
+
+# ---- Step 3: Define inverse demand function p(q) and its derivatives ----
+
+# p(q): invert q = a p^2 + b p + c ⇒ solve quadratic: a p^2 + b p + (c - q) = 0
+inverse_demand <- function(q) {
+  discrim <- b^2 - 4 * a * (c - q)
+  if (discrim < 0) return(NA)
+  p <- (-b - sqrt(discrim)) / (2 * a)  # economically relevant root
+  return(p)
+}
+
+# First derivative p'(q)
+dp_dq <- function(q) {
+  sqrt_term <- sqrt(b^2 - 4 * a * (c - q))
+  return(1 / sqrt_term)
+}
+
+# Second derivative p''(q)
+d2p_dq2 <- function(q) {
+  base <- b^2 - 4 * a * (c - q)
+  return(2 * a / (base^(3/2)))
+}
+
+# ---- Step 4: Compute convexity parameter at a range of quantities ----
+q_grid <- seq(q_calib * 0.5, q_calib * 1.5, length.out = 100)
+
+convexity_df <- data.frame(
+  q = q_grid,
+  p = sapply(q_grid, inverse_demand),
+  dp = sapply(q_grid, dp_dq),
+  d2p = sapply(q_grid, d2p_dq2)
+)
+
+# Convexity parameter 1/εms
+convexity_df$inv_eps_ms <- with(convexity_df, (d2p / dp) * q)
+
+# ---- Step 5: Plot convexity ----
+library(ggplot2)
+
+ggplot(convexity_df, aes(x = q, y = inv_eps_ms)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(
+    title = expression("Convexity parameter" ~ (1/epsilon[ms])),
+    x = "Quantity (q)",
+    y = expression(1 / epsilon[ms])
+  ) +
+  theme_minimal()
+

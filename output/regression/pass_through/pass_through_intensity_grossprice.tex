@@ -1,0 +1,96 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
+column{3,5,7,9}={}{halign=c,},
+column{1}={}{halign=l,},
+cell{2}{2}={}{halign=c,},
+cell{2}{4}={}{halign=c,},
+cell{2}{6}={}{halign=c,},
+cell{2}{8}={}{halign=c,},
+cell{3}{2}={}{halign=c,},
+cell{3}{4}={}{halign=c,},
+cell{3}{6}={}{halign=c,},
+cell{3}{8}={}{halign=c,},
+cell{4}{2}={}{halign=c,},
+cell{4}{4}={}{halign=c,},
+cell{4}{6}={}{halign=c,},
+cell{4}{8}={}{halign=c,},
+cell{5}{2}={}{halign=c,},
+cell{5}{4}={}{halign=c,},
+cell{5}{6}={}{halign=c,},
+cell{5}{8}={}{halign=c,},
+cell{6}{2}={}{halign=c,},
+cell{6}{4}={}{halign=c,},
+cell{6}{6}={}{halign=c,},
+cell{6}{8}={}{halign=c,},
+cell{7}{2}={}{halign=c,},
+cell{7}{4}={}{halign=c,},
+cell{7}{6}={}{halign=c,},
+cell{7}{8}={}{halign=c,},
+cell{8}{2}={}{halign=c,},
+cell{8}{4}={}{halign=c,},
+cell{8}{6}={}{halign=c,},
+cell{8}{8}={}{halign=c,},
+cell{9}{2}={}{halign=c,},
+cell{9}{4}={}{halign=c,},
+cell{9}{6}={}{halign=c,},
+cell{9}{8}={}{halign=c,},
+cell{10}{2}={}{halign=c,},
+cell{10}{4}={}{halign=c,},
+cell{10}{6}={}{halign=c,},
+cell{10}{8}={}{halign=c,},
+cell{11}{2}={}{halign=c,},
+cell{11}{4}={}{halign=c,},
+cell{11}{6}={}{halign=c,},
+cell{11}{8}={}{halign=c,},
+cell{12}{2}={}{halign=c,},
+cell{12}{4}={}{halign=c,},
+cell{12}{6}={}{halign=c,},
+cell{12}{8}={}{halign=c,},
+cell{13}{2}={}{halign=c,},
+cell{13}{4}={}{halign=c,},
+cell{13}{6}={}{halign=c,},
+cell{13}{8}={}{halign=c,},
+cell{14}{2}={}{halign=c,},
+cell{14}{4}={}{halign=c,},
+cell{14}{6}={}{halign=c,},
+cell{14}{8}={}{halign=c,},
+cell{15}{2}={}{halign=c,},
+cell{15}{4}={}{halign=c,},
+cell{15}{6}={}{halign=c,},
+cell{15}{8}={}{halign=c,},
+cell{16}{2}={}{halign=c,},
+cell{16}{4}={}{halign=c,},
+cell{16}{6}={}{halign=c,},
+cell{16}{8}={}{halign=c,},
+cell{1}{2}={c=2,}{halign=c, halign=c,},
+cell{1}{4}={c=2,}{halign=c, halign=c,},
+cell{1}{6}={c=2,}{halign=c, halign=c,},
+cell{1}{8}={c=2,}{halign=c, halign=c,},
+hline{9}={1,2,3,4,5,6,7,8,9}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& Overall &  & Anti-Dumping : 2010 - 2013 &  & Anti-Dumping : 2014 - 2016 &  & Trade War 2018 &  \\ \cmidrule[lr]{4-5}\cmidrule[lr]{6-7}\cmidrule[lr]{2-3}\cmidrule[lr]{8-9}
+& (1) & (2) & (3) & (4) & (5) & (6) & (7) & (8) \\ \midrule %% TinyTableHeader
+ln Tariff & \num{0.094}*** & \num{0.219}*** & \num{0.397} & \num{0.233} & \num{0.178}*** & \num{0.152}** & \num{0.170}*** & \num{0.346}*** \\
+& (\num{0.018}) & (\num{0.030}) & (\num{0.295}) & (\num{0.345}) & (\num{0.045}) & (\num{0.047}) & (\num{0.033}) & (\num{0.043}) \\
+Treated & \num{-0.016} & \num{0.018} & \num{-0.176}+ & \num{-0.116} & \num{-0.331}*** & \num{-0.157}* &  &  \\
+& (\num{0.012}) & (\num{0.025}) & (\num{0.100}) & (\num{0.117}) & (\num{0.065}) & (\num{0.070}) &  &  \\
+Treated x ln Tariff & \num{-0.028}** & \num{-0.222}*** &  &  & \num{0.833}*** & \num{0.415}* & \num{-0.008} & \num{-0.292}*** \\
+& (\num{0.010}) & (\num{0.065}) &  &  & (\num{0.171}) & (\num{0.182}) & (\num{0.013}) & (\num{0.061}) \\
+Num.Obs & \num{398575} & \num{398575} & \num{22666} & \num{22666} & \num{104188} & \num{104188} & \num{128111} & \num{128111} \\
+R2 & \num{0.515} & \num{0.575} & \num{0.715} & \num{0.742} & \num{0.482} & \num{0.504} & \num{0.440} & \num{0.474} \\
+FE: County & X & X & X & X & X & X & X & X \\
+FE: Installer & X &  & X &  & X &  & X &  \\
+FE: Origin & X &  & X &  & X &  & X &  \\
+FE: Year & X &  & X &  & X &  & X &  \\
+FE: Year × Origin &  & X &  & X &  & X &  & X \\
+FE: Year × Installer &  & X &  & X &  & X &  & X \\
+\bottomrule
+\end{talltblr}
+\end{table}

@@ -223,8 +223,12 @@ tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", 
 
 
 # We keep zip code with population different from 0 since it would imply that zip code correspond to a commercial area
-tts[, installation_zip_code := .N, by = .(zip_code, year)]
-tts[, demand_zip_code := (installation_zip_code/population)*1000]
+tts[, demand_zip_code := .N, by = .(zip_code, year_quarter)]
+tts[, demand_zip_code_normalized := (demand_zip_code/population)*1000]
+
+# We keep zip code with population different from 0 since it would imply that zip code correspond to a commercial area
+tts[, demand_county := .N, by = .(county, year_quarter)]
+tts[, demand_county_normalized := (demand_county/population)*1000]
 
 # We merge with electricity price and wages 
 tts = merge(tts, elec, by = c("state", "year_quarter"), all.x = TRUE)
@@ -264,13 +268,12 @@ tts = tts[ho == 1,]
 
 # We only keep 43 rows
 cols_to_keep <- c("county", "zip_code", "tract", "year", "year_quarter", "utility", "module_manufacturer", "installer_name", "origin",
-                  "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "efficiency_module", "treated",
-                  "new_construction", "ground_mounted" , "module_quantity", "module_model", "premium_panel_ad1", "premium_panel_ad2", "premium_panel_st",
+                  "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "efficiency_module", "treated", "new_construction", "ground_mounted" , "module_quantity", "module_model", "premium_panel_ad1", "premium_panel_ad2", "premium_panel_st",
                   "price_w", "rebate_w", "proxy_panel_price", "proxy_panel_price_w", "ow_occupied_housing", "self_installed",
                   "population", "population_density", "land_area_in_sqmi", "tract", "geoid", "pct_bachelor_estimate",
                   "median_home_value", "median_household_income", "market_share_period", "china", "korea",
-                  "usa", "norway", "germany", "japan", "premium_panel_overall", 
-                  "premium_installation", "tariff", "tariff_temp","elec_price",
+                  "usa", "norway", "germany", "japan", "premium_panel_overall", "demand_zip_code", "demand_zip_code_normalized",
+                  "premium_installation", "tariff", "tariff_temp","elec_price", "demand_county", "demand_county_normalized",
                   "mean_price_year", "mean_month_emp", "mean_week_wage", "demand_zip_code", "state")
 
 tts = tts[, ..cols_to_keep]
@@ -284,41 +287,4 @@ tts = tts[population > 0,]
 # Export NY State as a Placebo
 write_parquet(tts_ny, data_final("tts_ny.parquet"))
 write_parquet(tts, data_final("tts_final.parquet"))
-
-# Draft -------------------------------------------------------------------
-
-## Relative Premium --------------------------------------------------------
-
-# ggplot(tts[year %in% 2010:2012,], aes(x = reorder(module_manufacturer, efficiency_module, FUN = mean), 
-#                 y = efficiency_module)) +
-#   geom_boxplot(fill = "steelblue", color = "black") +
-#   labs(
-#     x = "Manufacturer",
-#     y = "Efficiency Module (%)"
-#   ) +
-#   theme_bw() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# ggsave("output/figures/firms_list/distrib_efficiency_2010_2012.pdf", width = 10, height = 7)
-# 
-# ggplot(tts[year %in% 2013:2016,], aes(x = reorder(module_manufacturer, efficiency_module, FUN = mean), 
-#                                       y = efficiency_module)) +
-#   geom_boxplot(fill = "steelblue", color = "black") +
-#   labs(
-#     x = "Manufacturer",
-#     y = "Efficiency Module (%)"
-#   ) +
-#   theme_bw() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# ggsave("output/figures/firms_list/distrib_efficiency_2013_2016.pdf", width = 10, height = 7)
-# 
-# ggplot(tts[year %in% 2017:2020,], aes(x = reorder(module_manufacturer, efficiency_module, FUN = mean), 
-#                                       y = efficiency_module)) +
-#   geom_boxplot(fill = "steelblue", color = "black") +
-#   labs(
-#     x = "Manufacturer",
-#     y = "Efficiency Module (%)"
-#   ) +
-#   theme_bw() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# ggsave("output/figures/firms_list/distrib_efficiency_2017_2020.pdf", width = 10, height = 7)
-
+fwrite(tts, data_final("tts_final.csv"))

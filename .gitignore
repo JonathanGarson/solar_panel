@@ -10,4 +10,4 @@
 *.tsv
 *.xls
 *.xlsx
-*.parquet
+*.parquet.DS_Store

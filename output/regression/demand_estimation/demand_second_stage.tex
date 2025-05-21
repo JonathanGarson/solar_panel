@@ -1,0 +1,28 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]},
+column{2,3}={}{halign=c,},
+column{1}={}{halign=l,},
+hline{8}={1,2,3}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& IV First Stage & OLS for CF \\ \midrule %% TinyTableHeader
+ln Tariff & \num{0.986}*** & \num{0.979}*** \\
+& (\num{0.033}) & (\num{0.035}) \\
+Rebate (\$/W) & \num{0.205}*** & \num{0.210}*** \\
+& (\num{0.043}) & (\num{0.047}) \\
+Elec. Price (\$) & \num{-0.190}*** &  \\
+& (\num{0.023}) &  \\
+Num.Obs & \num{92742} & \num{92742} \\
+R2 & \num{0.698} & \num{0.685} \\
+R2-Adj. & \num{0.698} & \num{0.680} \\
+FE: County & X &  \\
+FE: Year & X & X \\
+\bottomrule
+\end{talltblr}
+\end{table}

@@ -1,0 +1,59 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]},
+column{1}={}{halign=l,},
+cell{2}{2}={}{halign=c,},
+cell{2}{3}={}{halign=c,},
+cell{2}{4}={}{halign=c,},
+cell{3}{2}={}{halign=c,},
+cell{3}{3}={}{halign=c,},
+cell{3}{4}={}{halign=c,},
+cell{4}{2}={}{halign=c,},
+cell{4}{3}={}{halign=c,},
+cell{4}{4}={}{halign=c,},
+cell{5}{2}={}{halign=c,},
+cell{5}{3}={}{halign=c,},
+cell{5}{4}={}{halign=c,},
+cell{6}{2}={}{halign=c,},
+cell{6}{3}={}{halign=c,},
+cell{6}{4}={}{halign=c,},
+cell{7}{2}={}{halign=c,},
+cell{7}{3}={}{halign=c,},
+cell{7}{4}={}{halign=c,},
+cell{8}{2}={}{halign=c,},
+cell{8}{3}={}{halign=c,},
+cell{8}{4}={}{halign=c,},
+cell{9}{2}={}{halign=c,},
+cell{9}{3}={}{halign=c,},
+cell{9}{4}={}{halign=c,},
+cell{10}{2}={}{halign=c,},
+cell{10}{3}={}{halign=c,},
+cell{10}{4}={}{halign=c,},
+cell{11}{2}={}{halign=c,},
+cell{11}{3}={}{halign=c,},
+cell{11}{4}={}{halign=c,},
+cell{1}{2}={}{halign=c, halign=c,},
+cell{1}{3}={}{halign=c, halign=c,},
+cell{1}{4}={}{halign=c, halign=c,},
+hline{5}={1,2,3,4}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& Anti-Dumping: 2010-2013 & Anti-Dumping: 2014-2016 & Trade War \\ \cmidrule[lr]{2-2}\cmidrule[lr]{3-3}\cmidrule[lr]{4-4}
+& Poisson & Poisson  & Poisson   \\ \midrule %% TinyTableHeader
+ln Tariff & \num{0.060}* & \num{0.226}*** & \num{0.171}*** \\
+& (\num{0.026}) & (\num{0.044}) & (\num{0.031}) \\
+Num.Obs. & \num{35540} & \num{109120} & \num{132378} \\
+R2 & \num{0.705} & \num{0.492} & \num{0.440} \\
+R2 Adj. & \num{0.701} & \num{0.488} & \num{0.436} \\
+FE: year\_quarter & X & X & X \\
+FE: origin & X & X & X \\
+FE: installer\_name & X & X & X \\
+FE: county & X & X & X \\
+\bottomrule
+\end{talltblr}
+\end{table}

@@ -6,17 +6,546 @@ library(fixest)
 library(modelsummary)
 library(tibble)
 
-# Data --------------------------------------------------------------------
 
+# Weak Conditions ---------------------------------------------------------
+tts = setDT(read_parquet(data_final("tts_final.parquet")))
+
+# Pass-Through Estimation ----------------------------------------------------------------
+tts[, net_price := price_w - rebate_w]
+tts[, year_origin := paste0(year, origin)]
+tts[, quarter_origin := paste0(year_quarter, origin)]
+tts[, year_origin := paste0(year, origin)]
+tts[, quarter_installer := paste0(year_quarter, installer_name)]
+tts[, year_installer := paste0(year, installer_name)]
+
+tts = tts[rebate_w < price_w]
+system_vars <- c("PV_system_size_DC", "I(PV_system_size_DC^2)", "elec_price", "mean_week_wage")
+dem_vars <- c("population_density", "pct_bachelor_estimate", "median_home_value", "median_household_income")
+
+# Main interaction term
+tts[, ln_tariff := log(tariff)]
+
+
+# Data --------------------------------------------------------------------
 rob = setDT(read_parquet(data_final("tts_final.parquet")))
 
-# AD1 - Pass-Through Robustness-------------------------------------------------
+rob[, quarter_installer := paste0(year_quarter, installer_name)]
 
 rob[, net_price := price_w - rebate_w]
 rob[, year_origin := paste0(year, origin)]
 rob[, quarter_origin := paste0(year_quarter, origin)]
 rob[, ln_tariff := log(tariff)]
 
+
+# Shuffle all -------------------------------------------------------------
+treated_brands = unique(rob[origin == "china", (module_manufacturer)])
+set.seed(123)
+rob[, placebo_tariff := tariff] 
+rob[, placebo_tariff := sample(tariff, .N, replace = FALSE)]
+
+system_vars <- c("PV_system_size_DC", "I(PV_system_size_DC^2)", "elec_price", "mean_week_wage")
+dem_vars <- c("population_density", "pct_bachelor_estimate", "median_home_value", "median_household_income")
+
+# Main interaction term
+rob[, ln_placebo_tariff := log(placebo_tariff)]
+base_rhs <- "ln_placebo_tariff*efficiency_module + ln_placebo_tariff*premium_installation"
+
+# Combine everything
+rhs <- paste(c(base_rhs, system_vars, dem_vars), collapse = " + ")
+
+for (p in c("log(price_w) ~","log(net_price) ~")){
+  # Changing for net price to gross price influence the results for AD2010-2013
+  # p= "log(price_w) ~"
+  full_formula_str <- paste(p, rhs) 
+  
+  # Convert to formula
+  full_formula <- as.formula(full_formula_str)
+  
+  placebo_pt_all_eff =  list(
+    
+    "Overall" = list(
+      feols(full_formula, fixef = c("year_quarter","county", "installer_name", "origin"), cluster = ~ zip_code, data = rob),
+      feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob)
+    ),
+    
+    "Anti-Dumping : 2010 - 2013" = list(
+      feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013]),
+      feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013])
+    ),
+    
+    "Anti-Dumping : 2014 - 2016" = list(
+      feols(full_formula, fixef =   c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016]),
+      feols(full_formula, fixef =   c("county","installer_name", "quarter_origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016])
+    ),
+    
+    "Trade War 2018" = list(
+      feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018]),
+      feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018])
+    )
+  )
+  
+  coef_name = c(
+    "ln_placebo_tariff" = "ln Placebo Tariff",
+    "ln_placebo_tariff:premium_panel_overall" = "ln Placebo Tariff x Premium Panel",
+    "ln_placebo_tariff:efficiency_module" = "ln Placebo Tariff x Efficiency",
+    "ln_placebo_tariff:premium_installation" = "ln Placebo Tariff x Premium Installation",
+    "efficiency_module" = "Efficiency",
+    "premium_installation" = "Premium Installation"
+  )
+  
+  gof_list <- tribble(
+    ~raw,                  ~clean,           ~fmt,
+    "nobs",                "Num.Obs",        "%.0f",
+    "r.squared",           "R2",             "%.3f",
+    "adj.r.squared",       "R2-Adj.",        "%.3f",
+    "FE: county",          "FE: County",         "%.0f",
+    "FE: year_quarter",    "FE: Year-Quarter",        "%.0f",
+    "FE: installer_name",  "FE: Installer",      "%.0f",
+    "FE: origin",          "FE: Origin",         "%.0f",
+    "FE: year",            "FE: Year",           "%.0f",
+    "FE: year_origin",     "FE: Year × Origin",  "%.0f",
+    "FE: quarter_origin",  "FE: Year-Quarter × Origin",  "%.0f"
+  )
+  
+  placebo_all_eff = modelsummary(
+    models = placebo_pt_all_eff,
+    stars = TRUE,
+    shape = "cbind",
+    coef_map = coef_name,
+    gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
+    gof_map = gof_list,
+    output = "latex"
+  )
+  if (p == "log(net_price) ~"){
+    writeLines(as.character(placebo_all_eff), "output/regression/robustness/placebo_robustness_efficiency_all_netprice.tex")}
+  else {
+    writeLines(as.character(placebo_all_eff), "output/regression/robustness/placebo_robustness_efficiency_all_grossprice.tex")
+  }
+}
+
+# Shuffling tariff on non-treated - Efficiency -----------------------------------------------
+
+treated_brands = unique(rob[origin == "china", (module_manufacturer)])
+set.seed(123)
+rob[, placebo_tariff := tariff] 
+rob[!module_manufacturer %in% treated_brands, placebo_tariff := sample(tariff, .N, replace = FALSE)]
+
+system_vars <- c("PV_system_size_DC", "I(PV_system_size_DC^2)", "elec_price", "mean_week_wage")
+dem_vars <- c("population_density", "pct_bachelor_estimate", "median_home_value", "median_household_income")
+
+# Main interaction term
+rob[, ln_placebo_tariff := log(placebo_tariff)]
+base_rhs <- "ln_placebo_tariff*efficiency_module + ln_placebo_tariff*premium_installation"
+
+# Combine everything
+rhs <- paste(c(base_rhs, system_vars, dem_vars), collapse = " + ")
+
+for (p in c("log(price_w) ~","log(net_price) ~")){
+  # Changing for net price to gross price influence the results for AD2010-2013
+  # p= "log(price_w) ~"
+  full_formula_str <- paste(p, rhs) 
+  
+  # Convert to formula
+  full_formula <- as.formula(full_formula_str)
+  
+  placebo_pt_nt_eff =  list(
+    
+    "Overall" = list(
+      feols(full_formula, fixef = c("year_quarter","county", "installer_name", "origin"), cluster = ~ zip_code, data = rob),
+      feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob)
+    ),
+    
+    "Anti-Dumping : 2010 - 2013" = list(
+      feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013]),
+      feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013])
+    ),
+    
+    "Anti-Dumping : 2014 - 2016" = list(
+      feols(full_formula, fixef =   c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016]),
+      feols(full_formula, fixef =   c("county","installer_name", "quarter_origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016])
+    ),
+    
+    "Trade War 2018" = list(
+      feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018]),
+      feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018])
+    )
+  )
+  
+  coef_name = c(
+    "ln_placebo_tariff" = "ln Placebo Tariff",
+    "ln_placebo_tariff:premium_panel_overall" = "ln Placebo Tariff x Premium Panel",
+    "ln_placebo_tariff:efficiency_module" = "ln Placebo Tariff x Efficiency",
+    "ln_placebo_tariff:premium_installation" = "ln Placebo Tariff x Premium Installation"
+  )
+  
+  gof_list <- tribble(
+    ~raw,                  ~clean,           ~fmt,
+    "nobs",                "Num.Obs",        "%.0f",
+    "r.squared",           "R2",             "%.3f",
+    "adj.r.squared",       "R2-Adj.",        "%.3f",
+    "FE: county",          "FE: County",         "%.0f",
+    "FE: year_quarter",    "FE: Year-Quarter",        "%.0f",
+    "FE: installer_name",  "FE: Installer",      "%.0f",
+    "FE: origin",          "FE: Origin",         "%.0f",
+    "FE: year",            "FE: Year",           "%.0f",
+    "FE: year_origin",     "FE: Year × Origin",  "%.0f",
+    "FE: quarter_origin",  "FE: Year-Quarter × Origin",  "%.0f"
+  )
+  
+  placebo_non_treated_eff = modelsummary(
+    models = placebo_pt_nt_eff,
+    stars = TRUE,
+    shape = "cbind",
+    coef_map = coef_name,
+    gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
+    gof_map = gof_list,
+    output = "latex"
+  )
+  if (p == "log(net_price) ~"){
+    writeLines(as.character(placebo_non_treated_eff), "output/regression/robustness/placebo_robustness_efficiency_nontreated_netprice.tex")}
+  else {
+    writeLines(as.character(placebo_non_treated_eff), "output/regression/robustness/placebo_robustness_efficiency_nontreated_grossprice.tex")
+  }
+}
+
+# Shuffling On Non Treated - Premium -----------------------------------
+
+treated_brands = unique(rob[origin == "china", (module_manufacturer)])
+set.seed(123)
+rob[, placebo_tariff := tariff] 
+rob[!module_manufacturer %in% treated_brands, placebo_tariff := sample(tariff, .N, replace = FALSE)]
+
+system_vars <- c("PV_system_size_DC", "I(PV_system_size_DC^2)", "elec_price", "mean_week_wage")
+dem_vars <- c("population_density", "pct_bachelor_estimate", "median_home_value", "median_household_income")
+
+# Main interaction term
+rob[, ln_placebo_tariff := log(placebo_tariff)]
+base_rhs <- "ln_placebo_tariff*premium_panel_overall + ln_placebo_tariff*premium_installation"
+
+# Combine everything
+rhs <- paste(c(base_rhs, system_vars, dem_vars), collapse = " + ")
+
+for (p in c("log(price_w) ~","log(net_price) ~")){
+  # Changing for net price to gross price influence the results for AD2010-2013
+  # p= "log(price_w) ~"
+  full_formula_str <- paste(p, rhs) 
+  
+  # Convert to formula
+  full_formula <- as.formula(full_formula_str)
+  
+  placebo_pt_nt_p =  list(
+    
+    "Overall" = list(
+      feols(full_formula, fixef = c("year_quarter","county", "installer_name", "origin"), cluster = ~ zip_code, data = rob),
+      feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob)
+    ),
+    
+    "Anti-Dumping : 2010 - 2013" = list(
+      feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013]),
+      feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013])
+    ),
+    
+    "Anti-Dumping : 2014 - 2016" = list(
+      feols(full_formula, fixef =   c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016]),
+      feols(full_formula, fixef =   c("county","installer_name", "quarter_origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016])
+    ),
+    
+    "Trade War 2018" = list(
+      feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018]),
+      feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018])
+    )
+  )
+  
+  coef_name = c(
+    "ln_placebo_tariff" = "ln Placebo Tariff",
+    "ln_placebo_tariff:premium_panel_overall" = "ln Placebo Tariff x Premium Panel",
+    "ln_placebo_tariff:efficiency_module" = "ln Placebo Tariff x Efficiency",
+    "ln_placebo_tariff:premium_installation" = "ln Placebo Tariff x Premium Installation"
+  )
+  
+  gof_list <- tribble(
+    ~raw,                  ~clean,           ~fmt,
+    "nobs",                "Num.Obs",        "%.0f",
+    "r.squared",           "R2",             "%.3f",
+    "adj.r.squared",       "R2-Adj.",        "%.3f",
+    "FE: county",          "FE: County",         "%.0f",
+    "FE: year_quarter",    "FE: Year-Quarter",        "%.0f",
+    "FE: installer_name",  "FE: Installer",      "%.0f",
+    "FE: origin",          "FE: Origin",         "%.0f",
+    "FE: year",            "FE: Year",           "%.0f",
+    "FE: year_origin",     "FE: Year × Origin",  "%.0f",
+    "FE: quarter_origin",  "FE: Year-Quarter × Origin",  "%.0f"
+  )
+  
+  placebo_pass_through_non_treated_premium = modelsummary(
+    models = placebo_pt_nt_p,
+    stars = TRUE,
+    shape = "cbind",
+    coef_map = coef_name,
+    gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
+    gof_map = gof_list,
+    output = "latex"
+  )
+  if (p == "log(net_price) ~"){
+    writeLines(as.character(placebo_pass_through_non_treated_premium), "output/regression/robustness/placebo_robustness_premium_nontreated_netprice.tex")}
+  else {
+    writeLines(as.character(placebo_pass_through_non_treated_premium), "output/regression/robustness/placebo_robustness_premium_nontreated_grossprice.tex")
+  }
+}
+
+# Shuffling on Treated - Efficiency ----------------------------------------------------
+
+treated_brands = unique(rob[origin == "china", (module_manufacturer)])
+set.seed(123)
+rob[, placebo_tariff := tariff] 
+rob[module_manufacturer %in% treated_brands, placebo_tariff := sample(tariff, .N, replace = FALSE)]
+
+system_vars <- c("PV_system_size_DC", "I(PV_system_size_DC^2)", "elec_price", "mean_week_wage")
+dem_vars <- c("population_density", "pct_bachelor_estimate", "median_home_value", "median_household_income")
+
+# Main interaction term
+rob[, ln_placebo_tariff := log(placebo_tariff)]
+base_rhs <- "ln_placebo_tariff*efficiency_module + ln_placebo_tariff*premium_installation"
+
+# Combine everything
+rhs <- paste(c(base_rhs, system_vars, dem_vars), collapse = " + ")
+
+for (p in c("log(price_w) ~","log(net_price) ~")){
+  # Changing for net price to gross price influence the results for AD2010-2013
+  # p =  "log(price_w) ~"
+  full_formula_str <- paste(p, rhs) 
+  
+  # Convert to formula
+  full_formula <- as.formula(full_formula_str)
+  
+  placebo_pt_t_eff =  list(
+    
+    "Overall" = list(
+      feols(full_formula, fixef = c("year_quarter","county", "installer_name", "origin"), cluster = ~ zip_code, data = rob),
+      feols(full_formula, fixef = c("county","quarter_installer", "quarter_origin"), cluster = ~ zip_code, data = rob)
+    ),
+    
+    "Anti-Dumping : 2010 - 2013" = list(
+      feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013]),
+      feols(full_formula, fixef = c("county","quarter_installer", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013])
+    ),
+    
+    "Anti-Dumping : 2014 - 2016" = list(
+      feols(full_formula, fixef =   c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016]),
+      feols(full_formula, fixef =   c("county","quarter_installer", "quarter_origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016])
+    ),
+    
+    "Trade War 2018" = list(
+      feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018]),
+      feols(full_formula, fixef = c("county","quarter_installer", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018])
+    )
+  )
+  
+  coef_name = c(
+    "ln_placebo_tariff" = "ln Placebo Tariff",
+    "ln_placebo_tariff:premium_panel_overall" = "ln Placebo Tariff x Premium Panel",
+    "ln_placebo_tariff:efficiency_module" = "ln Placebo Tariff x Efficiency",
+    "ln_placebo_tariff:premium_installation" = "ln Placebo Tariff x Premium Installation",
+  )
+  
+  gof_list <- tribble(
+    ~raw,                  ~clean,           ~fmt,
+    "nobs",                "Num.Obs",        "%.0f",
+    "r.squared",           "R2",             "%.3f",
+    "adj.r.squared",       "R2-Adj.",        "%.3f",
+    "FE: county",          "FE: County",         "%.0f",
+    "FE: year_quarter",    "FE: Year-Quarter",        "%.0f",
+    "FE: installer_name",  "FE: Installer",      "%.0f",
+    "FE: origin",          "FE: Origin",         "%.0f",
+    "FE: year",            "FE: Year",           "%.0f",
+    "FE: year_origin",     "FE: Year × Origin",  "%.0f",
+    "FE: quarter_origin",  "FE: Year-Quarter × Origin",  "%.0f",
+    "FE: quarter_installer",  "FE: Year-Quarter × Installer",  "%.0f"
+  )
+  
+  placebo_pass_through_treated_efficiency = modelsummary(
+    models = placebo_pt_t_eff,
+    stars = TRUE,
+    shape = "cbind",
+    coef_map = coef_name,
+    gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
+    gof_map = gof_list,
+    output = "latex"
+  )
+  if (p == "log(net_price) ~"){
+    writeLines(as.character(placebo_pass_through_treated_efficiency), "output/regression/robustness/placebo_robustness_eff_treated_netprice.tex")}
+  else {
+    writeLines(as.character(placebo_pass_through_treated_efficiency), "output/regression/robustness/placebo_robustness_eff_treated_grossprice.tex")
+  }
+}
+
+# Shuffling On Treated Premium --------------------------------------------
+
+treated_brands = unique(rob[origin == "china", (module_manufacturer)])
+set.seed(123)
+rob[, placebo_tariff := tariff] 
+rob[module_manufacturer %in% treated_brands, placebo_tariff := sample(tariff, .N, replace = FALSE)]
+
+system_vars <- c("PV_system_size_DC", "I(PV_system_size_DC^2)", "elec_price", "mean_week_wage")
+dem_vars <- c("population_density", "pct_bachelor_estimate", "median_home_value", "median_household_income")
+
+# Main interaction term
+rob[, ln_placebo_tariff := log(placebo_tariff)]
+base_rhs <- "ln_placebo_tariff*premium_panel_overall + ln_placebo_tariff*premium_installation"
+
+# Combine everything
+rhs <- paste(c(base_rhs, system_vars, dem_vars), collapse = " + ")
+
+for (p in c("log(price_w) ~","log(net_price) ~")){
+  # Changing for net price to gross price influence the results for AD2010-2013
+  # p =  "log(price_w) ~"
+  full_formula_str <- paste(p, rhs) 
+  
+  # Convert to formula
+  full_formula <- as.formula(full_formula_str)
+  
+  placebo_pt_t_p =  list(
+    
+    "Overall" = list(
+      feols(full_formula, fixef = c("year_quarter","county", "installer_name", "origin"), cluster = ~ zip_code, data = rob),
+      feols(full_formula, fixef = c("county","quarter_installer", "quarter_origin"), cluster = ~ zip_code, data = rob)
+    ),
+    
+    "Anti-Dumping : 2010 - 2013" = list(
+      feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013]),
+      feols(full_formula, fixef = c("county","quarter_installer", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013])
+    ),
+    
+    "Anti-Dumping : 2014 - 2016" = list(
+      feols(full_formula, fixef =   c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016]),
+      feols(full_formula, fixef =   c("county","quarter_installer", "quarter_origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016])
+    ),
+    
+    "Trade War 2018" = list(
+      feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018]),
+      feols(full_formula, fixef = c("county","quarter_installer", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018])
+    )
+  )
+  
+  coef_name = c(
+    "ln_placebo_tariff" = "ln Placebo Tariff",
+    "ln_placebo_tariff:premium_panel_overall" = "ln Placebo Tariff x Premium Panel",
+    "ln_placebo_tariff:efficiency_module" = "ln Placebo Tariff x Efficiency",
+    "ln_placebo_tariff:premium_installation" = "ln Placebo Tariff x Premium Installation"
+  )
+  
+  gof_list <- tribble(
+    ~raw,                  ~clean,           ~fmt,
+    "nobs",                "Num.Obs",        "%.0f",
+    "r.squared",           "R2",             "%.3f",
+    "adj.r.squared",       "R2-Adj.",        "%.3f",
+    "FE: county",          "FE: County",         "%.0f",
+    "FE: year_quarter",    "FE: Year-Quarter",        "%.0f",
+    "FE: installer_name",  "FE: Installer",      "%.0f",
+    "FE: origin",          "FE: Origin",         "%.0f",
+    "FE: year",            "FE: Year",           "%.0f",
+    "FE: year_origin",     "FE: Year × Origin",  "%.0f",
+    "FE: quarter_origin",  "FE: Year-Quarter × Origin",  "%.0f",
+    "FE: quarter_installer",  "FE: Year-Quarter × Installer",  "%.0f"
+  )
+  
+  placebo_pass_through_treated_premium = modelsummary(
+    models = placebo_pt_t_p,
+    stars = TRUE,
+    shape = "cbind",
+    coef_map = coef_name,
+    gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
+    gof_map = gof_list,
+    output = "latex"
+  )
+  if (p == "log(net_price) ~"){
+    writeLines(as.character(placebo_pass_through_treated_premium), "output/regression/robustness/placebo_robustness_treated_netprice.tex")}
+  else {
+    writeLines(as.character(placebo_pass_through_treated_premium), "output/regression/robustness/placebo_robustness_treated_grossprice.tex")
+  }
+}
+
+
+
+# Shuffling on Efficiency -------------------------------------------------
+
+# Main interaction term
+base_rhs <- "ln_placebo_tariff*efficiency_module + ln_placebo_tariff*premium_installation"
+
+# Combine everything
+rhs <- paste(c(base_rhs, system_vars, dem_vars), collapse = " + ")
+
+for (p in c("log(efficiency_module) ~")){
+  # Changing for net price to gross price influence the results for AD2010-2013
+  # p =  "log(efficiency_module) ~"
+  full_formula_str <- paste(p, rhs) 
+  
+  # Convert to formula
+  full_formula <- as.formula(full_formula_str)
+  
+  placebo_pt =  list(
+    
+    "Overall" = list(
+      feols(full_formula, fixef = c("year_quarter","county", "installer_name", "origin"), cluster = ~ zip_code, data = rob),
+      feols(full_formula, fixef = c("county","quarter_installer", "quarter_origin"), cluster = ~ zip_code, data = rob)
+    ),
+    
+    "Anti-Dumping : 2010 - 2013" = list(
+      feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013]),
+      feols(full_formula, fixef = c("county","quarter_installer", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013])
+    ),
+    
+    "Anti-Dumping : 2014 - 2016" = list(
+      feols(full_formula, fixef =   c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016]),
+      feols(full_formula, fixef =   c("county","quarter_installer", "quarter_origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016])
+    ),
+    
+    "Trade War 2018" = list(
+      feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018]),
+      feols(full_formula, fixef = c("county","quarter_installer", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018])
+    )
+  )
+  
+  coef_name = c(
+    "ln_placebo_tariff" = "ln Placebo Tariff",
+    "ln_placebo_tariff:premium_panel_overall" = "ln Placebo Tariff x Premium Panel",
+    "ln_placebo_tariff:premium_installation" = "ln Placebo Tariff x Premium Installation"
+  )
+  
+  gof_list <- tribble(
+    ~raw,                  ~clean,           ~fmt,
+    "nobs",                "Num.Obs",        "%.0f",
+    "r.squared",           "R2",             "%.3f",
+    "adj.r.squared",       "R2-Adj.",        "%.3f",
+    "FE: county",          "FE: County",         "%.0f",
+    "FE: year_quarter",    "FE: Year-Quarter",        "%.0f",
+    "FE: installer_name",  "FE: Installer",      "%.0f",
+    "FE: origin",          "FE: Origin",         "%.0f",
+    "FE: year",            "FE: Year",           "%.0f",
+    "FE: year_origin",     "FE: Year × Origin",  "%.0f",
+    "FE: quarter_origin",  "FE: Year-Quarter × Origin",  "%.0f",
+    "FE: quarter_installer",  "FE: Year-Quarter × Installer",  "%.0f"
+  )
+  
+  placebo_pass_through = modelsummary(
+    models = placebo_pt,
+    stars = TRUE,
+    shape = "cbind",
+    coef_map = coef_name,
+    gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
+    gof_map = gof_list,
+    # output = "latex"
+  )
+  if (p == "log(net_price) ~"){
+    writeLines(as.character(placebo_pass_through), "output/regression/robustness/placebo_robustness_netprice.tex")}
+  else {
+    writeLines(as.character(placebo_pass_through), "output/regression/robustness/placebo_robustness_grossprice.tex")
+  }
+}
+
+
+
+## IV  ---------------------------------------------------------------------
 mkt = rob[, .(origin, year)]
 mkt[, sum_install := .N, by = year]
 mkt[, sum_install_origin := .N,  by = .(origin, year)]
@@ -44,7 +573,6 @@ pre_tariff_share = rob[year %in% 2010:2011,
 rob = merge(rob, pre_tariff_share, by = "module_manufacturer", all.x = TRUE)
 rob_post_ad1 = rob[origin == "china" & year %in% 2012:2013]
 
-## IV  ---------------------------------------------------------------------
 # We instrument the market share of Chinese firm in 2010 to predict tariff and then price increase
 
 iv = feols(
@@ -77,7 +605,6 @@ iv_clean = list(
     "Second Stage" = iv
     )
 
-
 coef_name = c(
   "fit_ln_tariff" = "Fitted Resid. Ln Tariff",
   "pre_mkt_share" = "Pre-Tariff Market Share"
@@ -89,94 +616,10 @@ iv_ad1 = modelsummary(
   shape = "rbind",
   gof_map = gof_list,
   coef_map = coef_name,
-  output = "latex"
+  # output = "latex"
   )
 
 writeLines(as.character(iv_ad1), "output/regression/robustness/iv_ad1.tex")
-
-
-# Shuffling tariff -----------------------------------------------
-
-treated_brands = unique(rob[origin == "china", (module_manufacturer)])
-set.seed(123)
-rob[, placebo_tariff := tariff] 
-rob[!module_manufacturer %in% treated_brands, placebo_tariff := sample(tariff, .N, replace = FALSE)]
-
-system_vars <- c("PV_system_size_DC", "I(PV_system_size_DC^2)", "elec_price", "mean_week_wage")
-dem_vars <- c("population_density", "pct_bachelor_estimate", "median_home_value", "median_household_income")
-
-# Main interaction term
-rob[, ln_placebo_tariff := log(placebo_tariff)]
-base_rhs <- "ln_placebo_tariff*premium_panel_overall + ln_placebo_tariff*premium_installation"
-
-# Combine everything
-rhs <- paste(c(base_rhs, system_vars, dem_vars), collapse = " + ")
-
-for (p in c("log(price_w) ~","log(net_price) ~")){
-    # Changing for net price to gross price influence the results for AD2010-2013
-    full_formula_str <- paste(p, rhs) 
-    
-    # Convert to formula
-    full_formula <- as.formula(full_formula_str)
-    
-    placebo_pt =  list(
-      
-      "Overall" = list(
-        feols(full_formula, fixef = c("year_quarter","county", "installer_name", "origin"), cluster = ~ zip_code, data = rob),
-        feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob)
-      ),
-      
-      "Anti-Dumping : 2010 - 2013" = list(
-        feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013]),
-        feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2010:2013])
-      ),
-      
-      "Anti-Dumping : 2014 - 2016" = list(
-        feols(full_formula, fixef =   c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016]),
-        feols(full_formula, fixef =   c("county","installer_name", "quarter_origin"), cluster = ~ zip_code,data = rob[year %in% 2013:2016])
-      ),
-      
-      "Trade War 2018" = list(
-        feols(full_formula, fixef = c("year_quarter", "county", "installer_name", "origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018]),
-        feols(full_formula, fixef = c("county","installer_name", "quarter_origin"), cluster = ~ zip_code, data = rob[year %in% 2017:2018])
-      )
-    )
-  
-  coef_name = c(
-    "ln_placebo_tariff" = "ln Placebo Tariff",
-    "ln_placebo_tariff:premium_panel_overall" = "ln Placebo Tariff x Premium Panel",
-    "ln_placebo_tariff:premium_installation" = "ln Placebo Tariff x Premium Installation"
-  )
-  
-  gof_list <- tribble(
-    ~raw,                  ~clean,           ~fmt,
-    "nobs",                "Num.Obs",        "%.0f",
-    "r.squared",           "R2",             "%.3f",
-    "adj.r.squared",       "R2-Adj.",        "%.3f",
-    "FE: county",          "FE: County",         "%.0f",
-    "FE: year_quarter",    "FE: Year-Quarter",        "%.0f",
-    "FE: installer_name",  "FE: Installer",      "%.0f",
-    "FE: origin",          "FE: Origin",         "%.0f",
-    "FE: year",            "FE: Year",           "%.0f",
-    "FE: year_origin",     "FE: Year × Origin",  "%.0f",
-    "FE: quarter_origin",  "FE: Year-Quarter × Origin",  "%.0f"
-  )
-  
-  placebo_pass_through = modelsummary(
-    models = placebo_pt,
-    stars = TRUE,
-    shape = "cbind",
-    coef_map = coef_name,
-    gof_omit = "Adj|AIC|BIC|Within|Pseudo|RMSE|Std.",
-    gof_map = gof_list,
-    output = "latex"
-  )
-  if (p == "log(net_price) ~"){
-    writeLines(as.character(placebo_pass_through), "output/regression/pass_through/placebo_pass_through_netprice.tex")}
-  else {
-    writeLines(as.character(placebo_pass_through), "output/regression/pass_through/placebo_pass_through_grossprice.tex")
-  }
-}
 
 # Draft -------------------------------------------------------------------
 
@@ -184,57 +627,57 @@ for (p in c("log(price_w) ~","log(net_price) ~")){
 # # In this section we use another IV to predict the variation in prices of non affected firms
 # # The idea is to see more general effect of the implementation of tariff on price change
 # # Average market share over 2010-2011 for each module_manufacturer
-# pre_tariff_share_ad2 = rob[year %in% 2013:2014, .(pre_mkt_share = mean(market_share_year_comp, na.rm = TRUE)), by = .(module_manufacturer)]
-# rob = merge(rob, pre_tariff_share_ad2, by = "module_manufacturer", all.x = TRUE)
-# rob_post_ad2 = rob[origin == "china" & year %in% 2015:2016]
+pre_tariff_share_ad2 = rob[year %in% 2013, .(pre_mkt_share = mean(market_share_year_comp, na.rm = TRUE)), by = .(module_manufacturer)]
+rob = merge(rob, pre_tariff_share_ad2, by = "module_manufacturer", all.x = TRUE)
+rob_post_ad2 = rob[origin == "china" & year %in% 2015:2016]
 # 
-# ## IV  ---------------------------------------------------------------------
-# # We instrument the market share of Chinese firm in 2010 to predict tariff and then price increase
-# 
-# iv_2 = feols(
-#   log(net_price) ~ PV_system_size_DC + I(PV_system_size_DC^2) + elec_price + mean_week_wage +
-#     population_density + pct_bachelor_estimate + median_home_value + median_household_income
-#   | county + year_quarter + installer_name
-#   | ln_tariff ~ pre_mkt_share,
-#   cluster = ~zip_code,
-#   data = rob_post_ad2
-# )
-# 
-# gof_list <- tribble(
-#   ~raw,                  ~clean,           ~fmt,
-#   "nobs",                "Num.Obs",        "%.0f",
-#   "r.squared",           "R2",             "%.3f",
-#   "adj.r.squared",       "R2-Adj.",        "%.3f",
-#   "FE: county",          "FE: County",         "%.0f",
-#   "FE: year_quarter",    "FE: Year-Quarter",        "%.0f",
-#   "FE: installer_name",  "FE: Installer",      "%.0f",
-#   "FE: origin",          "FE: Origin",         "%.0f",
-#   "FE: year",            "FE: Year",           "%.0f",
-#   "FE: year_origin",     "FE: Year × Origin",  "%.0f",
-#   "FE: quarter_origin",  "FE: Year-Quarter × Origin",  "%.0f"
-# )
-# 
-# iv_clean_2 = list(
-#   # First stage
-#   "First Stage" = summary(iv_2, stage = 1),
-#   # Second stage
-#   "Second Stage" = iv_2
-# )
-# 
-# coef_name = c(
-#   "fit_ln_tariff" = "Fitted Resid. Ln Tariff",
-#   "pre_mkt_share" = "Pre-Tariff Market Share"
-# )
-# 
-# iv_ad1 = modelsummary(
-#   model = iv_clean_2,
-#   star = TRUE,
-#   shape = "rbind",
-#   gof_map = gof_list,
-#   coef_map = coef_name,
-#   # output = "latex"
-# )
-# 
+## IV  ---------------------------------------------------------------------
+# We instrument the market share of Chinese firm in 2010 to predict tariff and then price increase
+
+iv_2 = feols(
+  log(net_price) ~ PV_system_size_DC + I(PV_system_size_DC^2) + elec_price + mean_week_wage +
+    population_density + pct_bachelor_estimate + median_home_value + median_household_income
+  | county + year_quarter + installer_name
+  | ln_tariff ~ pre_mkt_share,
+  cluster = ~zip_code,
+  data = rob_post_ad2
+)
+
+gof_list <- tribble(
+  ~raw,                  ~clean,           ~fmt,
+  "nobs",                "Num.Obs",        "%.0f",
+  "r.squared",           "R2",             "%.3f",
+  "adj.r.squared",       "R2-Adj.",        "%.3f",
+  "FE: county",          "FE: County",         "%.0f",
+  "FE: year_quarter",    "FE: Year-Quarter",        "%.0f",
+  "FE: installer_name",  "FE: Installer",      "%.0f",
+  "FE: origin",          "FE: Origin",         "%.0f",
+  "FE: year",            "FE: Year",           "%.0f",
+  "FE: year_origin",     "FE: Year × Origin",  "%.0f",
+  "FE: quarter_origin",  "FE: Year-Quarter × Origin",  "%.0f"
+)
+
+iv_clean_2 = list(
+  # First stage
+  "First Stage" = summary(iv_2, stage = 1),
+  # Second stage
+  "Second Stage" = iv_2
+)
+
+coef_name = c(
+  "fit_ln_tariff" = "Fitted Resid. Ln Tariff",
+  "pre_mkt_share" = "Pre-Tariff Market Share"
+)
+
+iv_ad1 = modelsummary(
+  model = iv_clean_2,
+  star = TRUE,
+  shape = "rbind",
+  gof_map = gof_list,
+  coef_map = coef_name,
+  # output = "latex"
+)
+
 # writeLines(as.character(iv_ad1), "output/regression/robustness/iv_ad1.tex")
 # 
 # 
