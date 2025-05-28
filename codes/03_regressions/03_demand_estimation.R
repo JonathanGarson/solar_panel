@@ -21,13 +21,13 @@ demand[, se_zip_county := paste0(county, zip_code)]
 # IV ----------------------------------------------------------------------
 # POISSON CF --------
 linear_ols_net = feols(log(price_w) ~ rebate_w + elec_price + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + rebate_w 
-                       | year + county + origin , cluster = ~zip_code, data = demand[year %in% 2010:2018], data.save = T)
+                       | year + county + origin, cluster = ~zip_code, data = demand[year %in% 2010:2013], data.save = T)
 demand_used = setDT(linear_ols_net$data)
 demand_used = demand_used[!is.na(median_home_value)]
 demand_used[, res_net := linear_ols_net$residuals]
 
 demand_pois_cf_net = fepois(demand ~ log(price_w) + res_net + rebate_w  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value 
-                            | year + county + origin, cluster = ~ zip_code, data = demand_used[year %in% 2010:2018])
+                            | year + county + origin, cluster = ~ zip_code, data = demand_used[year %in% 2010:2013])
 
 demand_pois_cf_net_ng = fenegbin(demand ~ log(price_w) + res_net + rebate_w  + PV_system_size_DC + PV_system_size_DC^2 + population_density + median_home_value + rebate_w
                             | year + county + origin, 

@@ -1,0 +1,72 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
+column{3,5,7}={}{halign=c,},
+column{1}={}{halign=l,},
+cell{2}{2}={}{halign=c,},
+cell{2}{4}={}{halign=c,},
+cell{2}{6}={}{halign=c,},
+cell{3}{2}={}{halign=c,},
+cell{3}{4}={}{halign=c,},
+cell{3}{6}={}{halign=c,},
+cell{4}{2}={}{halign=c,},
+cell{4}{4}={}{halign=c,},
+cell{4}{6}={}{halign=c,},
+cell{5}{2}={}{halign=c,},
+cell{5}{4}={}{halign=c,},
+cell{5}{6}={}{halign=c,},
+cell{6}{2}={}{halign=c,},
+cell{6}{4}={}{halign=c,},
+cell{6}{6}={}{halign=c,},
+cell{7}{2}={}{halign=c,},
+cell{7}{4}={}{halign=c,},
+cell{7}{6}={}{halign=c,},
+cell{8}{2}={}{halign=c,},
+cell{8}{4}={}{halign=c,},
+cell{8}{6}={}{halign=c,},
+cell{9}{2}={}{halign=c,},
+cell{9}{4}={}{halign=c,},
+cell{9}{6}={}{halign=c,},
+cell{10}{2}={}{halign=c,},
+cell{10}{4}={}{halign=c,},
+cell{10}{6}={}{halign=c,},
+cell{11}{2}={}{halign=c,},
+cell{11}{4}={}{halign=c,},
+cell{11}{6}={}{halign=c,},
+cell{12}{2}={}{halign=c,},
+cell{12}{4}={}{halign=c,},
+cell{12}{6}={}{halign=c,},
+cell{13}{2}={}{halign=c,},
+cell{13}{4}={}{halign=c,},
+cell{13}{6}={}{halign=c,},
+cell{14}{2}={}{halign=c,},
+cell{14}{4}={}{halign=c,},
+cell{14}{6}={}{halign=c,},
+cell{1}{2}={c=2,}{halign=c, halign=c,},
+cell{1}{4}={c=2,}{halign=c, halign=c,},
+cell{1}{6}={c=2,}{halign=c, halign=c,},
+hline{9}={1,2,3,4,5,6,7}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& Anti-Dumping: 2010-2013 &  & Anti-Dumping: 2014-2016 &  & Trade War &  \\ \cmidrule[lr]{2-3}\cmidrule[lr]{4-5}\cmidrule[lr]{6-7}
+& Poisson & NegBin & Poisson  & NegBin  & Poisson   & NegBin   \\ \midrule %% TinyTableHeader
+Price & \num{-1.075}*** & \num{-0.749}*** & \num{-0.158}** & \num{-0.276}*** & \num{-0.348}*** & \num{-0.317}*** \\
+& (\num{0.264}) & (\num{0.079}) & (\num{0.060}) & (\num{0.066}) & (\num{0.045}) & (\num{0.046}) \\
+Price\textasciicircum{}2 & \num{0.035}*** & \num{0.024}*** & \num{0.007}* & \num{0.012}*** & \num{0.015}*** & \num{0.014}*** \\
+& (\num{0.010}) & (\num{0.003}) & (\num{0.003}) & (\num{0.003}) & (\num{0.002}) & (\num{0.002}) \\
+\textbackslash{}mu & \num{3.059}*** & \num{2.231}*** & \num{0.342}* & \num{0.585}*** & \num{0.752}*** & \num{0.665}*** \\
+& (\num{0.774}) & (\num{0.234}) & (\num{0.134}) & (\num{0.154}) & (\num{0.092}) & (\num{0.091}) \\
+FE: Origin & X & X & X & X & X & X \\
+FE: County & X & X & X & X & X & X \\
+Overdispersion (theta) &  & \num{2.560} &  & \num{3.860} &  & \num{4.400} \\
+Mean Price & \num{6.130} & \num{6.130} & \num{4.067} & \num{4.067} & \num{3.580} & \num{3.580} \\
+Log-Likelihood & \num{-219707.450} & \num{-119293.700} & \num{-901744.390} & \num{-483158.070} & \num{-1113298.950} & \num{-580588.480} \\
+AIC & \num{439556.900} & \num{238727.400} & \num{1803628.800} & \num{966456.100} & \num{2226735.900} & \num{1161315.000} \\
+\bottomrule
+\end{talltblr}
+\end{table}

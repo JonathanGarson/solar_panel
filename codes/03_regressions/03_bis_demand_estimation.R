@@ -97,10 +97,10 @@ periods <- list(
 # Estimate the first-stage control function for each period
 for (p in names(periods)) {
   data_p <- periods[[p]]
-  cf_model <- feols(log(price_w) ~ population_density + population +
+  cf_model <- feols(log(price_w) ~ log(tariff) + population_density + population +
                       pct_bachelor_estimate + median_home_value + median_household_income +
                       PV_system_size_DC + I(PV_system_size_DC^2) + rebate_w + elec_price
-                    | year_quarter + origin + installer_name + county,
+                    | year_quarter + origin + county,
                     cluster = "zip_code",
                     data = data_p)
   periods[[p]][, res := resid(cf_model)]
@@ -109,21 +109,21 @@ for (p in names(periods)) {
 # Table for first stage
 model_1st = list(
   "Anti-Dumping: 2010-2013" = list(
-    "Poisson" = feols(log(price_w) ~ log(tariff) + population_density + population + pct_bachelor_estimate + median_home_value + median_household_income + 
+    "OLS" = feols(log(price_w) ~ log(tariff) + population_density + population + pct_bachelor_estimate + median_home_value + median_household_income + 
                          PV_system_size_DC + I(PV_system_size_DC^2)
-                       | year_quarter + origin + installer_name + county,
+                       | year_quarter + origin  + county,
                        cluster = "zip_code", data = demand[year %in% 2010:2013])),
   
   "Anti-Dumping: 2014-2016" = list(
-    "Poisson" = feols(log(price_w) ~ log(tariff) + population_density + population + pct_bachelor_estimate + median_home_value + median_household_income + 
+    "OLS" = feols(log(price_w) ~ log(tariff) + population_density + population + pct_bachelor_estimate + median_home_value + median_household_income + 
                           PV_system_size_DC + I(PV_system_size_DC^2)
-                        | year_quarter + origin + installer_name + county,
+                        | year_quarter + origin  + county,
                        cluster = "zip_code", data = demand[year %in% 2014:2016])),
   
   "Trade War" = list(
-    "Poisson" = feols(log(price_w) ~ log(tariff) + population_density + population + pct_bachelor_estimate + median_home_value + median_household_income + 
+    "OLS" = feols(log(price_w) ~ log(tariff) + population_density + population + pct_bachelor_estimate + median_home_value + median_household_income + 
                           PV_system_size_DC + I(PV_system_size_DC^2)
-                        | year_quarter + origin + installer_name + county,
+                        | year_quarter + origin  + county,
                        cluster = "zip_code", data = demand[year %in% 2017:2018]))
   )
 
@@ -135,16 +135,16 @@ demand_1stage = modelsummary(
   gof_omit = "AIC|Within|Std.|BIC|RMSE",
   output = "latex"
   )
-writeLines(as.character(demand_1stage), "output/regression/demand_estimation/cf_function.tex")
+writeLines(as.character(demand_1stage), "output/regression/demand_estimation/cf_function_corrected.tex")
 
 # Estimate Poisson for first two periods, NB for last
 models <- list(
   "Anti-Dumping: 2010-2013" = list(
-    "IV" = feols(demand_zip_code ~ price_w + price_w^2  + res + population_density + population + pct_bachelor_estimate + 
-             median_home_value + median_household_income + PV_system_size_DC + I(PV_system_size_DC^2) + elec_price + rebate_w
-           | year + origin + county,
-           cluster = "zip_code", data = periods[["2010–2013"]]),
-    "Poisson" = fepois(demand_zip_code ~ price_w + price_w^2  + res + population_density + population + pct_bachelor_estimate + 
+    # "IV" = feols(demand_zip_code ~ price_w + price_w^2  + res + population_density + population + pct_bachelor_estimate +
+    #          median_home_value + median_household_income + PV_system_size_DC + I(PV_system_size_DC^2) + elec_price + rebate_w
+    #        | year + origin + county,
+    #        cluster = "zip_code", data = periods[["2010–2013"]]),
+    "Poisson" = fepois(demand_zip_code ~ price_w + price_w^2  + res + population_density + population + pct_bachelor_estimate +
              median_home_value + median_household_income + PV_system_size_DC + I(PV_system_size_DC^2) + elec_price + rebate_w
            | year + origin + county,
            cluster = "zip_code", data = periods[["2010–2013"]]),
@@ -154,10 +154,10 @@ models <- list(
              cluster = "zip_code", data = periods[["2010–2013"]])),
   
   "Anti-Dumping: 2014-2016" = list(
-    "IV" = feols(demand_zip_code ~ price_w + price_w^2 + res + population_density + population + pct_bachelor_estimate +
-             median_home_value + median_household_income + PV_system_size_DC + I(PV_system_size_DC^2) + elec_price + rebate_w
-           | year + origin + county,
-           cluster = "zip_code", data = periods[["2014–2016"]]),
+    # "IV" = feols(demand_zip_code ~ price_w + price_w^2 + res + population_density + population + pct_bachelor_estimate +
+    #          median_home_value + median_household_income + PV_system_size_DC + I(PV_system_size_DC^2) + elec_price + rebate_w
+    #        | year + origin + county,
+    #        cluster = "zip_code", data = periods[["2014–2016"]]),
     "Poisson" = fepois(demand_zip_code ~ price_w + price_w^2 + res + population_density + population + pct_bachelor_estimate +
              median_home_value + median_household_income + PV_system_size_DC + I(PV_system_size_DC^2) + elec_price
            | year + origin + county,
@@ -168,10 +168,10 @@ models <- list(
                         cluster = "zip_code", data = periods[["2014–2016"]])),
   
   "Trade War" = list(
-    "IV" = feols(demand_zip_code ~ price_w + price_w^2 + res + population_density + population + pct_bachelor_estimate +
-                         median_home_value + median_household_income + PV_system_size_DC + I(PV_system_size_DC^2)+ elec_price
-                       | year + origin + county,
-                       cluster = "zip_code", data = periods[["2017–2018"]]),
+    # "IV" = feols(demand_zip_code ~ price_w + price_w^2 + res + population_density + population + pct_bachelor_estimate +
+    #                      median_home_value + median_household_income + PV_system_size_DC + I(PV_system_size_DC^2)+ elec_price
+    #                    | year + origin + county,
+    #                    cluster = "zip_code", data = periods[["2017–2018"]]),
     "Poisson" = fepois(demand_zip_code ~ price_w + price_w^2 + res + population_density + population + pct_bachelor_estimate +
                          median_home_value + median_household_income + PV_system_size_DC + I(PV_system_size_DC^2)+ elec_price
                        | year + origin + county,
@@ -244,9 +244,9 @@ demand_1 = modelsummary(models,
              add_rows = add_bottom,
              coef_map = coef_name, 
              gof_map = custom_gof_map,
-             output = "latex",
+             # output = "latex",
              )
-writeLines(as.character(demand_1), "output/regression/demand_estimation/demand_1_robs_elec.tex")
+writeLines(as.character(demand_1), "output/regression/demand_estimation/demand_1_robs_elec_corrected.tex")
 
 # Elasticity by Quantile --------------------------------------------------
 
