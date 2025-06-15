@@ -77,7 +77,7 @@ dt_long <- melt(elec,
 dt_long[, year := gsub(".* (\\d{4})$", "\\1", quarter)]
 dt_long[, mean_price_year := mean(elec_price), by = .(state, year)]
 
-dt_long[, year_quarter := format(as.yearqtr(quarter, format = "Q%q %Y"), format = "%YQ%q")]
+dt_long[, year_quarter := as.yearqtr(quarter, format = "Q%q %Y")]
 dt_long = dt_long[, .SD, .SDcols = c("state", "year_quarter", "elec_price", "mean_price_year")]
 
 ggplot(dt_long[state %in% c("ca", "tx"), ], 

@@ -13,11 +13,8 @@ library(gt)
 tts = setDT(read_parquet(data_temp("TTS_merged.parquet")))
 ad_2012 = fread(data_final("ad_2012_final.csv"))
 ad_2015 = fread(data_final("ad_2015_final.csv"))
-# wages = fread(data_temp("wage_installer_PV.csv"))
 wages = fread(data_temp("elec_contractor_wage_emp.csv"))
 elec = fread(data_temp("elec_price.csv"))
-share_panel = fread(data_temp("share_panel_install_price.csv"))
-utility = fread(data_temp("utility_mapping_california.csv"))
 
 # Selecting firms ---------------------------------------------------------
 
@@ -25,39 +22,6 @@ utility = fread(data_temp("utility_mapping_california.csv"))
 
 # Displaying the number of installation per model per year
 tts[, sales_per_model := sum(module_quantity, na.rm = T) , by = c("year","module_model")]
-for (y in c(2011, 2013, 2017, 2019)){
-  sales_dt <- unique(tts[year == `y`, .(module_manufacturer,module_model, sales_per_model)])
-  sales_dt[, sum_year := sum(sales_per_model)]
-  sales_dt[, pct_sales := sales_per_model/sum_year]
-  setorder(sales_dt, cols = -pct_sales)
-  sales_dt[, cum_sum_pct_sales := cumsum(pct_sales)]
-  
-  # Compute summary statistics
-  n_models    <- nrow(sales_dt)
-  mean_sales  <- mean(sales_dt$sales_per_model, na.rm = TRUE)
-  median_sales<- median(sales_dt$sales_per_model, na.rm = TRUE)
-  max_sales   <- max(sales_dt$sales_per_model, na.rm = TRUE)
-  min_sales   <- min(sales_dt$sales_per_model, na.rm = TRUE)
-  
-  # Create a label for the annotation
-  stats_label <- paste0("Models: ", n_models, "\n",
-                        "Mean: ", round(mean_sales, 2), "\n",
-                        "Median: ", round(median_sales, 2), "\n",
-                        "Max: ", max_sales, "\n",
-                        "Min: ", min_sales)
- 
-  # Plot histogram of sales per model for 2010
-  ggplot(sales_dt, aes(x = sales_per_model)) +
-    geom_histogram(bins = 30, fill = "steelblue", color = "black") +
-    labs(
-      x = "Sales per Model",
-      y = "Frequency"
-    ) +
-    theme_light() +
-    annotate("text", x = Inf, y = Inf, label = stats_label, 
-             hjust = 1.1, vjust = 1.1, size = 5)
-  ggsave(glue("output/figures/statdesc/sales_distribution_{y}.pdf"), width = 10, height = 8)
-}
 
 # We select the firm that represented 90% of the market share between 2010 and 2020
 tts[, sales_per_brand := sum(module_quantity, na.rm = T) , by = c("module_manufacturer")]
@@ -85,13 +49,6 @@ tts = merge(tts, top_firms, by = "module_manufacturer")
 # We get rid of Longi given its unclear position with respect to tariff and only represent 2% sales
 tts = tts[module_manufacturer != "longi green energy technology co., ltd."]
 # Note that the merge above does not have the all.x = TRUE argument which implies that non-matched observations are dropped. 
-
-tts[, china := ifelse(list_country == "China", 1, 0)]
-tts[, korea := ifelse(list_country == "South Korea", 1, 0)]
-tts[, usa := ifelse(list_country == "USA", 1, 0)]
-tts[, norway := ifelse(list_country == "Norway", 1, 0)]
-tts[, germany := ifelse(list_country == "Germany", 1, 0)]
-tts[, japan := ifelse(list_country == "Japan", 1, 0)]
 
 # Setting different quality criteria --------------------------------------
 # models_dt = unique(tts[, .(module_model, efficiency_module, year)])
@@ -221,27 +178,9 @@ tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", 
 tts[!module_manufacturer %in% c("canadian solar", "trina solar", "jinko solar", "yingli energy (china)", "suntech power") & year_quarter >= "2020Q1" & year_quarter <= "2020Q4", 
     tariff := 1.20]
 
-
-# We keep zip code with population different from 0 since it would imply that zip code correspond to a commercial area
-tts[, demand_zip_code := .N, by = .(zip_code, year_quarter)]
-tts[, demand_zip_code_normalized := (demand_zip_code/population)*1000]
-
-# We keep zip code with population different from 0 since it would imply that zip code correspond to a commercial area
-tts[, demand_county := .N, by = .(county, year_quarter)]
-tts[, demand_county_normalized := (demand_county/population)*1000]
-
 # We merge with electricity price and wages 
 tts = merge(tts, elec, by = c("state", "year_quarter"), all.x = TRUE)
 tts = merge(tts, wages, by = c("county", "year"), all.x = TRUE)
-
-# We merge with share installed panel in installed price
-tts = merge(tts, share_panel, by = "year", all.x = TRUE)
-tts[, proxy_panel_price := (share/100) * total_installed_price]
-tts[, proxy_panel_price_w := proxy_panel_price/(PV_system_size_DC*1000)]
-
-# We merge with utility by zip_code
-utility[, zip_code := as.character(zip_code)]
-tts = merge(tts, utility, by = c("zip_code", "year"), all.x = TRUE)
 
 # Cleaning variables
 tts[, micro_inverter_1 := fcase(micro_inverter_1 == "Y", 1, 
@@ -251,13 +190,9 @@ tts[, micro_inverter_1 := fcase(micro_inverter_1 == "Y", 1,
 tts[, ground_mounted := fcase(ground_mounted == "1", 1, 
                               ground_mounted == "0", 0,
                               default = NA)]
-tts[, new_construction := fcase(new_construction == "1", 1,
-                                new_construction == "0", 0,
-                                default = NA)]
 
 # Cleaning before export --------------------------------------------------
 tts[, origin := tolower(list_country)]
-tts[, installation_zip_code := NULL]
 tts[, sales_per_model := NULL]
 tts[, sales_per_brand := NULL]
 tts[, sales_overall := NULL]
@@ -267,17 +202,16 @@ tts[, nb_manufacturer := NULL]
 tts = tts[ho == 1,]
 
 # We only keep 43 rows
-cols_to_keep <- c("county", "zip_code", "tract", "year", "year_quarter", "utility", "module_manufacturer", "installer_name", "origin",
-                  "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "efficiency_module", "treated", "new_construction", "ground_mounted" , "module_quantity", "module_model", "premium_panel_ad1", "premium_panel_ad2", "premium_panel_st",
-                  "price_w", "rebate_w", "proxy_panel_price", "proxy_panel_price_w", "ow_occupied_housing", "self_installed",
-                  "population", "population_density", "land_area_in_sqmi", "tract", "geoid", "pct_bachelor_estimate",
-                  "median_home_value", "median_household_income", "market_share_period", "china", "korea",
-                  "usa", "norway", "germany", "japan", "premium_panel_overall", "demand_zip_code", "demand_zip_code_normalized",
-                  "premium_installation", "tariff", "tariff_temp","elec_price", "demand_county", "demand_county_normalized",
-                  "mean_price_year", "mean_month_emp", "mean_week_wage", "demand_zip_code", "state")
+cols_to_keep <- c("county", "zip_code", "tract", "year", "year_quarter", "module_manufacturer", "installer_name", "origin",
+                  "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "efficiency_module", "treated", "ground_mounted" ,
+                  "module_quantity", "module_model", "premium_panel_ad1", "premium_panel_ad2", "premium_panel_st",
+                  "price_w", "rebate_w", "ow_occupied_housing", "self_installed", "population", "population_density",
+                  "land_area_in_sqmi", "tract", "geoid", "pct_bachelor_estimate",
+                  "median_home_value", "median_household_income", "market_share_period", "premium_panel_overall",
+                  "premium_installation", "tariff", "tariff_temp","elec_price",
+                  "mean_price_year", "mean_month_emp", "mean_week_wage", "state")
 
 tts = tts[, ..cols_to_keep]
-tts_ny = tts[state == "ny",]
 
 # We only keep California to preserve stability in our data
 tts = tts[state == "ca"]
@@ -285,6 +219,5 @@ tts = tts[population > 0,]
 
 # Export Data -------------------------------------------------------------
 # Export NY State as a Placebo
-write_parquet(tts_ny, data_final("tts_ny.parquet"))
 write_parquet(tts, data_final("tts_final.parquet"))
 fwrite(tts, data_final("tts_final.csv"))
