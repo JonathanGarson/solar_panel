@@ -1,4 +1,4 @@
-# This data set generates the final dataset we use for TTS data.
+# This data set reduces the dataset we use for our analysis.
 
 library(arrow)
 library(data.table)
@@ -64,7 +64,7 @@ tts = tts[, .SD, .SDcols = setdiff(colnames(tts), c(column_to_suppress, "azimuth
 
 toclean_colnames = setdiff(grep(pattern = "_1$", colnames(tts), value = TRUE), c("inverter_manufacturer_1","inverter_model_1","inverter_quantity_1","micro_inverter_1", 
                                                                                "built_in_meter_inverter_1", "output_capacity_inverter_1"))
-clean_colnames = c("data_provider","system_ID","module_manufacturer","module_model","module_quantity","technology_module","BIPV_module","bifacial_module"
+clean_colnames = c("system_ID","module_manufacturer","module_model","module_quantity","technology_module","BIPV_module","bifacial_module"
                    ,"nameplate_capacity_module","efficiency_module")
 setnames(tts, toclean_colnames, clean_colnames)
 
@@ -74,10 +74,10 @@ tts = tts[installer_name != "Tesla Energy"]
 tts = tts[installer_name != "SolarCity"]
 
 # Conserving smaller than 10kW size system, as bigger model can be of double use
-tts = tts[PV_system_size_DC <= 20,]
+tts = tts[PV_system_size_DC <= 10,]
 
-# We get rid of implausibly large price (above 15$/W) and too small
-tts = tts[price_w <=15] 
+# We get rid of implausibly large price (above 20$/W) and too small
+tts = tts[price_w <=20] 
 tts = tts[price_w >=1] 
 
 # Exporting
