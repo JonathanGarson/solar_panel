@@ -31,7 +31,7 @@ market_share = unique(tts[, .(module_manufacturer, market_share_period)])
 setorder(market_share, -market_share_period)
 market_share[, cum_sum_share := cumsum(market_share_period)]
 export_dt = market_share[cum_sum_share <= 0.9, .(module_manufacturer, market_share_period)]
-list_country = c("USA", "South Korea", "South Korea", "Germany", "China", "Norway", "China", "China", "Japan", "South Korea", "China", "China", "USA","USA", "Japan", "China")
+list_country = c("USA", "South Korea", "South Korea", "Germany", "China", "Norway", "China", "China", "Japan", "South Korea", "China", "China", "USA", "Japan", "China", "USA")
 export_dt = cbind(export_dt, list_country)
 
 table_final_brands = gt(export_dt) %>% 
@@ -202,7 +202,7 @@ tts[, nb_manufacturer := NULL]
 tts = tts[ho == 1,]
 
 # We only keep 43 rows
-cols_to_keep <- c("county", "zip_code", "tract", "year", "year_quarter", "module_manufacturer", "installer_name", "origin",
+cols_to_keep <- c("county", "zip_code", "tract", "year", "year_quarter", "year_month", "module_manufacturer", "installer_name", "origin",
                   "PV_system_size_DC", "total_installed_price", "rebate_or_grant", "efficiency_module", "treated", "ground_mounted" ,
                   "module_quantity", "module_model", "premium_panel_ad1", "premium_panel_ad2", "premium_panel_st",
                   "price_w", "rebate_w", "ow_occupied_housing", "self_installed", "population", "population_density",
